@@ -1,4 +1,4 @@
-import { PropsWithChildren, useState, useEffect } from "react";
+import { PropsWithChildren, useState } from "react";
 import { Drawer } from "vaul";
 import { Dream } from "../dreams/data/dreams";
 
@@ -32,7 +32,7 @@ export const DetailsDrawer = ({
       if (scrollTop + clientHeight >= scrollHeight) {
         setSnap(snapPoints[2]);
       }
-      if (scrollTop === 0) {
+      if (scrollTop === 0 && onClose) {
         onClose();
       }
     }

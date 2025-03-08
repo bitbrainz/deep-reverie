@@ -13,7 +13,7 @@ export const AR = ({ videoRef }: { videoRef: any }) => {
     <div className="bg-gray-900">
       <AppBar />
       <DetailsDrawer dream={dream} open={true}>
-        <div className="grid grid-cols-3 md:grid-cols-5 gap-4 p-2 bg-gray-100">
+        <div className=" bg-gray-100">
           <Camera videoRef={videoRef} />
           <PredictionDebugger />
         </div>

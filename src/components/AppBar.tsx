@@ -1,5 +1,3 @@
-import React from "react";
-
 export const AppBar = () => {
   return (
     <div className="bg-gray-900 p-3 flex justify-between items-center">

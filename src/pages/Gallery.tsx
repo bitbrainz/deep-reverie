@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { DREAMS, Dream } from "../dreams/data/dreams";
 import Card from "../components/Card";
 import { Drawer } from "vaul";
