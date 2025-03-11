@@ -12,7 +12,7 @@ import { DREAMS } from "../dreams/data/dreams";
 const initializeModel = async () => {
   const MODEL_URL = "https://teachablemachine.withgoogle.com/models/RfJZMLgp4/";
   // const MODEL_URL = "https://teachablemachine.withgoogle.com/models/MZnlyFQgT/"; (broken??)
-  // const MODEL_URL = "https://teachablemachine.withgoogle.com/models/IMZ_m6F48/";
+  // const MODEL_URL = "https://teachablemachine.withgoogle.com/models/IMZ_m6F48/"; newest not working
 
   const modelURL = MODEL_URL + "model.json";
   const metadataURL = MODEL_URL + "metadata.json";

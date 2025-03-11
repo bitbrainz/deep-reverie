@@ -1,7 +1,7 @@
 import { AppBar } from "../components/AppBar";
 import { DetailsDrawer } from "../components/DetailsDrawer";
 import { Camera } from "../prediction/Camera";
-import { PredictionDebugger } from "../prediction/PredictionDebugger";
+// import { PredictionDebugger } from "../prediction/PredictionDebugger";
 import { usePredictedDream } from "../prediction/PredictionContext";
 
 export const AR = ({ videoRef }: { videoRef: any }) => {
@@ -15,7 +15,7 @@ export const AR = ({ videoRef }: { videoRef: any }) => {
       <DetailsDrawer dream={dream} open={true}>
         <div className=" bg-gray-100">
           <Camera videoRef={videoRef} />
-          <PredictionDebugger />
+          {/* <PredictionDebugger /> */}
         </div>
       </DetailsDrawer>
     </div>
