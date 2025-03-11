@@ -13,7 +13,7 @@ export const PredictionDebugger: React.FC = () => {
     <div>
       <h3>{topPrediction}</h3>
       {predictions
-        .filter((prediction) => prediction.probability > 0.1)
+        // .filter((prediction) => prediction.probability > 0.1)
         .sort((a, b) => b.probability - a.probability)
         .map((prediction, index) => (
           <div key={index}>

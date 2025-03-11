@@ -11,7 +11,8 @@ import { DREAMS } from "../dreams/data/dreams";
 // Initialize the model and webcam
 const initializeModel = async () => {
   const MODEL_URL = "https://teachablemachine.withgoogle.com/models/RfJZMLgp4/";
-  // const MODEL_URL = "https://teachablemachine.withgoogle.com/models/MZnlyFQgT/";
+  // const MODEL_URL = "https://teachablemachine.withgoogle.com/models/MZnlyFQgT/"; (broken??)
+  // const MODEL_URL = "https://teachablemachine.withgoogle.com/models/IMZ_m6F48/";
 
   const modelURL = MODEL_URL + "model.json";
   const metadataURL = MODEL_URL + "metadata.json";
@@ -102,7 +103,7 @@ export const useTopPrediction = (refreshRate = 100, history = 2000) => {
 };
 
 export const usePredictedDream = (refreshRate = 100) => {
-  const prediction = useTopPrediction(refreshRate);
+  const prediction = useTopPrediction(refreshRate, 10);
   if (!prediction) return undefined;
 
   console.log(prediction);
