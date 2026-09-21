@@ -21,25 +21,26 @@ const Gallery = () => {
         onClose={() => setSelectedDream(null)}
       >
         <div className="grid grid-cols-3 md:grid-cols-5 gap-4 p-2">
-          {DREAMS.map((dream, index) => (
-            <>
-              {!selectedDream ? (
-                <Drawer.Trigger>
+          {DREAMS.map((dream, index) =>
+            !selectedDream ? (
+                <Drawer.Trigger key={dream.id} asChild>
                   <Card
-                    key={index}
-                    imageUrl={`/images/thumbnails/${dream.fileName}`}
+                    imageUrl={`/images/thumbnails/${dream.fileName.replace(".png", ".webp")}`}
+                    imageAlt={dream.title}
+                    eager={index < 6}
                     onClick={() => handleTileClick(dream)}
                   />
                 </Drawer.Trigger>
               ) : (
                 <Card
-                  key={index}
-                  imageUrl={`/images/thumbnails/${dream.fileName}`}
+                  key={dream.id}
+                  imageUrl={`/images/thumbnails/${dream.fileName.replace(".png", ".webp")}`}
+                  imageAlt={dream.title}
+                  eager={index < 6}
                   onClick={() => handleTileClick(dream)}
                 />
-              )}
-            </>
-          ))}
+              )
+          )}
         </div>
       </DetailsDrawer>
     </div>
