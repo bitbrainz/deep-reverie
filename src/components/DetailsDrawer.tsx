@@ -1,6 +1,7 @@
 import { PropsWithChildren, useState } from "react";
 import { Drawer } from "vaul";
 import { Dream } from "../dreams/data/dreams";
+import { BlacklightComparison } from "./BlacklightComparison";
 
 const snapPoints = ["150px", "550px", 1];
 
@@ -75,18 +76,17 @@ export const DetailsDrawer = ({
               style={{ height: typeof snap === "string" ? snap : "97%" }}
             >
               <div className="relative">
-                <img
+                <BlacklightComparison
                   src={`/images/saturated/${dream.fileName}`}
                   alt={dream.title}
-                  className="w-full max-w-[500px] m-auto"
                 />
-                <Drawer.Title className="absolute text-xl top-0 left-0 bg-black bg-opacity-50 text-white p-2">
+                <Drawer.Title className="absolute z-10 text-xl top-12 left-0 bg-black bg-opacity-50 text-white p-2">
                   {dream.title}
                 </Drawer.Title>
-                <div className="absolute text-l top-10 left-0 bg-black bg-opacity-50 text-white p-2">
+                <div className="absolute z-10 text-l top-24 left-0 bg-black bg-opacity-50 text-white p-2">
                   {dream.tagline}
                 </div>
-                <div className="absolute bottom-0 right-0 bg-black bg-opacity-50 text-white p-2">
+                <div className="absolute z-10 bottom-8 right-0 bg-black bg-opacity-50 text-white p-2">
                   ▶️ PLAY
                 </div>
               </div>
