@@ -16,6 +16,7 @@ const Card: React.FC<CardProps> = ({ imageUrl, imageAlt, eager, onClick }) => {
     >
       <img
         src={imageUrl}
+        srcSet={`${imageUrl} 1x, ${imageUrl.replace("/thumbnails/", "/thumbnails-2x/")} 2x`}
         alt={imageAlt}
         width="256"
         height="256"

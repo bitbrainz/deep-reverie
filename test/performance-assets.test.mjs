@@ -13,9 +13,13 @@ test("every artwork has budgeted WebP gallery and detail assets", async () => {
   for (const fileName of dreamFiles) {
     const webpName = fileName.replace(".png", ".webp");
     const thumbnail = await stat(`public/images/thumbnails/${webpName}`);
+    const highDensityThumbnail = await stat(
+      `public/images/thumbnails-2x/${webpName}`,
+    );
     const detail = await stat(`public/images/saturated/${webpName}`);
 
     assert.ok(thumbnail.size < 25_000, `${webpName} thumbnail exceeds 25 KB`);
+    assert.ok(highDensityThumbnail.size < 100_000, `${webpName} 2x thumbnail exceeds 100 KB`);
     assert.ok(detail.size < 1_000_000, `${webpName} detail exceeds 1 MB`);
   }
 });
