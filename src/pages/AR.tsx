@@ -291,7 +291,7 @@ export const AR = () => {
             {status === "idle" || canRetry ? (
               <button
                 type="button"
-                className="mt-4 rounded-lg bg-blue-500 px-4 py-2 font-semibold text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-white"
+                className="mt-4 rounded-lg bg-blue-700 px-4 py-2 font-semibold text-white hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-white"
                 onClick={() => setSessionRequest((request) => request + 1)}
               >
                 {status === "idle" ? "Start camera" : "Try again"}
