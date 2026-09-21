@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 
 export const Camera = ({ videoRef }: { videoRef: any }) => {
   const [isCameraActive, setIsCameraActive] = useState(false); // State to track camera activation
