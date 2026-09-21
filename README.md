@@ -22,7 +22,7 @@ npm ci
 npm run ar:targets
 ```
 
-The build script reads each listed source from `public/images/saturated`, scales it down from 2048×2048 to a maximum of 640×640 without enlargement, writes an intermediate JPEG at quality 82 with 4:4:4 chroma subsampling under the ignored `.cache/ar-targets/v1` directory, and compiles the ordered images into the versioned `.mind` bundle. The source file is never modified.
+The build script reads each listed source from `public/images/saturated`, scales it down from 2048×2048 to a maximum of 640×640 without enlargement, writes an intermediate JPEG at quality 82 with 4:4:4 chroma subsampling under the ignored `.cache/ar-targets/v<manifest-version>` directory, and compiles the ordered images into the versioned `.mind` bundle. It uses the prebuilt `@napi-rs/canvas` backend so target generation does not depend on a locally compiled `node-canvas` binary. The source file is never modified.
 
 | Target index | Dream ID | Artwork |
 | ---: | ---: | --- |
