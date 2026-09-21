@@ -4,131 +4,177 @@ import {
   PropsWithChildren,
   useContext,
   useEffect,
+  useMemo,
   useState,
 } from "react";
-import { DREAMS } from "../dreams/data/dreams";
+import {
+  findDreamByLabel,
+  findUnsupportedLabels,
+  Prediction,
+  selectStablePrediction,
+} from "./recognition";
 
-// Initialize the model and webcam
+// Deep Reverie v5dayandnight is the production model trained for the final image set.
+const MODEL_URL = "https://teachablemachine.withgoogle.com/models/IMZ_m6F48/";
+
 const initializeModel = async () => {
-  const MODEL_URL = "https://teachablemachine.withgoogle.com/models/RfJZMLgp4/";
-  // const MODEL_URL = "https://teachablemachine.withgoogle.com/models/MZnlyFQgT/"; (broken??)
-  // const MODEL_URL = "https://teachablemachine.withgoogle.com/models/IMZ_m6F48/"; newest not working
+  const loadedModel = await load(
+    `${MODEL_URL}model.json`,
+    `${MODEL_URL}metadata.json`
+  );
+  const unsupportedLabels = findUnsupportedLabels(loadedModel.getClassLabels());
 
-  const modelURL = MODEL_URL + "model.json";
-  const metadataURL = MODEL_URL + "metadata.json";
-
-  // Load the model
-  const loadedModel = await load(modelURL, metadataURL);
+  if (unsupportedLabels.length > 0) {
+    throw new Error(
+      `The recognition model contains unknown Dream labels: ${unsupportedLabels.join(
+        ", "
+      )}`
+    );
+  }
   return loadedModel;
 };
 
-const PredictionContext = createContext<
-  { model: CustomMobileNet | undefined; videoRef: any } | undefined
->(undefined);
+type PredictionContextValue = {
+  model?: CustomMobileNet;
+  videoRef: React.RefObject<HTMLVideoElement | null>;
+  modelStatus: "loading" | "ready" | "error";
+  modelError?: string;
+  recognitionError?: string;
+  setRecognitionError: (message?: string) => void;
+};
+
+const PredictionContext = createContext<PredictionContextValue | undefined>(
+  undefined
+);
+
+export const usePredictionStatus = () => {
+  const context = useContext(PredictionContext);
+  if (!context) throw new Error("PredictionProvider is missing");
+  return {
+    modelStatus: context.modelStatus,
+    modelError: context.modelError,
+    recognitionError: context.recognitionError,
+  };
+};
 
 export const usePrediction = (refreshRate = 100) => {
-  const [prediction, setPrediction] =
-    useState<{ className: string; probability: number }[]>();
+  const [prediction, setPrediction] = useState<Prediction[]>();
   const context = useContext(PredictionContext);
+  const model = context?.model;
+  const videoRef = context?.videoRef;
+  const setRecognitionError = context?.setRecognitionError;
 
   useEffect(() => {
-    console.log("HERE", context);
-    if (!context || !context.model || !context.videoRef.current) {
-      console.log("Model not yet initialized");
+    if (!model || !videoRef || !setRecognitionError) {
       return;
     }
-    const { model, videoRef } = context;
 
-    let isMounted = true; // Flag to prevent updates after unmount
+    let isMounted = true;
+    let timeout: number | undefined;
 
     const loop = async () => {
-      if (!isMounted) return; // Stop if component is unmounted
-      const newPrediction = await model.predict(videoRef.current);
-      setPrediction(newPrediction);
-      setTimeout(loop, refreshRate);
+      if (!isMounted) return;
+      const video = videoRef.current;
+
+      if (!video || video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) {
+        timeout = window.setTimeout(loop, refreshRate);
+        return;
+      }
+
+      try {
+        const newPrediction = await model.predict(video);
+        if (!isMounted) return;
+        setPrediction(newPrediction);
+        setRecognitionError(undefined);
+      } catch {
+        if (!isMounted) return;
+        setRecognitionError(
+          "Image recognition is temporarily unavailable. Keep the camera open and try again."
+        );
+      }
+      timeout = window.setTimeout(loop, refreshRate);
     };
 
-    loop();
+    void loop();
 
-    // Cleanup function
     return () => {
       isMounted = false;
+      if (timeout) window.clearTimeout(timeout);
     };
-  }, [context, context?.model, refreshRate]);
+  }, [model, refreshRate, setRecognitionError, videoRef]);
 
   return prediction;
 };
 
-export const useTopPrediction = (refreshRate = 100, history = 2000) => {
+export const useTopPrediction = (refreshRate = 100, historySize = 8) => {
   const prediction = usePrediction(refreshRate);
-  const [predictionHistory, setPredictionHistory] = useState<
-    { className: string; probability: number }[]
-  >([]);
+  const [predictionHistory, setPredictionHistory] = useState<Prediction[][]>([]);
 
   useEffect(() => {
     if (prediction) {
-      setPredictionHistory((prevHistory) => {
-        const newHistory = [...prevHistory, ...prediction];
-        return newHistory.slice(-history); // Keep only the last 50 predictions
-      });
+      setPredictionHistory((previous) =>
+        [...previous, prediction].slice(-historySize)
+      );
     }
-  }, [prediction]);
+  }, [historySize, prediction]);
 
-  if (predictionHistory.length === 0) return undefined;
-
-  const predictionCounts = predictionHistory.reduce(
-    (acc, { className, probability }) => {
-      if (!acc[className]) {
-        acc[className] = { count: 0, totalProbability: 0 };
-      }
-      acc[className].count += 1;
-      acc[className].totalProbability += probability;
-      return acc;
-    },
-    {} as Record<string, { count: number; totalProbability: number }>
+  return useMemo(
+    () => selectStablePrediction(predictionHistory)?.className,
+    [predictionHistory]
   );
-
-  const bestPrediction = Object.entries(predictionCounts).reduce(
-    (best, [className, { count, totalProbability }]) => {
-      const averageProbability = totalProbability / count;
-      if (!best || averageProbability > best.averageProbability) {
-        return { className, averageProbability };
-      }
-      return best;
-    },
-    undefined as { className: string; averageProbability: number } | undefined
-  );
-
-  return bestPrediction?.className;
 };
 
 export const usePredictedDream = (refreshRate = 100) => {
   const prediction = useTopPrediction(refreshRate, 10);
   if (!prediction) return undefined;
 
-  console.log(prediction);
-
-  const dream = DREAMS.find(
-    (dream) => dream.fileName.replace(".png", "") === prediction
-  );
-
-  console.log(dream?.title);
-
-  return dream;
+  return findDreamByLabel(prediction);
 };
 
 export const PredictionProvider = ({
   children,
   videoRef,
-}: PropsWithChildren<{ videoRef: any }>) => {
+}: PropsWithChildren<{
+  videoRef: React.RefObject<HTMLVideoElement | null>;
+}>) => {
   const [model, setModel] = useState<CustomMobileNet>();
+  const [modelStatus, setModelStatus] = useState<"loading" | "ready" | "error">(
+    "loading"
+  );
+  const [modelError, setModelError] = useState<string>();
+  const [recognitionError, setRecognitionError] = useState<string>();
 
   useEffect(() => {
-    initializeModel().then((initializedModel) => setModel(initializedModel));
+    let mounted = true;
+    initializeModel()
+      .then((initializedModel) => {
+        if (!mounted) return;
+        setModel(initializedModel);
+        setModelStatus("ready");
+      })
+      .catch(() => {
+        if (!mounted) return;
+        setModelStatus("error");
+        setModelError(
+          "The Deep Reverie recognition model could not be loaded. Check your connection and reload the page."
+        );
+      });
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   return (
-    <PredictionContext.Provider value={{ model, videoRef }}>
+    <PredictionContext.Provider
+      value={{
+        model,
+        videoRef,
+        modelStatus,
+        modelError,
+        recognitionError,
+        setRecognitionError,
+      }}
+    >
       {children}
     </PredictionContext.Provider>
   );

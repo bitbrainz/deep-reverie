@@ -1,14 +1,33 @@
-import { useEffect, useState, useRef } from "react";
+import { useCallback, useEffect, useState } from "react";
 
-export const Camera = ({ videoRef }: { videoRef: any }) => {
-  const [isCameraActive, setIsCameraActive] = useState(false); // State to track camera activation
+export type CameraState = "idle" | "starting" | "active" | "error";
 
-  // Start the camera when the user clicks a button
+export const Camera = ({
+  videoRef,
+  onStateChange,
+}: {
+  videoRef: React.RefObject<HTMLVideoElement | null>;
+  onStateChange?: (state: CameraState, error?: string) => void;
+}) => {
+  const [cameraState, setCameraState] = useState<CameraState>("idle");
+
+  const updateState = useCallback(
+    (state: CameraState, error?: string) => {
+      setCameraState(state);
+      onStateChange?.(state, error);
+    },
+    [onStateChange]
+  );
+
   const startCamera = async () => {
+    updateState("starting");
     try {
+      if (!navigator.mediaDevices?.getUserMedia) {
+        throw new Error("unsupported");
+      }
       const constraints = {
         video: {
-          facingMode: "environment", // Use rear camera
+          facingMode: { ideal: "environment" },
           width: { ideal: 1280 },
           height: { ideal: 720 },
         },
@@ -19,37 +38,40 @@ export const Camera = ({ videoRef }: { videoRef: any }) => {
 
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        videoRef.current.setAttribute("playsinline", "true"); // Required for iOS
-        videoRef.current.setAttribute("webkit-playsinline", "true"); // Older Safari support
+        videoRef.current.setAttribute("playsinline", "true");
+        videoRef.current.setAttribute("webkit-playsinline", "true");
+        await videoRef.current.play();
       }
-      setIsCameraActive(true);
-    } catch (err) {
-      console.error("Error accessing camera:", err);
+      updateState("active");
+    } catch {
+      updateState(
+        "error",
+        "Camera access is unavailable. Allow camera permission in your browser, then try again."
+      );
     }
   };
 
-  const stopCamera = () => {
+  const stopCamera = useCallback(() => {
     if (videoRef.current?.srcObject) {
       const stream = videoRef.current.srcObject as MediaStream;
       stream.getTracks().forEach((track) => track.stop());
-      setIsCameraActive(false);
+      videoRef.current.srcObject = null;
     }
-  };
+  }, [videoRef]);
 
   useEffect(() => {
-    // Clean up camera on component unmount
     return () => stopCamera();
-  }, []);
+  }, [stopCamera]);
 
   return (
     <div>
-      {/* Button to start the camera */}
-      {!isCameraActive && (
+      {cameraState !== "active" && (
         <button
-          className="m-10 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-          onClick={startCamera}
+          className="rounded-full bg-white px-6 py-3 font-semibold text-slate-950 shadow-lg transition hover:bg-cyan-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cyan-200 disabled:cursor-wait disabled:opacity-70"
+          onClick={() => void startCamera()}
+          disabled={cameraState === "starting"}
         >
-          Start AR Experience
+          {cameraState === "starting" ? "Starting camera…" : "Start camera"}
         </button>
       )}
 
@@ -61,7 +83,8 @@ export const Camera = ({ videoRef }: { videoRef: any }) => {
         style={{
           width: "100%",
           height: "100%",
-          objectFit: "contain",
+          objectFit: "cover",
+          display: cameraState === "active" ? "block" : "none",
         }}
       />
     </div>
