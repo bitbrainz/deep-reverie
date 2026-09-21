@@ -4,9 +4,10 @@ export const Home = () => {
   return (
     <div className="relative h-screen w-full">
       <img
-        src="/images/hero.png"
+        src="/images/hero.webp"
         alt="Deep Reverie Hero"
         className="w-full h-full object-cover"
+        fetchPriority="high"
       />
       <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center text-white p-8">
         <h1 className="text-5xl font-bold mb-6">Deep Reverie</h1>

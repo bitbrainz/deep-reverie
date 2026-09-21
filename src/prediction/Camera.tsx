@@ -1,6 +1,10 @@
-import { useEffect, useState, useRef } from "react";
+import { RefObject, useEffect, useState } from "react";
 
-export const Camera = ({ videoRef }: { videoRef: any }) => {
+export const Camera = ({
+  videoRef,
+}: {
+  videoRef: RefObject<HTMLVideoElement | null>;
+}) => {
   const [isCameraActive, setIsCameraActive] = useState(false); // State to track camera activation
 
   // Start the camera when the user clicks a button

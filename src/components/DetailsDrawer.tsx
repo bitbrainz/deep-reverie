@@ -68,9 +68,12 @@ export const DetailsDrawer = ({
             >
               <div className="relative">
                 <img
-                  src={`/images/saturated/${dream.fileName}`}
+                  src={`/images/saturated/${dream.fileName.replace(".png", ".webp")}`}
                   alt={dream.title}
                   className="w-full max-w-[500px] m-auto"
+                  width="2048"
+                  height="2048"
+                  decoding="async"
                 />
                 <Drawer.Title className="absolute text-xl top-0 left-0 bg-black bg-opacity-50 text-white p-2">
                   {dream.title}

@@ -1,10 +1,14 @@
+import { useRef } from "react";
 import { AppBar } from "../components/AppBar";
 import { DetailsDrawer } from "../components/DetailsDrawer";
 import { Camera } from "../prediction/Camera";
 // import { PredictionDebugger } from "../prediction/PredictionDebugger";
-import { usePredictedDream } from "../prediction/PredictionContext";
+import {
+  PredictionProvider,
+  usePredictedDream,
+} from "../prediction/PredictionContext";
 
-export const AR = ({ videoRef }: { videoRef: any }) => {
+const ARContent = ({ videoRef }: { videoRef: React.RefObject<HTMLVideoElement | null> }) => {
   const dream = usePredictedDream();
 
   console.log(dream?.title);
@@ -21,3 +25,15 @@ export const AR = ({ videoRef }: { videoRef: any }) => {
     </div>
   );
 };
+
+const AR = () => {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  return (
+    <PredictionProvider videoRef={videoRef}>
+      <ARContent videoRef={videoRef} />
+    </PredictionProvider>
+  );
+};
+
+export default AR;

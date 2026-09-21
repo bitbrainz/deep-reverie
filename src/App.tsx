@@ -1,23 +1,21 @@
 import "./App.css";
-import { useRef } from "react";
+import { lazy, Suspense } from "react";
 import { Home } from "./pages/Home";
-import Gallery from "./pages/Gallery";
 import { Routes, Route } from "react-router";
-import { Debug } from "./pages/Debug";
-import { AR } from "./pages/AR";
-import { PredictionProvider } from "./prediction/PredictionContext";
+
+const Gallery = lazy(() => import("./pages/Gallery"));
+const AR = lazy(() => import("./pages/AR"));
+const Debug = lazy(() => import("./pages/Debug"));
 
 export const App = () => {
-  const videoRef = useRef<HTMLVideoElement>(null);
-
   return (
-    <PredictionProvider videoRef={videoRef}>
+    <Suspense fallback={<div className="min-h-screen bg-gray-900" />}>
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/gallery" element={<Gallery />} />
-        <Route path="/debug" element={<Debug videoRef={videoRef} />} />
-        <Route path="/ar" element={<AR videoRef={videoRef} />} />
+        <Route path="/debug" element={<Debug />} />
+        <Route path="/ar" element={<AR />} />
       </Routes>
-    </PredictionProvider>
+    </Suspense>
   );
 };
