@@ -41,6 +41,11 @@ export const DetailsDrawer = ({
         <Drawer.Title className="sr-only">
           {dream ? `${dream.title} details` : "Dream details"}
         </Drawer.Title>
+        <Drawer.Description className="sr-only">
+          {dream
+            ? `${dream.tagline}. Read the vision, its importance, AI's role, and a description of the artwork.`
+            : "Details about the selected dream."}
+        </Drawer.Description>
         <div className="relative flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain">
           <div className="sticky top-0 z-20 flex h-14 shrink-0 items-center justify-between border-b border-slate-200/80 bg-slate-50/95 px-4 backdrop-blur sm:px-6">
             <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">

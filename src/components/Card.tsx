@@ -1,8 +1,10 @@
+import { MouseEventHandler } from "react";
+
 interface CardProps {
   imageUrl: string;
   title: string;
   tagline: string;
-  onClick: () => void;
+  onClick: MouseEventHandler<HTMLButtonElement>;
 }
 
 const Card = ({ imageUrl, title, tagline, onClick }: CardProps) => {
