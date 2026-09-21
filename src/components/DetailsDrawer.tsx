@@ -61,8 +61,16 @@ export const DetailsDrawer = ({
         >
           <Drawer.Handle className="m-2" />
           {dream ? (
+            <Drawer.Description className="sr-only">
+              Details for {dream.title}: {dream.tagline}
+            </Drawer.Description>
+          ) : null}
+          {dream ? (
             <div
               onScroll={handleScroll}
+              tabIndex={0}
+              role="region"
+              aria-label={`${dream.title} details`}
               className="p-4 bg-gray-100 overflow-y-auto"
               style={{ height: typeof snap === "string" ? snap : "97%" }}
             >

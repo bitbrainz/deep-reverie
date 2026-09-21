@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "asset": "deep-reverie-pilot-v1.mind",
+  "compiler": "mind-ar@1.2.5",
+  "preprocessing": {
+    "maxWidth": 640,
+    "maxHeight": 640,
+    "format": "jpeg",
+    "quality": 82,
+    "chromaSubsampling": "4:4:4"
+  },
+  "targets": [
+    { "targetIndex": 0, "dreamId": 1, "fileName": "1_VirtualReality.png", "title": "Virtual Reality" },
+    { "targetIndex": 1, "dreamId": 2, "fileName": "2_WorkLifeBalance.png", "title": "Work-Life Balance" },
+    { "targetIndex": 2, "dreamId": 3, "fileName": "3_Empathy.png", "title": "Empathy Everywhere" },
+    { "targetIndex": 3, "dreamId": 4, "fileName": "4_InternetAccess.png", "title": "Worldwide Internet Access" },
+    { "targetIndex": 4, "dreamId": 5, "fileName": "5_AsteroidResources.png", "title": "Asteroid Mining" },
+    { "targetIndex": 5, "dreamId": 6, "fileName": "6_Peace.png", "title": "World Peace" },
+    { "targetIndex": 6, "dreamId": 7, "fileName": "7_NoDisease.png", "title": "AI in Medicine" },
+    { "targetIndex": 7, "dreamId": 8, "fileName": "8_Crypto.png", "title": "Cryptocurrencies" },
+    { "targetIndex": 8, "dreamId": 9, "fileName": "9_Music.png", "title": "Musical Expression" },
+    { "targetIndex": 9, "dreamId": 10, "fileName": "10_NoBorders.png", "title": "Borderless World" }
+  ]
+}
