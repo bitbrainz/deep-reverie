@@ -9,7 +9,10 @@ describe("Gallery", () => {
 
     opener.focus();
     fireEvent.click(opener);
-    fireEvent.click(await screen.findByRole("button", { name: "Next →" }));
+    const closeButton = await screen.findByRole("button", { name: "Close dream details" });
+    await waitFor(() => expect(closeButton).toHaveFocus());
+
+    fireEvent.click(screen.getByRole("button", { name: "Next →" }));
     expect(screen.getByRole("heading", { name: "Work-Life Balance" })).toBeVisible();
 
     fireEvent.keyDown(document, { key: "Escape" });

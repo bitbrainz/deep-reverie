@@ -1,4 +1,4 @@
-import { PropsWithChildren } from "react";
+import { PropsWithChildren, useRef } from "react";
 import { Drawer } from "vaul";
 import { Dream } from "../dreams/data/dreams";
 
@@ -24,7 +24,10 @@ export const DetailsDrawer = ({
   onClose,
   onPrevious,
   onNext,
-}: DetailsDrawerProps) => (
+}: DetailsDrawerProps) => {
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+
+  return (
   <Drawer.Root
     open={open}
     onOpenChange={(nextOpen) => {
@@ -36,6 +39,10 @@ export const DetailsDrawer = ({
       <Drawer.Overlay className="fixed inset-0 z-40 bg-slate-950/75 backdrop-blur-sm" />
       <Drawer.Content
         data-testid="content"
+        onOpenAutoFocus={(event) => {
+          event.preventDefault();
+          closeButtonRef.current?.focus();
+        }}
         className="fixed inset-x-0 bottom-0 z-50 flex max-h-[94dvh] flex-col overflow-hidden rounded-t-[28px] bg-slate-50 shadow-2xl outline-none sm:inset-y-5 sm:left-auto sm:right-5 sm:max-h-none sm:w-[min(720px,calc(100vw-40px))] sm:rounded-[28px]"
       >
         <Drawer.Title className="sr-only">
@@ -52,6 +59,7 @@ export const DetailsDrawer = ({
               Dream details
             </span>
             <Drawer.Close
+              ref={closeButtonRef}
               className="grid h-10 w-10 place-items-center rounded-full bg-slate-200 text-xl leading-none text-slate-800 transition hover:bg-slate-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-600"
               aria-label="Close dream details"
             >
@@ -109,4 +117,5 @@ export const DetailsDrawer = ({
       </Drawer.Content>
     </Drawer.Portal>
   </Drawer.Root>
-);
+  );
+};

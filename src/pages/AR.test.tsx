@@ -36,4 +36,23 @@ describe("AR", () => {
     );
     expect(screen.getByText("Camera preview")).toBeVisible();
   });
+
+  it("reopens the same dream after prediction is lost and detected again", async () => {
+    prediction.dream = DREAMS[0];
+    const { rerender } = render(<AR videoRef={createRef<HTMLVideoElement>()} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Close dream details" }));
+    await waitFor(() =>
+      expect(screen.getByRole("dialog")).toHaveAttribute("data-state", "closed"),
+    );
+
+    prediction.dream = undefined;
+    rerender(<AR videoRef={createRef<HTMLVideoElement>()} />);
+    prediction.dream = DREAMS[0];
+    rerender(<AR videoRef={createRef<HTMLVideoElement>()} />);
+
+    await waitFor(() =>
+      expect(screen.getByRole("dialog")).toHaveAttribute("data-state", "open"),
+    );
+  });
 });
