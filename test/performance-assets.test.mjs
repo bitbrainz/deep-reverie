@@ -3,6 +3,8 @@ import { readFile, stat } from "node:fs/promises";
 import { test } from "node:test";
 
 const dreamSource = await readFile("src/dreams/data/dreams.ts", "utf8");
+const gallerySource = await readFile("src/pages/Gallery.tsx", "utf8");
+const cardSource = await readFile("src/components/Card.tsx", "utf8");
 const dreamFiles = [
   ...dreamSource.matchAll(/fileName: "([^"]+\.png)"/g),
 ].map((match) => match[1]);
@@ -27,4 +29,30 @@ test("every artwork has budgeted WebP gallery and detail assets", async () => {
 test("homepage hero stays below its transfer budget", async () => {
   const hero = await stat("public/images/hero.webp");
   assert.ok(hero.size < 400_000, "hero.webp exceeds 400 KB");
+});
+
+test("gallery sources cover supported viewport and pixel-density combinations", () => {
+  const maxContainerWidth = 1280;
+  const sourceWidth = 512;
+  const horizontalPadding = 16;
+  const gap = 16;
+  const supportedDisplays = [
+    { name: "iPhone 12", viewport: 390, columns: 3, dpr: 3 },
+    { name: "desktop", viewport: 1280, columns: 5, dpr: 2 },
+    { name: "wide desktop", viewport: 1536, columns: 5, dpr: 2 },
+  ];
+
+  assert.match(gallerySource, /max-w-\[1280px\]/);
+  assert.match(cardSource, /thumbnails-2x/);
+
+  for (const display of supportedDisplays) {
+    const containerWidth = Math.min(display.viewport, maxContainerWidth);
+    const renderedWidth =
+      (containerWidth - horizontalPadding - gap * (display.columns - 1)) /
+      display.columns;
+    assert.ok(
+      renderedWidth * display.dpr <= sourceWidth,
+      `${display.name} requires more than ${sourceWidth}px`,
+    );
+  }
 });

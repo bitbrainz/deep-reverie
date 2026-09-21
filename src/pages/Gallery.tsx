@@ -20,7 +20,7 @@ const Gallery = () => {
         open={!!selectedDream}
         onClose={() => setSelectedDream(null)}
       >
-        <div className="grid grid-cols-3 md:grid-cols-5 gap-4 p-2">
+        <div className="grid grid-cols-3 md:grid-cols-5 gap-4 p-2 max-w-[1280px] mx-auto">
           {DREAMS.map((dream, index) =>
             !selectedDream ? (
                 <Drawer.Trigger key={dream.id} asChild>
