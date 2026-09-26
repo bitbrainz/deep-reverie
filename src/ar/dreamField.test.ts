@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { DREAMS } from "../dreams/data/dreams";
 import {
   createDreamField,
+  headingForKeyboardKey,
   normalizeDegrees,
   projectDreamField,
   signedAngularDifference,
@@ -37,5 +38,11 @@ describe("dream field", () => {
       ),
     ).toBe(true);
     expect(new Set(visible.map(({ top }) => top)).size).toBe(visible.length);
+  });
+
+  it("rotates and wraps the fallback field with keyboard controls", () => {
+    expect(headingForKeyboardKey(10, "ArrowLeft")).toBe(334);
+    expect(headingForKeyboardKey(350, "ArrowRight")).toBe(26);
+    expect(headingForKeyboardKey(120, "Enter")).toBeNull();
   });
 });

@@ -25,6 +25,16 @@ export const normalizeDegrees = (degrees: number) =>
 export const signedAngularDifference = (target: number, heading: number) =>
   ((normalizeDegrees(target) - normalizeDegrees(heading) + 540) % 360) - 180;
 
+export const headingForKeyboardKey = (
+  heading: number,
+  key: string,
+  step = 36,
+) => {
+  if (key === "ArrowLeft") return normalizeDegrees(heading - step);
+  if (key === "ArrowRight") return normalizeDegrees(heading + step);
+  return null;
+};
+
 export const createDreamField = (dreams: readonly Dream[]): DreamShard[] =>
   dreams.map((dream, index) => ({
     dream,

@@ -11,6 +11,7 @@ import { DetailsDrawer } from "../components/DetailsDrawer";
 import { DREAMS, type Dream } from "../dreams/data/dreams";
 import {
   createDreamField,
+  headingForKeyboardKey,
   normalizeDegrees,
   projectDreamField,
 } from "../ar/dreamField";
@@ -187,6 +188,12 @@ export const AR = () => {
     if (dragRef.current?.pointerId === event.pointerId) dragRef.current = null;
   };
 
+  const rotateFallbackField = (key: "ArrowLeft" | "ArrowRight") => {
+    setHeading((currentHeading) =>
+      headingForKeyboardKey(currentHeading, key) ?? currentHeading,
+    );
+  };
+
   return (
     <main className="reverie-lens">
       <AppBar />
@@ -198,10 +205,19 @@ export const AR = () => {
         <section
           className={`reverie-lens__viewport ${cameraStatus !== "active" ? "reverie-lens__viewport--fallback" : ""}`}
           aria-label="Reverie Lens dream field"
+          aria-describedby={started && !showIntro ? "reverie-lens-guide" : undefined}
+          tabIndex={started && lookMode === "touch" ? 0 : undefined}
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
           onPointerUp={onPointerEnd}
           onPointerCancel={onPointerEnd}
+          onKeyDown={(event) => {
+            if (lookMode !== "touch") return;
+            const nextHeading = headingForKeyboardKey(heading, event.key);
+            if (nextHeading === null) return;
+            event.preventDefault();
+            setHeading(nextHeading);
+          }}
         >
           <video
             ref={videoRef}
@@ -288,10 +304,33 @@ export const AR = () => {
             </div>
           ) : null}
 
+          {started && !showIntro && lookMode === "touch" ? (
+            <div className="reverie-lens__look-controls" aria-label="Look around" role="group">
+              <button
+                type="button"
+                aria-label="Look left"
+                onClick={() => rotateFallbackField("ArrowLeft")}
+              >
+                <svg aria-hidden="true" viewBox="0 0 24 24">
+                  <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.42-1.41L7.83 13H20v-2Z" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                aria-label="Look right"
+                onClick={() => rotateFallbackField("ArrowRight")}
+              >
+                <svg aria-hidden="true" viewBox="0 0 24 24">
+                  <path d="m12 4-1.42 1.41L16.17 11H4v2h12.17l-5.59 5.59L12 20l8-8-8-8Z" />
+                </svg>
+              </button>
+            </div>
+          ) : null}
+
           {started ? (
-            <div className="reverie-lens__guide" aria-live="polite">
+            <div id="reverie-lens-guide" className="reverie-lens__guide" aria-live="polite">
               <strong>
-                {lookMode === "motion" ? "Turn around" : "Drag to look around"}
+                {lookMode === "motion" ? "Turn around" : "Drag or use arrow keys"}
               </strong>
               <span>Tap a shard to enter its dream</span>
               {cameraStatus === "loading" ? <em>Opening camera…</em> : null}

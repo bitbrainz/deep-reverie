@@ -133,7 +133,7 @@
   --reverie-lime: #dcff63;
   min-height: 100dvh;
   overflow: hidden;
-  background: var(--reverie-ink);
+  background: #090718;
   color: #fff;
 }
 
@@ -144,6 +144,11 @@
   overflow: hidden;
   background: #090718;
   touch-action: none;
+}
+
+.reverie-lens__viewport:focus-visible {
+  outline: 3px solid var(--reverie-lime);
+  outline-offset: -3px;
 }
 
 .reverie-lens__viewport--fallback {
@@ -239,6 +244,7 @@
 .reverie-lens__enter:focus-visible,
 .reverie-lens__opening button:focus-visible,
 .dream-shard:focus-visible,
+.reverie-lens__look-controls button:focus-visible,
 .reverie-lens__guide button:focus-visible {
   outline: 3px solid var(--reverie-lime);
   outline-offset: 4px;
@@ -389,6 +395,39 @@
   border-left: 0.32rem solid transparent;
   transform-origin: 50% 72%;
   transition: transform 180ms linear;
+}
+
+.reverie-lens__look-controls {
+  position: absolute;
+  z-index: 30;
+  top: 1rem;
+  right: 1rem;
+  display: flex;
+  gap: 0.45rem;
+}
+
+.reverie-lens__look-controls button {
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.62);
+  border-radius: 50%;
+  background: #090718;
+  color: #fff;
+  font-size: 1.2rem;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.32);
+}
+
+.reverie-lens__look-controls button:hover {
+  border-color: var(--reverie-cyan);
+  color: var(--reverie-cyan);
+}
+
+.reverie-lens__look-controls svg {
+  width: 1.2rem;
+  height: 1.2rem;
+  fill: currentColor;
 }
 
 .reverie-lens__guide {
