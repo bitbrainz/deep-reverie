@@ -1,54 +1,52 @@
-# React + TypeScript + Vite
+# Deep Reverie
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Deep Reverie is a React/Vite gallery with an on-device MindAR image-tracking pilot at `/ar`.
 
-Currently, two official plugins are available:
+## Development
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+```bash
+npm ci
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Use `npm test`, `npm run lint`, and `npm run build` for the automated checks.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## MindAR pilot targets
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
+The pilot is pinned to `mind-ar@1.2.5` and contains exactly the first 10 artworks in the canonical `DREAMS` array. World Peace is already canonical item 6 (MindAR target index 5), so no substitution is necessary. `config/ar-pilot-targets.json` is the source of truth for the version, ordered target-index mapping, image sources, and preprocessing settings.
+
+The committed runtime asset is `public/ar/deep-reverie-pilot-v1.mind`. Rebuild it deterministically with:
+
+```bash
+npm ci
+npm run ar:targets
 ```
+
+The build script reads each listed source from `public/images/saturated`, scales it down from 2048×2048 to a maximum of 640×640 without enlargement, writes an intermediate JPEG at quality 82 with 4:4:4 chroma subsampling under the ignored `.cache/ar-targets/v<manifest-version>` directory, and compiles the ordered images into the versioned `.mind` bundle. It uses the prebuilt `@napi-rs/canvas` backend so target generation does not depend on a locally compiled `node-canvas` binary. The source file is never modified.
+
+| Target index | Dream ID | Artwork |
+| ---: | ---: | --- |
+| 0 | 1 | Virtual Reality |
+| 1 | 2 | Work-Life Balance |
+| 2 | 3 | Empathy Everywhere |
+| 3 | 4 | Worldwide Internet Access |
+| 4 | 5 | Asteroid Mining |
+| 5 | 6 | World Peace |
+| 6 | 7 | AI in Medicine |
+| 7 | 8 | Cryptocurrencies |
+| 8 | 9 | Musical Expression |
+| 9 | 10 | Borderless World |
+
+Target detection, video frames, and feature processing stay in the browser. The app does not upload or persist camera frames. Unknown images produce no target event and therefore never select a dream. When a known target is briefly lost, the selected details remain stable for 1.2 seconds before closing; reacquisition cancels that pending close.
+
+MindAR matches local visual features, so the physical print does not need to show the source artwork's full rectangular boundary. For cloth pieces cut into diamonds, triangles, or other crops, aim at a clear printed section and move closer until its details fill most of the camera view. The scanning UI intentionally uses a center reticle instead of a rectangular framing box.
+
+The `/ar` session asks for the environment-facing camera where the browser supports it. Leaving the route disposes MindAR processing, terminates its worker, stops every media track, and detaches the stream before a later visit can start a new session.
+
+## Pilot verification record
+
+On 2026-09-21, the pilot was exercised in Chromium 152 on Linux x86_64 with a 390×844 mobile viewport and a deterministic 640×640, 10 fps virtual rear-camera feed. With a warm local development server, elapsed time from tapping **Start camera** through target-bundle fetch, MindAR warm-up, and recognition was 2.102 seconds. The versioned target bundle is 5.1 MiB (SHA-256 `f5155eca6e4220874387beff4c9c51bd5c3f3c5c6b387481d2a67288a7a30c0e`). Rebuilding it from the documented sources and settings produced the same hash.
+
+That run also verified a real compiled Virtual Reality target, an unknown feed that remained in scanning state with no drawer, a 500 ms target loss with no drawer flicker, and SPA route exit/re-entry with the old track `ended` before one new live track was created. Permission-denied, unsupported-browser, and failed-bundle-load states were separately exercised. The recognized AR state produced no browser errors or console warnings and no automated WCAG A/AA violations.
+
+No physical mobile device is connected to this development environment, so the Chromium mobile-profile result is not a substitute for final physical-device timing. Record the device model, OS, browser version, cold-cache start-to-scanning time, and start-to-recognition time during independent review before accepting the pilot.
