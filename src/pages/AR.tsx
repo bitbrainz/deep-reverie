@@ -12,6 +12,7 @@ import { DREAMS, type Dream } from "../dreams/data/dreams";
 import {
   createDreamField,
   headingForKeyboardKey,
+  MAX_VISIBLE_SHARDS,
   normalizeDegrees,
   projectDreamField,
 } from "../ar/dreamField";
@@ -28,6 +29,10 @@ type OrientationEventConstructor = typeof DeviceOrientationEvent & {
 };
 
 const INTRO_DURATION_MS = 3600;
+const MAX_VIEW_PITCH = 55;
+
+const clamp = (value: number, minimum: number, maximum: number) =>
+  Math.min(maximum, Math.max(minimum, value));
 
 const stopStream = (stream: MediaStream | null) => {
   stream?.getTracks().forEach((track) => track.stop());
@@ -41,26 +46,33 @@ const headingFromEvent = (event: OrientationEventWithCompass) => {
   return event.alpha === null ? null : normalizeDegrees(360 - event.alpha);
 };
 
+const signedPitchDifference = (initialPitch: number, currentPitch: number) =>
+  ((initialPitch - currentPitch + 540) % 360) - 180;
+
 export const AR = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const initialHeadingRef = useRef<number | null>(null);
+  const initialPitchRef = useRef<number | null>(null);
   const receivedMotionRef = useRef(false);
   const dragRef = useRef<{
     pointerId: number;
     startX: number;
+    startY: number;
     startHeading: number;
+    startPitch: number;
   } | null>(null);
   const [started, setStarted] = useState(false);
   const [showIntro, setShowIntro] = useState(true);
   const [cameraStatus, setCameraStatus] = useState<CameraStatus>("idle");
   const [lookMode, setLookMode] = useState<LookMode>("pending");
   const [heading, setHeading] = useState(0);
+  const [viewPitch, setViewPitch] = useState(0);
   const [selectedDream, setSelectedDream] = useState<Dream | null>(null);
   const field = useMemo(() => createDreamField(DREAMS), []);
   const visibleShards = useMemo(
-    () => projectDreamField(field, heading),
-    [field, heading],
+    () => projectDreamField(field, heading, MAX_VISIBLE_SHARDS, viewPitch),
+    [field, heading, viewPitch],
   );
 
   const startCamera = useCallback(async () => {
@@ -117,7 +129,10 @@ export const AR = () => {
 
   const startExperience = () => {
     initialHeadingRef.current = null;
+    initialPitchRef.current = null;
     receivedMotionRef.current = false;
+    setHeading(0);
+    setViewPitch(0);
     setStarted(true);
     setShowIntro(true);
     void requestMotion();
@@ -143,9 +158,21 @@ export const AR = () => {
       if (initialHeadingRef.current === null) {
         initialHeadingRef.current = currentHeading;
       }
+      if (event.beta !== null && initialPitchRef.current === null) {
+        initialPitchRef.current = event.beta;
+      }
       setHeading(
         normalizeDegrees(currentHeading - (initialHeadingRef.current ?? currentHeading)),
       );
+      if (event.beta !== null && initialPitchRef.current !== null) {
+        setViewPitch(
+          clamp(
+            signedPitchDifference(initialPitchRef.current, event.beta),
+            -MAX_VIEW_PITCH,
+            MAX_VIEW_PITCH,
+          ),
+        );
+      }
     };
 
     window.addEventListener("deviceorientation", onOrientation, true);
@@ -173,7 +200,9 @@ export const AR = () => {
     dragRef.current = {
       pointerId: event.pointerId,
       startX: event.clientX,
+      startY: event.clientY,
       startHeading: heading,
+      startPitch: viewPitch,
     };
     event.currentTarget.setPointerCapture(event.pointerId);
   };
@@ -182,6 +211,13 @@ export const AR = () => {
     const drag = dragRef.current;
     if (!drag || drag.pointerId !== event.pointerId) return;
     setHeading(normalizeDegrees(drag.startHeading - (event.clientX - drag.startX) * 0.32));
+    setViewPitch(
+      clamp(
+        drag.startPitch + (event.clientY - drag.startY) * 0.18,
+        -MAX_VIEW_PITCH,
+        MAX_VIEW_PITCH,
+      ),
+    );
   };
 
   const onPointerEnd = (event: ReactPointerEvent<HTMLElement>) => {
@@ -267,7 +303,7 @@ export const AR = () => {
 
           {started && !showIntro ? (
             <div className="reverie-lens__field" aria-live="polite">
-              {visibleShards.map((shard, index) => (
+              {visibleShards.map((shard) => (
                 <button
                   key={shard.dream.id}
                   type="button"
@@ -276,7 +312,7 @@ export const AR = () => {
                     left: `${shard.left}%`,
                     top: `${shard.top}%`,
                     transform: `translate(-50%, -50%) scale(${shard.scale})`,
-                    animationDelay: `${index * 90}ms`,
+                    animationDelay: `${shard.entranceOrder * 90}ms`,
                     zIndex: 20 - shard.depth,
                   }}
                   aria-label={`Open dream: ${shard.dream.title}`}

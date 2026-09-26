@@ -321,7 +321,6 @@
   pointer-events: auto;
   filter: drop-shadow(0 12px 16px rgba(0, 0, 0, 0.55));
   animation: reverie-shard-arrive 800ms cubic-bezier(0.16, 1, 0.3, 1) both;
-  transition: left 220ms linear, top 220ms ease-out;
 }
 
 .dream-shard__image {

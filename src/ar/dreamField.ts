@@ -4,12 +4,16 @@ export const DREAM_FIELD_HALF_FOV = 52;
 export const MAX_VISIBLE_SHARDS = 5;
 
 const GOLDEN_ANGLE = 137.507764;
-const SCREEN_LANES = [34, 62, 20, 76, 48] as const;
+const WORLD_PITCH_LANES = [12, -12, 25, -25, 0, 36] as const;
+const FIELD_HORIZON = 48;
+const VIEW_PITCH_SCALE = 0.75;
 
 export type DreamShard = {
   dream: Dream;
   yaw: number;
+  pitch: number;
   depth: number;
+  entranceOrder: number;
 };
 
 export type ProjectedDreamShard = DreamShard & {
@@ -35,20 +39,36 @@ export const headingForKeyboardKey = (
   return null;
 };
 
-export const createDreamField = (dreams: readonly Dream[]): DreamShard[] =>
-  dreams.map((dream, index) => ({
+export const createDreamField = (dreams: readonly Dream[]): DreamShard[] => {
+  const placements = dreams.map((dream, index) => ({
     dream,
     yaw: normalizeDegrees(index * GOLDEN_ANGLE),
     depth: index % 3,
+    entranceOrder: index % WORLD_PITCH_LANES.length,
   }));
+
+  const pitchByDreamId = new Map(
+    [...placements]
+      .sort((left, right) => left.yaw - right.yaw)
+      .map((shard, index) => [
+        shard.dream.id,
+        WORLD_PITCH_LANES[index % WORLD_PITCH_LANES.length],
+      ]),
+  );
+
+  return placements.map((shard) => ({
+    ...shard,
+    pitch: pitchByDreamId.get(shard.dream.id) ?? 0,
+  }));
+};
 
 export const projectDreamField = (
   field: readonly DreamShard[],
   heading: number,
   maxVisible = MAX_VISIBLE_SHARDS,
+  viewPitch = 0,
 ): ProjectedDreamShard[] =>
-  {
-    const selected = field
+  field
     .map((shard) => ({
       ...shard,
       angularDistance: signedAngularDifference(shard.yaw, heading),
@@ -61,20 +81,10 @@ export const projectDreamField = (
       (left, right) =>
         Math.abs(left.angularDistance) - Math.abs(right.angularDistance),
     )
-    .slice(0, maxVisible);
-    const topByDreamId = new Map(
-      [...selected]
-        .sort((left, right) => left.angularDistance - right.angularDistance)
-        .map((shard, index) => [
-          shard.dream.id,
-          SCREEN_LANES[index % SCREEN_LANES.length],
-        ]),
-    );
-
-    return selected.map((shard) => ({
+    .slice(0, maxVisible)
+    .map((shard) => ({
       ...shard,
       left: 50 + (shard.angularDistance / DREAM_FIELD_HALF_FOV) * 45,
-      top: topByDreamId.get(shard.dream.id) ?? 48,
+      top: FIELD_HORIZON - shard.pitch + viewPitch * VIEW_PITCH_SCALE,
       scale: 1 - shard.depth * 0.1,
     }));
-  }
