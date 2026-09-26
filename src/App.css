@@ -124,6 +124,352 @@
     height: 2.35rem;
   }
 }
+
+.reverie-lens {
+  --reverie-ink: #090718;
+  --reverie-violet: #5f39ff;
+  --reverie-cyan: #73f7ff;
+  --reverie-coral: #ff7467;
+  --reverie-lime: #dcff63;
+  min-height: 100dvh;
+  overflow: hidden;
+  background: var(--reverie-ink);
+  color: #fff;
+}
+
+.reverie-lens__viewport {
+  position: relative;
+  isolation: isolate;
+  height: calc(100dvh - 52px);
+  overflow: hidden;
+  background: #090718;
+  touch-action: none;
+}
+
+.reverie-lens__viewport--fallback {
+  background:
+    radial-gradient(circle at 18% 22%, rgba(115, 247, 255, 0.2), transparent 31%),
+    radial-gradient(circle at 78% 63%, rgba(255, 116, 103, 0.24), transparent 36%),
+    linear-gradient(155deg, #2b1768 0%, #0c0921 48%, #111d42 100%);
+}
+
+.reverie-lens__camera {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.reverie-lens__wash {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(4, 3, 15, 0.48), transparent 26%, transparent 67%, rgba(4, 3, 15, 0.62)),
+    radial-gradient(circle at center, transparent 38%, rgba(10, 5, 31, 0.3));
+}
+
+.reverie-lens__welcome,
+.reverie-lens__opening {
+  position: absolute;
+  z-index: 40;
+  top: 50%;
+  left: 50%;
+  width: min(89vw, 33rem);
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.reverie-lens__welcome h1,
+.reverie-lens__opening h1 {
+  margin: 0;
+  font-family: "Iowan Old Style", "Baskerville", "Times New Roman", serif;
+  font-size: clamp(2.15rem, 8.5vw, 4rem);
+  font-weight: 500;
+  line-height: 0.98;
+  letter-spacing: -0.045em;
+  text-wrap: balance;
+  text-shadow: 0 3px 28px #090718, 0 1px 3px #090718;
+}
+
+.reverie-lens__eyebrow,
+.reverie-lens__opening p {
+  margin: 1.2rem 0 0.7rem;
+  color: var(--reverie-cyan);
+  font-family: "Arial Narrow", "Aptos Narrow", sans-serif;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.reverie-lens__lead {
+  max-width: 28rem;
+  margin: 1.15rem auto 0;
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 0.98rem;
+  line-height: 1.5;
+  text-shadow: 0 2px 12px #090718;
+}
+
+.reverie-lens__enter,
+.reverie-lens__opening button {
+  min-height: 48px;
+  margin-top: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 999px;
+  background: var(--reverie-ink);
+  padding: 0.8rem 1.35rem;
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 750;
+  letter-spacing: 0.02em;
+  box-shadow: 0 0 0 4px rgba(115, 247, 255, 0.14), 0 12px 40px rgba(0, 0, 0, 0.38);
+  backdrop-filter: blur(10px);
+}
+
+.reverie-lens__enter:hover,
+.reverie-lens__opening button:hover {
+  border-color: var(--reverie-cyan);
+  background: #19113a;
+}
+
+.reverie-lens__enter:focus-visible,
+.reverie-lens__opening button:focus-visible,
+.dream-shard:focus-visible,
+.reverie-lens__guide button:focus-visible {
+  outline: 3px solid var(--reverie-lime);
+  outline-offset: 4px;
+}
+
+.reverie-lens__permission-note {
+  margin: 0.85rem auto 0;
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 0.7rem;
+}
+
+.reverie-lens__portal {
+  position: relative;
+  width: 5.4rem;
+  height: 5.4rem;
+  margin: 0 auto -0.1rem;
+  transform: rotate(45deg);
+}
+
+.reverie-lens__portal span {
+  position: absolute;
+  inset: 0;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: inset 0 0 20px rgba(115, 247, 255, 0.3), 0 0 20px rgba(95, 57, 255, 0.52);
+}
+
+.reverie-lens__portal span:nth-child(2) {
+  inset: 0.8rem;
+  border-color: var(--reverie-coral);
+}
+
+.reverie-lens__portal span:nth-child(3) {
+  inset: 1.6rem;
+  border-color: var(--reverie-cyan);
+  background: rgba(95, 57, 255, 0.28);
+}
+
+.reverie-lens__opening {
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 1.4rem;
+  background: rgba(9, 7, 24, 0.78);
+  padding: 1.6rem 1.25rem 1.4rem;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.48);
+  backdrop-filter: blur(18px);
+  animation: reverie-opening-in 700ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.reverie-lens__opening h1 {
+  font-size: clamp(2.2rem, 11vw, 4.2rem);
+}
+
+.reverie-lens__opening span {
+  display: block;
+  max-width: 25rem;
+  margin: 0.75rem auto 0;
+  color: rgba(255, 255, 255, 0.84);
+}
+
+.reverie-lens__field {
+  position: absolute;
+  z-index: 10;
+  inset: 0;
+  pointer-events: none;
+}
+
+.dream-shard {
+  position: absolute;
+  width: clamp(5.4rem, 22vw, 8.4rem);
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: #fff;
+  text-align: center;
+  pointer-events: auto;
+  filter: drop-shadow(0 12px 16px rgba(0, 0, 0, 0.55));
+  animation: reverie-shard-arrive 800ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  transition: left 220ms linear, top 220ms ease-out;
+}
+
+.dream-shard__image {
+  position: relative;
+  display: block;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border: 2px solid rgba(255, 255, 255, 0.94);
+  background: #15102e;
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+  box-shadow: inset 0 0 0 4px rgba(9, 7, 24, 0.45);
+}
+
+.dream-shard__image::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  background: linear-gradient(135deg, rgba(115, 247, 255, 0.26), transparent 42%, rgba(255, 116, 103, 0.2));
+}
+
+.dream-shard__image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(1.08);
+}
+
+.dream-shard__title {
+  display: inline-block;
+  max-width: 100%;
+  margin-top: -0.25rem;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  border-radius: 999px;
+  background: var(--reverie-ink);
+  padding: 0.25rem 0.55rem;
+  font-size: 0.65rem;
+  font-weight: 800;
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  text-shadow: 0 1px 2px #000;
+  white-space: nowrap;
+  backdrop-filter: blur(8px);
+}
+
+.dream-shard:hover .dream-shard__image {
+  border-color: var(--reverie-lime);
+}
+
+.reverie-lens__compass {
+  position: absolute;
+  z-index: 25;
+  top: 1rem;
+  left: 1rem;
+  display: grid;
+  width: 2.6rem;
+  height: 2.6rem;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.48);
+  border-radius: 50%;
+  background: rgba(9, 7, 24, 0.72);
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.32);
+  backdrop-filter: blur(8px);
+}
+
+.reverie-lens__compass span {
+  width: 0;
+  height: 0;
+  border-right: 0.32rem solid transparent;
+  border-bottom: 1.05rem solid var(--reverie-coral);
+  border-left: 0.32rem solid transparent;
+  transform-origin: 50% 72%;
+  transition: transform 180ms linear;
+}
+
+.reverie-lens__guide {
+  position: absolute;
+  z-index: 30;
+  right: 1rem;
+  bottom: max(1rem, env(safe-area-inset-bottom));
+  left: 1rem;
+  display: flex;
+  align-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  border-radius: 999px;
+  background: var(--reverie-ink);
+  padding: 0.7rem 0.9rem;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.38);
+  backdrop-filter: blur(12px);
+}
+
+.reverie-lens__guide strong,
+.reverie-lens__guide span {
+  line-height: 1.1;
+}
+
+.reverie-lens__guide strong {
+  color: var(--reverie-cyan);
+  font-size: 0.76rem;
+  white-space: nowrap;
+}
+
+.reverie-lens__guide span {
+  margin-left: 0.6rem;
+  color: #e8e5f2;
+  font-size: 0.7rem;
+}
+
+.reverie-lens__guide em,
+.reverie-lens__guide button {
+  margin-left: auto;
+  color: #fff;
+  font-size: 0.65rem;
+  font-style: normal;
+}
+
+.reverie-lens__guide button {
+  border: 0;
+  background: transparent;
+  text-decoration: underline;
+  text-underline-offset: 0.18rem;
+}
+
+@keyframes reverie-opening-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -45%) scale(0.94);
+  }
+}
+
+@keyframes reverie-shard-arrive {
+  from {
+    opacity: 0;
+    filter: blur(12px) drop-shadow(0 12px 16px rgba(0, 0, 0, 0.55));
+  }
+}
+
+@media (max-width: 380px) {
+  .reverie-lens__guide span {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reverie-lens__opening,
+  .dream-shard {
+    animation: none;
+  }
+
+  .dream-shard,
+  .reverie-lens__compass span {
+    transition: none;
+  }
+}
 /* 
 
 #root {

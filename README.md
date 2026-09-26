@@ -1,6 +1,6 @@
 # Deep Reverie
 
-Deep Reverie is a React/Vite gallery with an on-device MindAR image-tracking pilot at `/ar`.
+Deep Reverie is a React/Vite gallery with a camera-backed, motion-reactive dream field at `/ar`.
 
 ## Development
 
@@ -11,42 +11,12 @@ npm run dev
 
 Use `npm test`, `npm run lint`, and `npm run build` for the automated checks.
 
-## MindAR pilot targets
+## Reverie Lens
 
-The pilot is pinned to `mind-ar@1.2.5` and contains exactly the first 10 artworks in the canonical `DREAMS` array. World Peace is already canonical item 6 (MindAR target index 5), so no substitution is necessary. `config/ar-pilot-targets.json` is the source of truth for the version, ordered target-index mapping, image sources, and preprocessing settings.
+The QR code on the installation opens `/ar`. The visitor taps **Enter the dream field**, which provides the user gesture required for camera and motion permission on mobile browsers. The direction the phone faces when orientation data first arrives becomes that session's forward horizon; no GPS position, image target, or physical-world anchor is used.
 
-The committed runtime asset is `public/ar/deep-reverie-pilot-v1.mind`. Rebuild it deterministically with:
+All canonical dreams are placed deterministically around a 360-degree field. Turning the phone reveals the seven nearest dream shards in the current direction. Tapping one opens the existing dream details and daylight/blacklight comparison. When device orientation is unavailable or denied, horizontal dragging rotates the same field.
 
-```bash
-npm ci
-npm run ar:targets
-```
+The rear camera is a live visual backdrop only. Frames are not uploaded, stored, classified, or used to choose content, so the experience is unaffected by cloth movement, people in front of the artwork, viewing angle, or daylight versus UV illumination. If the camera is unavailable or denied, the full experience remains usable over the fallback environment. Leaving `/ar` stops every active camera track.
 
-The build script reads each listed source from `public/images/saturated`, scales it down from 2048×2048 to a maximum of 640×640 without enlargement, writes an intermediate JPEG at quality 82 with 4:4:4 chroma subsampling under the ignored `.cache/ar-targets/v<manifest-version>` directory, and compiles the ordered images into the versioned `.mind` bundle. It uses the prebuilt `@napi-rs/canvas` backend so target generation does not depend on a locally compiled `node-canvas` binary. The source file is never modified.
-
-| Target index | Dream ID | Artwork |
-| ---: | ---: | --- |
-| 0 | 1 | Virtual Reality |
-| 1 | 2 | Work-Life Balance |
-| 2 | 3 | Empathy Everywhere |
-| 3 | 4 | Worldwide Internet Access |
-| 4 | 5 | Asteroid Mining |
-| 5 | 6 | World Peace |
-| 6 | 7 | AI in Medicine |
-| 7 | 8 | Cryptocurrencies |
-| 8 | 9 | Musical Expression |
-| 9 | 10 | Borderless World |
-
-Target detection, video frames, and feature processing stay in the browser. The app does not upload or persist camera frames. Unknown images produce no target event and therefore never select a dream. When a known target is briefly lost, the selected details remain stable for 1.2 seconds before closing; reacquisition cancels that pending close.
-
-MindAR matches local visual features, so the physical print does not need to show the source artwork's full rectangular boundary. For cloth pieces cut into diamonds, triangles, or other crops, aim at a clear printed section and move closer until its details fill most of the camera view. The scanning UI intentionally uses a center reticle instead of a rectangular framing box.
-
-The `/ar` session asks for the environment-facing camera where the browser supports it. Leaving the route disposes MindAR processing, terminates its worker, stops every media track, and detaches the stream before a later visit can start a new session.
-
-## Pilot verification record
-
-On 2026-09-21, the pilot was exercised in Chromium 152 on Linux x86_64 with a 390×844 mobile viewport and a deterministic 640×640, 10 fps virtual rear-camera feed. With a warm local development server, elapsed time from tapping **Start camera** through target-bundle fetch, MindAR warm-up, and recognition was 2.102 seconds. The versioned target bundle is 5.1 MiB (SHA-256 `f5155eca6e4220874387beff4c9c51bd5c3f3c5c6b387481d2a67288a7a30c0e`). Rebuilding it from the documented sources and settings produced the same hash.
-
-That run also verified a real compiled Virtual Reality target, an unknown feed that remained in scanning state with no drawer, a 500 ms target loss with no drawer flicker, and SPA route exit/re-entry with the old track `ended` before one new live track was created. Permission-denied, unsupported-browser, and failed-bundle-load states were separately exercised. The recognized AR state produced no browser errors or console warnings and no automated WCAG A/AA violations.
-
-No physical mobile device is connected to this development environment, so the Chromium mobile-profile result is not a substitute for final physical-device timing. Record the device model, OS, browser version, cold-cache start-to-scanning time, and start-to-recognition time during independent review before accepting the pilot.
+The overlay uses opaque labels, bright outlines, and a dark vignette so controls remain legible against both bright daytime and dark UV scenes. Motion is decorative rather than required and is disabled when the visitor requests reduced motion.

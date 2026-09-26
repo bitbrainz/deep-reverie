@@ -1,315 +1,307 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-// MindAR 1.2.5 exposes its bundled image Controller as `C`; the version and
-// generated filename are intentionally pinned together in package.json.
 import {
-  C as Controller,
-  type MindARUpdate,
-} from "mind-ar/dist/controller-mGt1s8dJ.js";
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type PointerEvent as ReactPointerEvent,
+} from "react";
 import { AppBar } from "../components/AppBar";
 import { DetailsDrawer } from "../components/DetailsDrawer";
+import { DREAMS, type Dream } from "../dreams/data/dreams";
 import {
-  dreamForTargetIndex,
-  PILOT_TARGET_ASSET,
-} from "../ar/pilotTargets";
-import {
-  INITIAL_RECOGNITION_STATE,
-  TARGET_LOSS_GRACE_MS,
-  transitionRecognition,
-  type RecognitionEvent,
-} from "../ar/recognitionState";
-import {
-  ACTIVE_SCAN_GUIDANCE,
-  IDLE_SCAN_GUIDANCE,
-} from "../ar/scanGuidance";
+  createDreamField,
+  normalizeDegrees,
+  projectDreamField,
+} from "../ar/dreamField";
 
-type ARStatus =
-  | "idle"
-  | "loading"
-  | "scanning"
-  | "permission-denied"
-  | "unsupported"
-  | "initialization-failed";
+type CameraStatus = "idle" | "loading" | "active" | "fallback";
+type LookMode = "pending" | "motion" | "touch";
+
+type OrientationEventWithCompass = DeviceOrientationEvent & {
+  webkitCompassHeading?: number;
+};
+
+type OrientationEventConstructor = typeof DeviceOrientationEvent & {
+  requestPermission?: () => Promise<"granted" | "denied">;
+};
+
+const INTRO_DURATION_MS = 3600;
 
 const stopStream = (stream: MediaStream | null) => {
   stream?.getTracks().forEach((track) => track.stop());
 };
 
-const waitForVideo = (video: HTMLVideoElement, signal: AbortSignal) =>
-  new Promise<void>((resolve, reject) => {
-    if (video.readyState >= HTMLMediaElement.HAVE_METADATA) {
-      resolve();
-      return;
-    }
+const headingFromEvent = (event: OrientationEventWithCompass) => {
+  if (typeof event.webkitCompassHeading === "number") {
+    return normalizeDegrees(event.webkitCompassHeading);
+  }
 
-    const cleanUp = () => {
-      video.removeEventListener("loadedmetadata", onLoaded);
-      signal.removeEventListener("abort", onAbort);
-    };
-    const onLoaded = () => {
-      cleanUp();
-      resolve();
-    };
-    const onAbort = () => {
-      cleanUp();
-      reject(new DOMException("AR initialization cancelled", "AbortError"));
-    };
-
-    video.addEventListener("loadedmetadata", onLoaded, { once: true });
-    signal.addEventListener("abort", onAbort, { once: true });
-  });
-
-const statusCopy: Record<ARStatus, { title: string; detail: string }> = {
-  idle: {
-    title: "Ready to scan",
-    detail: IDLE_SCAN_GUIDANCE,
-  },
-  loading: {
-    title: "Preparing image tracking",
-    detail: "Loading the on-device target bundle and warming up the camera.",
-  },
-  scanning: {
-    title: "Scanning for an artwork",
-    detail: ACTIVE_SCAN_GUIDANCE,
-  },
-  "permission-denied": {
-    title: "Camera permission denied",
-    detail: "Allow camera access in your browser settings, then try again.",
-  },
-  unsupported: {
-    title: "Camera AR is not supported",
-    detail: "Use a current mobile browser over HTTPS with camera access.",
-  },
-  "initialization-failed": {
-    title: "AR could not start",
-    detail: "Close other camera apps, check your connection, and try again.",
-  },
+  return event.alpha === null ? null : normalizeDegrees(360 - event.alpha);
 };
 
 export const AR = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const recognitionRef = useRef(INITIAL_RECOGNITION_STATE);
-  const lossTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [status, setStatus] = useState<ARStatus>("idle");
-  const [sessionRequest, setSessionRequest] = useState(0);
-  const [activeTargetIndex, setActiveTargetIndex] = useState<number | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const initialHeadingRef = useRef<number | null>(null);
+  const receivedMotionRef = useRef(false);
+  const dragRef = useRef<{
+    pointerId: number;
+    startX: number;
+    startHeading: number;
+  } | null>(null);
+  const [started, setStarted] = useState(false);
+  const [showIntro, setShowIntro] = useState(true);
+  const [cameraStatus, setCameraStatus] = useState<CameraStatus>("idle");
+  const [lookMode, setLookMode] = useState<LookMode>("pending");
+  const [heading, setHeading] = useState(0);
+  const [selectedDream, setSelectedDream] = useState<Dream | null>(null);
+  const field = useMemo(() => createDreamField(DREAMS), []);
+  const visibleShards = useMemo(
+    () => projectDreamField(field, heading),
+    [field, heading],
+  );
 
-  const clearLossTimer = useCallback(() => {
-    if (lossTimerRef.current !== null) {
-      clearTimeout(lossTimerRef.current);
-      lossTimerRef.current = null;
+  const startCamera = useCallback(async () => {
+    const video = videoRef.current;
+    if (!video || !window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
+      setCameraStatus("fallback");
+      return;
+    }
+
+    stopStream(streamRef.current);
+    setCameraStatus("loading");
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: false,
+        video: {
+          facingMode: { ideal: "environment" },
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+        },
+      });
+      streamRef.current = stream;
+      video.srcObject = stream;
+      await video.play();
+      setCameraStatus("active");
+    } catch {
+      stopStream(streamRef.current);
+      streamRef.current = null;
+      if (video) video.srcObject = null;
+      setCameraStatus("fallback");
     }
   }, []);
 
-  const commitRecognition = useCallback(
-    (event: RecognitionEvent) => {
-      const next = transitionRecognition(recognitionRef.current, event);
-      recognitionRef.current = next;
-      setActiveTargetIndex(next.activeTargetIndex);
+  const requestMotion = useCallback(async () => {
+    if (!("DeviceOrientationEvent" in window)) {
+      setLookMode("touch");
+      return;
+    }
 
-      if (event.type === "target-found") {
-        clearLossTimer();
-      } else if (event.type === "target-lost" && next.clearAt !== null) {
-        clearLossTimer();
-        lossTimerRef.current = setTimeout(() => {
-          const afterGrace = transitionRecognition(recognitionRef.current, {
-            type: "grace-elapsed",
-            at: Date.now(),
-          });
-          recognitionRef.current = afterGrace;
-          setActiveTargetIndex(afterGrace.activeTargetIndex);
-          lossTimerRef.current = null;
-        }, TARGET_LOSS_GRACE_MS);
-      }
-    },
-    [clearLossTimer],
-  );
-
-  const resetRecognition = useCallback(() => {
-    clearLossTimer();
-    recognitionRef.current = INITIAL_RECOGNITION_STATE;
-    setActiveTargetIndex(null);
-  }, [clearLossTimer]);
-
-  useEffect(() => {
-    if (sessionRequest === 0) return;
-
-    const video = videoRef.current;
-    const abortController = new AbortController();
-    const visibleTargets = new Set<number>();
-    let stream: MediaStream | null = null;
-    let controller: Controller | null = null;
-
-    resetRecognition();
-
-    const stopSession = () => {
-      const activeController = controller;
-      controller = null;
-      activeController?.dispose();
-      stopStream(stream);
-      stream = null;
-      visibleTargets.clear();
-      if (video) {
-        video.pause();
-        video.srcObject = null;
-      }
-    };
-
-    const onUpdate = (update: MindARUpdate) => {
-      if (update.type !== "updateMatrix") return;
-
-      const isVisible = update.worldMatrix !== null;
-      const wasVisible = visibleTargets.has(update.targetIndex);
-      if (isVisible && !wasVisible) {
-        visibleTargets.add(update.targetIndex);
-        if (dreamForTargetIndex(update.targetIndex)) {
-          commitRecognition({
-            type: "target-found",
-            targetIndex: update.targetIndex,
-            at: Date.now(),
-          });
-        }
-      } else if (!isVisible && wasVisible) {
-        visibleTargets.delete(update.targetIndex);
-        commitRecognition({
-          type: "target-lost",
-          targetIndex: update.targetIndex,
-          at: Date.now(),
-        });
-      }
-    };
-
-    const start = async () => {
-      if (!video || !window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
-        setStatus("unsupported");
+    try {
+      const orientationEvent = DeviceOrientationEvent as OrientationEventConstructor;
+      if (
+        orientationEvent.requestPermission &&
+        (await orientationEvent.requestPermission()) !== "granted"
+      ) {
+        setLookMode("touch");
         return;
       }
+      setLookMode("motion");
+    } catch {
+      setLookMode("touch");
+    }
+  }, []);
 
-      setStatus("loading");
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({
-          audio: false,
-          video: {
-            facingMode: { ideal: "environment" },
-            width: { ideal: 1280 },
-            height: { ideal: 720 },
-          },
-        });
+  const startExperience = () => {
+    initialHeadingRef.current = null;
+    receivedMotionRef.current = false;
+    setStarted(true);
+    setShowIntro(true);
+    void requestMotion();
+    void startCamera();
+  };
 
-        if (abortController.signal.aborted) {
-          stopStream(stream);
-          return;
-        }
+  useEffect(() => {
+    if (!started) return;
 
-        video.srcObject = stream;
-        await waitForVideo(video, abortController.signal);
-        video.width = video.videoWidth;
-        video.height = video.videoHeight;
-        await video.play();
+    const timer = window.setTimeout(() => setShowIntro(false), INTRO_DURATION_MS);
+    return () => window.clearTimeout(timer);
+  }, [started]);
 
-        controller = new Controller({
-          inputWidth: video.videoWidth,
-          inputHeight: video.videoHeight,
-          maxTrack: 1,
-          warmupTolerance: 3,
-          missTolerance: 5,
-          onUpdate,
-        });
+  useEffect(() => {
+    if (!started || lookMode !== "motion") return;
 
-        const targetUrl = `${import.meta.env.BASE_URL}ar/${PILOT_TARGET_ASSET}`;
-        const targetResponse = await fetch(targetUrl, {
-          signal: abortController.signal,
-        });
-        if (!targetResponse.ok) {
-          throw new Error(`Target bundle request failed: ${targetResponse.status}`);
-        }
-        const targetBuffer = await targetResponse.arrayBuffer();
-        controller.addImageTargetsFromBuffer(targetBuffer);
-        await controller.dummyRun(video);
+    const onOrientation = (rawEvent: DeviceOrientationEvent) => {
+      const event = rawEvent as OrientationEventWithCompass;
+      const currentHeading = headingFromEvent(event);
+      if (currentHeading === null) return;
 
-        if (abortController.signal.aborted) return;
-        controller.processVideo(video);
-        setStatus("scanning");
-      } catch (error) {
-        if (abortController.signal.aborted) return;
-        stopSession();
-        const errorName = error instanceof DOMException ? error.name : "";
-        setStatus(
-          errorName === "NotAllowedError" || errorName === "SecurityError"
-            ? "permission-denied"
-            : "initialization-failed",
-        );
+      receivedMotionRef.current = true;
+      if (initialHeadingRef.current === null) {
+        initialHeadingRef.current = currentHeading;
       }
+      setHeading(
+        normalizeDegrees(currentHeading - (initialHeadingRef.current ?? currentHeading)),
+      );
     };
 
-    void start();
+    window.addEventListener("deviceorientation", onOrientation, true);
+    const fallbackTimer = window.setTimeout(() => {
+      if (!receivedMotionRef.current) setLookMode("touch");
+    }, 1800);
 
     return () => {
-      abortController.abort();
-      stopSession();
-      resetRecognition();
+      window.clearTimeout(fallbackTimer);
+      window.removeEventListener("deviceorientation", onOrientation, true);
     };
-  }, [commitRecognition, resetRecognition, sessionRequest]);
+  }, [lookMode, started]);
 
-  useEffect(() => clearLossTimer, [clearLossTimer]);
+  useEffect(
+    () => () => {
+      stopStream(streamRef.current);
+      streamRef.current = null;
+    },
+    [],
+  );
 
-  const selectedDream =
-    activeTargetIndex === null
-      ? undefined
-      : dreamForTargetIndex(activeTargetIndex);
-  const copy = statusCopy[status];
-  const canRetry =
-    status === "permission-denied" || status === "initialization-failed";
+  const onPointerDown = (event: ReactPointerEvent<HTMLElement>) => {
+    if (!started || lookMode !== "touch") return;
+    if (event.target instanceof Element && event.target.closest("button")) return;
+    dragRef.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startHeading: heading,
+    };
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+
+  const onPointerMove = (event: ReactPointerEvent<HTMLElement>) => {
+    const drag = dragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    setHeading(normalizeDegrees(drag.startHeading - (event.clientX - drag.startX) * 0.32));
+  };
+
+  const onPointerEnd = (event: ReactPointerEvent<HTMLElement>) => {
+    if (dragRef.current?.pointerId === event.pointerId) dragRef.current = null;
+  };
 
   return (
-    <main className="h-[100dvh] overflow-hidden bg-gray-950 text-white">
+    <main className="reverie-lens">
       <AppBar />
-      <DetailsDrawer dream={selectedDream} open={Boolean(selectedDream)}>
-        <section className="relative h-[calc(100dvh-52px)] overflow-hidden bg-gray-950">
+      <DetailsDrawer
+        dream={selectedDream}
+        open={Boolean(selectedDream)}
+        onClose={() => setSelectedDream(null)}
+      >
+        <section
+          className={`reverie-lens__viewport ${cameraStatus !== "active" ? "reverie-lens__viewport--fallback" : ""}`}
+          aria-label="Reverie Lens dream field"
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerEnd}
+          onPointerCancel={onPointerEnd}
+        >
           <video
             ref={videoRef}
             autoPlay
             muted
             playsInline
-            aria-label="Rear camera view for artwork scanning"
-            className="h-full w-full object-cover"
+            aria-hidden="true"
+            className="reverie-lens__camera"
           />
-          <div className="pointer-events-none absolute inset-0 border-[18px] border-black/20" />
+          <div aria-hidden="true" className="reverie-lens__wash" />
 
-          {status === "scanning" && !selectedDream ? (
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute left-1/2 top-[42%] h-16 w-16 -translate-x-1/2 -translate-y-1/2"
-            >
-              <span className="absolute left-1/2 top-0 h-5 w-px -translate-x-1/2 bg-white/80" />
-              <span className="absolute bottom-0 left-1/2 h-5 w-px -translate-x-1/2 bg-white/80" />
-              <span className="absolute left-0 top-1/2 h-px w-5 -translate-y-1/2 bg-white/80" />
-              <span className="absolute right-0 top-1/2 h-px w-5 -translate-y-1/2 bg-white/80" />
+          {!started ? (
+            <div className="reverie-lens__welcome">
+              <div aria-hidden="true" className="reverie-lens__portal">
+                <span />
+                <span />
+                <span />
+              </div>
+              <p className="reverie-lens__eyebrow">Deep Reverie presents</p>
+              <h1>If AI could dream, what future would it imagine for our world?</h1>
+              <p className="reverie-lens__lead">
+                Step into a field of possible futures. Turn around to find every dream.
+              </p>
+              <button
+                type="button"
+                className="reverie-lens__enter"
+                onClick={startExperience}
+              >
+                Enter the dream field
+              </button>
+              <p className="reverie-lens__permission-note">
+                Uses your camera and phone movement. Images stay on your device.
+              </p>
             </div>
           ) : null}
 
-          <div
-            className="absolute inset-x-4 bottom-5 rounded-2xl bg-black/75 p-4 shadow-xl backdrop-blur"
-            aria-live="polite"
-          >
-            <p className="text-lg font-semibold">
-              {selectedDream ? `${selectedDream.title} recognized` : copy.title}
-            </p>
-            <p className="mt-1 text-sm text-gray-200">
-              {selectedDream
-                ? "Opening the matching dream details. Tracking remains on this device."
-                : copy.detail}
-            </p>
-
-            {status === "idle" || canRetry ? (
-              <button
-                type="button"
-                className="mt-4 rounded-lg bg-blue-700 px-4 py-2 font-semibold text-white hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-white"
-                onClick={() => setSessionRequest((request) => request + 1)}
-              >
-                {status === "idle" ? "Start camera" : "Try again"}
+          {started && showIntro ? (
+            <div className="reverie-lens__opening" role="status">
+              <p>YOUR FORWARD HORIZON</p>
+              <h1>If AI could dream…</h1>
+              <span>What future would it imagine for our world?</span>
+              <button type="button" onClick={() => setShowIntro(false)}>
+                Reveal the dreams
               </button>
-            ) : null}
-          </div>
+            </div>
+          ) : null}
+
+          {started && !showIntro ? (
+            <div className="reverie-lens__field" aria-live="polite">
+              {visibleShards.map((shard, index) => (
+                <button
+                  key={shard.dream.id}
+                  type="button"
+                  className="dream-shard"
+                  style={{
+                    left: `${shard.left}%`,
+                    top: `${shard.top}%`,
+                    transform: `translate(-50%, -50%) scale(${shard.scale})`,
+                    animationDelay: `${index * 90}ms`,
+                    zIndex: 20 - shard.depth,
+                  }}
+                  aria-label={`Open dream: ${shard.dream.title}`}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setSelectedDream(shard.dream);
+                  }}
+                >
+                  <span className="dream-shard__image">
+                    <img
+                      src={`/images/thumbnails/${shard.dream.fileName}`}
+                      alt=""
+                      draggable={false}
+                    />
+                  </span>
+                  <span className="dream-shard__title">{shard.dream.title}</span>
+                </button>
+              ))}
+            </div>
+          ) : null}
+
+          {started && !showIntro ? (
+            <div className="reverie-lens__compass" aria-hidden="true">
+              <span style={{ transform: `rotate(${-heading}deg)` }} />
+            </div>
+          ) : null}
+
+          {started ? (
+            <div className="reverie-lens__guide" aria-live="polite">
+              <strong>
+                {lookMode === "motion" ? "Turn around" : "Drag to look around"}
+              </strong>
+              <span>Tap a shard to enter its dream</span>
+              {cameraStatus === "loading" ? <em>Opening camera…</em> : null}
+              {cameraStatus === "fallback" ? (
+                <button type="button" onClick={() => void startCamera()}>
+                  Camera unavailable · Try again
+                </button>
+              ) : null}
+            </div>
+          ) : null}
         </section>
       </DetailsDrawer>
     </main>
