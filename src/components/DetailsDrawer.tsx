@@ -1,4 +1,4 @@
-import { PropsWithChildren, useRef } from "react";
+import { PropsWithChildren, useLayoutEffect, useRef } from "react";
 import { Drawer } from "vaul";
 import { Dream } from "../dreams/data/dreams";
 
@@ -26,6 +26,14 @@ export const DetailsDrawer = ({
   onNext,
 }: DetailsDrawerProps) => {
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const detailsScrollRef = useRef<HTMLDivElement>(null);
+  const selectedDreamId = dream?.id;
+
+  useLayoutEffect(() => {
+    if (detailsScrollRef.current) {
+      detailsScrollRef.current.scrollTop = 0;
+    }
+  }, [selectedDreamId]);
 
   return (
   <Drawer.Root
@@ -53,7 +61,10 @@ export const DetailsDrawer = ({
             ? `${dream.tagline}. Read the vision, its importance, AI's role, and a description of the artwork.`
             : "Details about the selected dream."}
         </Drawer.Description>
-        <div className="relative flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain">
+        <div
+          ref={detailsScrollRef}
+          className="relative flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain"
+        >
           <div className="sticky top-0 z-20 flex h-14 shrink-0 items-center justify-between border-b border-slate-200/80 bg-slate-50/95 px-4 backdrop-blur sm:px-6">
             <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
               Dream details
