@@ -39,6 +39,8 @@ The build script reads each listed source from `public/images/saturated`, scales
 
 Target detection, video frames, and feature processing stay in the browser. The app does not upload or persist camera frames. Unknown images produce no target event and therefore never select a dream. When a known target is briefly lost, the selected details remain stable for 1.2 seconds before closing; reacquisition cancels that pending close.
 
+MindAR matches local visual features, so the physical print does not need to show the source artwork's full rectangular boundary. For cloth pieces cut into diamonds, triangles, or other crops, aim at a clear printed section and move closer until its details fill most of the camera view. The scanning UI intentionally uses a center reticle instead of a rectangular framing box.
+
 The `/ar` session asks for the environment-facing camera where the browser supports it. Leaving the route disposes MindAR processing, terminates its worker, stops every media track, and detaches the stream before a later visit can start a new session.
 
 ## Pilot verification record

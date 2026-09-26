@@ -17,6 +17,10 @@ import {
   transitionRecognition,
   type RecognitionEvent,
 } from "../ar/recognitionState";
+import {
+  ACTIVE_SCAN_GUIDANCE,
+  IDLE_SCAN_GUIDANCE,
+} from "../ar/scanGuidance";
 
 type ARStatus =
   | "idle"
@@ -57,7 +61,7 @@ const waitForVideo = (video: HTMLVideoElement, signal: AbortSignal) =>
 const statusCopy: Record<ARStatus, { title: string; detail: string }> = {
   idle: {
     title: "Ready to scan",
-    detail: "Start the camera, then point it at one of the pilot artworks.",
+    detail: IDLE_SCAN_GUIDANCE,
   },
   loading: {
     title: "Preparing image tracking",
@@ -65,7 +69,7 @@ const statusCopy: Record<ARStatus, { title: string; detail: string }> = {
   },
   scanning: {
     title: "Scanning for an artwork",
-    detail: "Hold a pilot artwork steady and keep the full image in frame.",
+    detail: ACTIVE_SCAN_GUIDANCE,
   },
   "permission-denied": {
     title: "Camera permission denied",
@@ -272,7 +276,15 @@ export const AR = () => {
           <div className="pointer-events-none absolute inset-0 border-[18px] border-black/20" />
 
           {status === "scanning" && !selectedDream ? (
-            <div className="pointer-events-none absolute inset-10 rounded-3xl border-2 border-white/70 shadow-[0_0_0_9999px_rgba(0,0,0,0.12)]" />
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute left-1/2 top-[42%] h-16 w-16 -translate-x-1/2 -translate-y-1/2"
+            >
+              <span className="absolute left-1/2 top-0 h-5 w-px -translate-x-1/2 bg-white/80" />
+              <span className="absolute bottom-0 left-1/2 h-5 w-px -translate-x-1/2 bg-white/80" />
+              <span className="absolute left-0 top-1/2 h-px w-5 -translate-y-1/2 bg-white/80" />
+              <span className="absolute right-0 top-1/2 h-px w-5 -translate-y-1/2 bg-white/80" />
+            </div>
           ) : null}
 
           <div
