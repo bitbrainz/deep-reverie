@@ -8,7 +8,9 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "npm run test:unit && npm run test:assets",
+    "test:unit": "vitest run",
+    "test:assets": "node --test test/performance-assets.mjs"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.0.12",

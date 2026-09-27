@@ -69,7 +69,7 @@ export const DetailsDrawer = ({
             >
               <div className="relative">
                 <BlacklightComparison
-                  src={`/images/saturated/${dream.fileName}`}
+                  src={`/images/saturated/${dream.fileName.replace(".png", ".webp")}`}
                   alt={dream.title}
                 />
                 <Drawer.Title className="absolute z-10 text-xl top-12 left-0 bg-black bg-opacity-50 text-white p-2">
