@@ -1,4 +1,4 @@
-import { PropsWithChildren, useLayoutEffect, useRef } from "react";
+import { PropsWithChildren, useEffect, useLayoutEffect, useRef } from "react";
 import { Drawer } from "vaul";
 import { Dream } from "../dreams/data/dreams";
 import { BlacklightComparison } from "./BlacklightComparison";
@@ -29,6 +29,27 @@ export const DetailsDrawer = ({
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const detailsScrollRef = useRef<HTMLDivElement>(null);
   const selectedDreamId = dream?.id;
+  const canSpeak =
+    typeof window !== "undefined" &&
+    "speechSynthesis" in window &&
+    "SpeechSynthesisUtterance" in window;
+
+  useEffect(() => {
+    return () => {
+      if (typeof window !== "undefined" && "speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, [dream, open]);
+
+  const readDream = () => {
+    if (!dream || !canSpeak) return;
+
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(
+      new SpeechSynthesisUtterance(`${dream.title}. ${dream.imageDescription}`),
+    );
+  };
 
   useLayoutEffect(() => {
     if (detailsScrollRef.current) {
@@ -93,6 +114,28 @@ export const DetailsDrawer = ({
                   </h1>
                   <p className="mt-2 text-sm text-slate-200 sm:text-base">{dream.tagline}</p>
                 </div>
+              </div>
+
+              <div className="px-5 pt-6 sm:px-8">
+                <button
+                  type="button"
+                  onClick={readDream}
+                  disabled={!canSpeak}
+                  aria-label={
+                    canSpeak
+                      ? `Read ${dream.title} aloud`
+                      : "Speech synthesis is unavailable in this browser"
+                  }
+                  title={
+                    canSpeak
+                      ? `Read ${dream.title} aloud`
+                      : "Speech synthesis is unavailable in this browser"
+                  }
+                  className="inline-flex min-h-11 items-center gap-2 rounded-full bg-violet-100 px-5 text-sm font-semibold text-violet-950 transition hover:bg-violet-200 disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-600 focus-visible:ring-offset-2"
+                >
+                  <span aria-hidden="true">▶</span>
+                  {canSpeak ? "Read artwork aloud" : "Speech unavailable"}
+                </button>
               </div>
 
               <div className="space-y-6 px-5 py-7 sm:px-8 sm:py-8">
