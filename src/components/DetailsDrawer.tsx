@@ -1,6 +1,7 @@
 import { PropsWithChildren, useLayoutEffect, useRef } from "react";
 import { Drawer } from "vaul";
 import { Dream } from "../dreams/data/dreams";
+import { BlacklightComparison } from "./BlacklightComparison";
 
 type DetailsDrawerProps = PropsWithChildren<{
   dream: Dream | null | undefined;
@@ -77,13 +78,12 @@ export const DetailsDrawer = ({
 
           {dream ? (
             <article>
-              <div className="relative aspect-[16/11] overflow-hidden bg-slate-900 sm:aspect-[16/10]">
-                <img
-                  src={`/images/saturated/${dream.fileName}`}
+              <div className="relative overflow-hidden bg-slate-900">
+                <BlacklightComparison
+                  src={`/images/saturated/${dream.fileName.replace(".png", ".webp")}`}
                   alt={dream.title}
-                  className="h-full w-full object-cover"
                 />
-                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950 via-slate-950/65 to-transparent px-5 pb-6 pt-20 text-white sm:px-8 sm:pb-8">
+                <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-slate-950 via-slate-950/65 to-transparent px-5 pb-10 pt-20 text-white sm:px-8 sm:pb-10">
                   <p className="text-sm text-violet-200">Dream {String(dream.id).padStart(2, "0")}</p>
                   <h1 className="mt-1 text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">
                     {dream.title}

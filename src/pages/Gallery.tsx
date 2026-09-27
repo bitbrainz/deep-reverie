@@ -24,7 +24,7 @@ const Gallery = () => {
   return (
     <div className="min-h-screen bg-slate-950 text-white">
       <AppBar />
-      <main className="mx-auto max-w-[1600px] px-4 pb-16 pt-8 sm:px-6 lg:px-10">
+      <main className="mx-auto max-w-[1280px] px-4 pb-16 pt-8 sm:px-6 lg:px-10">
         <header className="mb-8 max-w-3xl">
           <p className="mb-3 text-xs font-semibold uppercase tracking-[0.28em] text-violet-300">
             A machine-imagined future
@@ -36,13 +36,14 @@ const Gallery = () => {
           </p>
         </header>
 
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4 xl:grid-cols-5">
-          {DREAMS.map((dream) => (
+        <div className="grid grid-cols-3 gap-3 sm:gap-5 lg:grid-cols-4 xl:grid-cols-5">
+          {DREAMS.map((dream, index) => (
             <Card
               key={dream.id}
-              imageUrl={`/images/thumbnails/${dream.fileName}`}
+              imageUrl={`/images/thumbnails/${dream.fileName.replace(".png", ".webp")}`}
               title={dream.title}
               tagline={dream.tagline}
+              eager={index < 6}
               onClick={(event) => {
                 openingCardRef.current = event.currentTarget;
                 setSelectedDream(dream);

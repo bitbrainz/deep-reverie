@@ -2,6 +2,7 @@ import { CustomMobileNet, load } from "@teachablemachine/image";
 import {
   createContext,
   PropsWithChildren,
+  RefObject,
   useContext,
   useEffect,
   useState,
@@ -23,7 +24,10 @@ const initializeModel = async () => {
 };
 
 const PredictionContext = createContext<
-  { model: CustomMobileNet | undefined; videoRef: any } | undefined
+  {
+    model: CustomMobileNet | undefined;
+    videoRef: RefObject<HTMLVideoElement | null>;
+  } | undefined
 >(undefined);
 
 export const usePrediction = (refreshRate = 100) => {
@@ -33,17 +37,19 @@ export const usePrediction = (refreshRate = 100) => {
 
   useEffect(() => {
     console.log("HERE", context);
-    if (!context || !context.model || !context.videoRef.current) {
+    if (!context || !context.model) {
       console.log("Model not yet initialized");
       return;
     }
-    const { model, videoRef } = context;
+    const { model } = context;
+    const video = context.videoRef.current;
+    if (!video) return;
 
     let isMounted = true; // Flag to prevent updates after unmount
 
     const loop = async () => {
       if (!isMounted) return; // Stop if component is unmounted
-      const newPrediction = await model.predict(videoRef.current);
+      const newPrediction = await model.predict(video);
       setPrediction(newPrediction);
       setTimeout(loop, refreshRate);
     };
@@ -120,7 +126,9 @@ export const usePredictedDream = (refreshRate = 100) => {
 export const PredictionProvider = ({
   children,
   videoRef,
-}: PropsWithChildren<{ videoRef: any }>) => {
+}: PropsWithChildren<{
+  videoRef: RefObject<HTMLVideoElement | null>;
+}>) => {
   const [model, setModel] = useState<CustomMobileNet>();
 
   useEffect(() => {

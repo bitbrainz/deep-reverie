@@ -4,10 +4,11 @@ interface CardProps {
   imageUrl: string;
   title: string;
   tagline: string;
+  eager?: boolean;
   onClick: MouseEventHandler<HTMLButtonElement>;
 }
 
-const Card = ({ imageUrl, title, tagline, onClick }: CardProps) => {
+const Card = ({ imageUrl, title, tagline, eager = false, onClick }: CardProps) => {
   return (
     <button
       type="button"
@@ -17,9 +18,14 @@ const Card = ({ imageUrl, title, tagline, onClick }: CardProps) => {
     >
       <img
         src={imageUrl}
+        srcSet={`${imageUrl} 1x, ${imageUrl.replace("/thumbnails/", "/thumbnails-2x/")} 2x`}
         alt=""
+        width="256"
+        height="256"
         className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.04] motion-reduce:transition-none"
-        loading="lazy"
+        loading={eager ? "eager" : "lazy"}
+        fetchPriority={eager ? "high" : "auto"}
+        decoding="async"
       />
       <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950 via-slate-950/75 to-transparent px-4 pb-4 pt-12 text-white">
         <span className="block text-base font-semibold leading-tight">{title}</span>

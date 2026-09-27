@@ -1,11 +1,18 @@
-import { RefObject, useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AppBar } from "../components/AppBar";
 import { DetailsDrawer } from "../components/DetailsDrawer";
 import { Camera } from "../prediction/Camera";
 // import { PredictionDebugger } from "../prediction/PredictionDebugger";
-import { usePredictedDream } from "../prediction/PredictionContext";
+import {
+  PredictionProvider,
+  usePredictedDream,
+} from "../prediction/PredictionContext";
 
-export const AR = ({ videoRef }: { videoRef: RefObject<HTMLVideoElement | null> }) => {
+export const ARContent = ({
+  videoRef,
+}: {
+  videoRef: React.RefObject<HTMLVideoElement | null>;
+}) => {
   const dream = usePredictedDream();
   const [dismissedDreamId, setDismissedDreamId] = useState<number | null>(null);
 
@@ -21,7 +28,9 @@ export const AR = ({ videoRef }: { videoRef: RefObject<HTMLVideoElement | null> 
       <DetailsDrawer
         dream={dream}
         open={isDetailsOpen}
-        onClose={() => setDismissedDreamId(dream?.id ?? null)}
+        onClose={() => {
+          if (dream) setDismissedDreamId(dream.id);
+        }}
       >
         <div className=" bg-gray-100">
           <Camera videoRef={videoRef} />
@@ -31,3 +40,15 @@ export const AR = ({ videoRef }: { videoRef: RefObject<HTMLVideoElement | null> 
     </div>
   );
 };
+
+const AR = () => {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  return (
+    <PredictionProvider videoRef={videoRef}>
+      <ARContent videoRef={videoRef} />
+    </PredictionProvider>
+  );
+};
+
+export default AR;
