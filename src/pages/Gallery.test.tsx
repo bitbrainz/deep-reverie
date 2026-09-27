@@ -19,4 +19,18 @@ describe("Gallery", () => {
 
     await waitFor(() => expect(opener).toHaveFocus());
   });
+
+  it("starts each adjacent dream at the top of the details pane", async () => {
+    render(<Gallery />);
+    fireEvent.click(screen.getByRole("button", { name: "View Virtual Reality" }));
+
+    const dialog = await screen.findByRole("dialog");
+    const detailsPane = dialog.querySelector(".overflow-y-auto") as HTMLElement;
+    detailsPane.scrollTop = 600;
+
+    fireEvent.click(screen.getByRole("button", { name: "Next →" }));
+
+    expect(screen.getByRole("heading", { name: "Work-Life Balance" })).toBeVisible();
+    expect(detailsPane.scrollTop).toBe(0);
+  });
 });
