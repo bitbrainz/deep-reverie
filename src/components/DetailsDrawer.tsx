@@ -1,4 +1,4 @@
-import { PropsWithChildren, useState } from "react";
+import { PropsWithChildren, useEffect, useState } from "react";
 import { Drawer } from "vaul";
 import { Dream } from "../dreams/data/dreams";
 import { BlacklightComparison } from "./BlacklightComparison";
@@ -16,6 +16,27 @@ export const DetailsDrawer = ({
   onClose?: () => void;
 }>) => {
   const [snap, setSnap] = useState<number | string | null>(snapPoints[1]);
+  const canSpeak =
+    typeof window !== "undefined" &&
+    "speechSynthesis" in window &&
+    "SpeechSynthesisUtterance" in window;
+
+  useEffect(() => {
+    return () => {
+      if (typeof window !== "undefined" && "speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, [dream, open]);
+
+  const readDream = () => {
+    if (!dream || !canSpeak) return;
+
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(
+      new SpeechSynthesisUtterance(`${dream.title}. ${dream.imageDescription}`),
+    );
+  };
 
   const handleScroll = (event: React.UIEvent<HTMLDivElement>) => {
     const { scrollTop, scrollHeight, clientHeight } = event.currentTarget;
@@ -78,9 +99,24 @@ export const DetailsDrawer = ({
                 <div className="absolute z-10 text-l top-24 left-0 bg-black bg-opacity-50 text-white p-2">
                   {dream.tagline}
                 </div>
-                <div className="absolute z-10 bottom-8 right-0 bg-black bg-opacity-50 text-white p-2">
-                  ▶️ PLAY
-                </div>
+                <button
+                  type="button"
+                  onClick={readDream}
+                  disabled={!canSpeak}
+                  aria-label={
+                    canSpeak
+                      ? `Read ${dream.title} aloud`
+                      : "Speech synthesis is unavailable in this browser"
+                  }
+                  title={
+                    canSpeak
+                      ? `Read ${dream.title} aloud`
+                      : "Speech synthesis is unavailable in this browser"
+                  }
+                  className="absolute z-10 bottom-8 right-0 bg-black bg-opacity-50 text-white p-2 disabled:cursor-not-allowed disabled:opacity-70 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                >
+                  {canSpeak ? "▶️ PLAY" : "Speech unavailable"}
+                </button>
               </div>
               <h2 className="text-lg font-semibold mt-4">Explanation</h2>
               <p className="text-sm text-gray-700">{dream.explanation}</p>
