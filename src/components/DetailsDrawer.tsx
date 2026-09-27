@@ -27,11 +27,14 @@ export const DetailsDrawer = ({
   onNext,
 }: DetailsDrawerProps) => {
   const closeButtonRef = useRef<HTMLButtonElement>(null);
-  const detailsPaneRef = useRef<HTMLDivElement>(null);
+  const detailsScrollRef = useRef<HTMLDivElement>(null);
+  const selectedDreamId = dream?.id;
 
   useLayoutEffect(() => {
-    if (detailsPaneRef.current) detailsPaneRef.current.scrollTop = 0;
-  }, [dream?.id]);
+    if (detailsScrollRef.current) {
+      detailsScrollRef.current.scrollTop = 0;
+    }
+  }, [selectedDreamId]);
 
   return (
   <Drawer.Root
@@ -60,7 +63,7 @@ export const DetailsDrawer = ({
             : "Details about the selected dream."}
         </Drawer.Description>
         <div
-          ref={detailsPaneRef}
+          ref={detailsScrollRef}
           className="relative flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain"
         >
           <div className="sticky top-0 z-20 flex h-14 shrink-0 items-center justify-between border-b border-slate-200/80 bg-slate-50/95 px-4 backdrop-blur sm:px-6">

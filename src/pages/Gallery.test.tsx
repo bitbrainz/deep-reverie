@@ -3,6 +3,27 @@ import { describe, expect, it } from "vitest";
 import Gallery from "./Gallery";
 
 describe("Gallery", () => {
+  it("starts each adjacent dream at the top of the details pane", async () => {
+    render(<Gallery />);
+
+    fireEvent.click(screen.getByRole("button", { name: "View Virtual Reality" }));
+    await screen.findByRole("heading", { name: "Virtual Reality" });
+
+    const detailsPane = screen.getByRole("article").parentElement as HTMLElement;
+    detailsPane.scrollTop = 600;
+
+    fireEvent.click(screen.getByRole("button", { name: "Next →" }));
+
+    expect(screen.getByRole("heading", { name: "Work-Life Balance" })).toBeVisible();
+    expect(detailsPane.scrollTop).toBe(0);
+
+    detailsPane.scrollTop = 400;
+    fireEvent.click(screen.getByRole("button", { name: "← Previous" }));
+
+    expect(screen.getByRole("heading", { name: "Virtual Reality" })).toBeVisible();
+    expect(detailsPane.scrollTop).toBe(0);
+  });
+
   it("returns focus to the opening artwork after browsing and dismissing details", async () => {
     render(<Gallery />);
     const opener = screen.getByRole("button", { name: "View Virtual Reality" });
@@ -18,19 +39,5 @@ describe("Gallery", () => {
     fireEvent.keyDown(document, { key: "Escape" });
 
     await waitFor(() => expect(opener).toHaveFocus());
-  });
-
-  it("starts each adjacent dream at the top of the details pane", async () => {
-    render(<Gallery />);
-    fireEvent.click(screen.getByRole("button", { name: "View Virtual Reality" }));
-
-    const dialog = await screen.findByRole("dialog");
-    const detailsPane = dialog.querySelector(".overflow-y-auto") as HTMLElement;
-    detailsPane.scrollTop = 600;
-
-    fireEvent.click(screen.getByRole("button", { name: "Next →" }));
-
-    expect(screen.getByRole("heading", { name: "Work-Life Balance" })).toBeVisible();
-    expect(detailsPane.scrollTop).toBe(0);
   });
 });
