@@ -57,7 +57,7 @@ describe("DreamExperience", () => {
     await screen.findByRole("button", { name: "Recenter" });
   };
 
-  it("requests permissions and renders the complete live dream collection", async () => {
+  it("requests permissions and renders the authoritative 50-dream cylinder", async () => {
     render(<DreamExperience />);
     await startWithHeading();
 
@@ -66,14 +66,18 @@ describe("DreamExperience", () => {
       audio: false,
       video: expect.objectContaining({ facingMode: { ideal: "environment" } }),
     });
-    expect(screen.getAllByRole("button", { name: /^Open dream \d+:/ })).toHaveLength(
-      DREAMS.length,
-    );
+    expect(screen.getByText("50 dreams · 360°")).toBeVisible();
+    expect(screen.getAllByRole("button", { name: /^Open dream \d+:/ })).toHaveLength(50);
     expect(
       screen.getByRole("button", {
-        name: `Open dream 54: ${DREAMS[DREAMS.length - 1].title}`,
+        name: `Open dream 50: ${DREAMS.find(({ id }) => id === 50)?.title}`,
       }),
     ).toBeVisible();
+    expect(
+      screen.queryByRole("button", {
+        name: `Open dream 51: ${DREAMS.find(({ id }) => id === 51)?.title}`,
+      }),
+    ).not.toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "What does AI dream of?" })).toBeVisible();
   });
 

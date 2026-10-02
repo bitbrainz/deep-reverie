@@ -8,13 +8,13 @@ import {
   type MouseEvent as ReactMouseEvent,
 } from "react";
 import { DetailsDrawer } from "../components/DetailsDrawer";
-import { DREAMS } from "../dreams/data/dreams";
 import { useDreamSelection } from "../dreams/useDreamSelection";
 import {
   calculateOverviewWidth,
   createDreamCylinderLayout,
   DEFAULT_CYLINDER_LAYOUT,
 } from "../app/dreamCylinder";
+import { CYLINDER_DREAMS } from "../app/dreamCylinderCollection";
 import {
   clampPitch,
   headingFromEvent,
@@ -24,7 +24,6 @@ import {
   type OrientationPermissionConstructor,
 } from "../app/deviceOrientation";
 
-const CYLINDER_DREAMS = DREAMS;
 const SENSOR_TIMEOUT_MS = 4_000;
 
 type ExperienceStatus =

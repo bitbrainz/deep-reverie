@@ -8,14 +8,20 @@ import {
   DEFAULT_CYLINDER_LAYOUT,
   distributeRows,
 } from "./dreamCylinder";
+import { CYLINDER_DREAMS, DREAM_CYLINDER_IDS } from "./dreamCylinderCollection";
 
 describe("dream cylinder layout", () => {
-  it("distributes 50 dreams into aligned 17/16/17 rows", () => {
-    expect(distributeRows(50)).toEqual({ top: 17, middle: 16, bottom: 17 });
+  it("configures the 50-dream installation as aligned 17/16/17 rows", () => {
+    expect(CYLINDER_DREAMS.map(({ id }) => id)).toEqual(DREAM_CYLINDER_IDS);
+    expect(createDreamCylinderLayout(CYLINDER_DREAMS).rowCounts).toEqual({
+      top: 17,
+      middle: 16,
+      bottom: 17,
+    });
   });
 
   it("keeps outer rows aligned and staggers the middle row by half a slot", () => {
-    const layout = createDreamCylinderLayout(DREAMS.slice(0, 50));
+    const layout = createDreamCylinderLayout(CYLINDER_DREAMS);
     const top = layout.placements.filter(({ row }) => row === "top");
     const middle = layout.placements.filter(({ row }) => row === "middle");
     const bottom = layout.placements.filter(({ row }) => row === "bottom");
@@ -53,11 +59,10 @@ describe("dream cylinder layout", () => {
   });
 
   it("maps every placement to its matching dream exactly once", () => {
-    const dreams = DREAMS.slice(0, 50);
-    const layout = createDreamCylinderLayout(dreams);
+    const layout = createDreamCylinderLayout(CYLINDER_DREAMS);
 
     expect(layout.placements.map(({ dream }) => dream.id)).toEqual(
-      dreams.map(({ id }) => id),
+      DREAM_CYLINDER_IDS,
     );
     expect(new Set(layout.placements.map(({ dream }) => dream.id))).toHaveLength(50);
   });

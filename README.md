@@ -18,9 +18,10 @@ starts it to grant rear-camera and device-orientation access; the first sensor h
 becomes forward, and **Recenter** makes the current direction forward again. No GPS,
 marker tracking, or physical ground detection is used.
 
-The complete gallery collection forms a configurable, continuous three-row cylinder,
-so its radius and row distribution respond when dreams are added or removed. All
-artwork details use the same `DetailsDrawer` and dream data as `/gallery`.
+An explicit 50-dream installation forms a configurable, continuous 17/16/17 cylinder.
+The layout engine remains count-generic, so its radius and row distribution respond
+when an intentionally supplied collection changes. All artwork details use the same
+`DetailsDrawer` and dream data as `/gallery`.
 
 <!-- The original Vite template notes remain below for toolchain reference. -->
 
