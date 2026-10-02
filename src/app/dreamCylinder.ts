@@ -32,7 +32,7 @@ export type DreamCylinderLayout = {
 
 export const DEFAULT_CYLINDER_LAYOUT: CylinderLayoutConfig = {
   frameWidth: 0.78,
-  frameHeight: 0.88,
+  frameHeight: 1.08,
   horizontalGap: 0.14,
   rowSpacing: 0.14,
   estimatedEyeHeight: 1.6,
