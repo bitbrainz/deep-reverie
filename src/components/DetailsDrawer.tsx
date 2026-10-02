@@ -1,4 +1,5 @@
 import { PropsWithChildren, useEffect, useLayoutEffect, useRef } from "react";
+import * as Dialog from "@radix-ui/react-dialog";
 import { Drawer } from "vaul";
 import { Dream } from "../dreams/data/dreams";
 import { BlacklightComparison } from "./BlacklightComparison";
@@ -31,6 +32,15 @@ export const DetailsDrawer = ({
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const detailsScrollRef = useRef<HTMLDivElement>(null);
   const selectedDreamId = dream?.id;
+  const RootPrimitive = backgroundInteractive ? Dialog.Root : Drawer.Root;
+  const PortalPrimitive = backgroundInteractive ? Dialog.Portal : Drawer.Portal;
+  const OverlayPrimitive = backgroundInteractive ? Dialog.Overlay : Drawer.Overlay;
+  const ContentPrimitive = backgroundInteractive ? Dialog.Content : Drawer.Content;
+  const TitlePrimitive = backgroundInteractive ? Dialog.Title : Drawer.Title;
+  const DescriptionPrimitive = backgroundInteractive
+    ? Dialog.Description
+    : Drawer.Description;
+  const ClosePrimitive = backgroundInteractive ? Dialog.Close : Drawer.Close;
   const canSpeak =
     typeof window !== "undefined" &&
     "speechSynthesis" in window &&
@@ -60,7 +70,7 @@ export const DetailsDrawer = ({
   }, [selectedDreamId]);
 
   return (
-  <Drawer.Root
+  <RootPrimitive
     open={open}
     modal={!backgroundInteractive}
     onOpenChange={(nextOpen) => {
@@ -68,11 +78,11 @@ export const DetailsDrawer = ({
     }}
   >
     {children}
-    <Drawer.Portal>
-      <Drawer.Overlay
+    <PortalPrimitive>
+      <OverlayPrimitive
         className={`fixed inset-0 z-40 bg-slate-950/75 backdrop-blur-sm ${backgroundInteractive ? "pointer-events-none" : ""}`}
       />
-      <Drawer.Content
+      <ContentPrimitive
         data-testid="content"
         onOpenAutoFocus={(event) => {
           event.preventDefault();
@@ -80,14 +90,14 @@ export const DetailsDrawer = ({
         }}
         className="fixed inset-x-0 bottom-0 z-50 flex max-h-[94dvh] flex-col overflow-hidden rounded-t-[28px] bg-slate-50 shadow-2xl outline-none sm:inset-y-5 sm:left-auto sm:right-5 sm:max-h-none sm:w-[min(720px,calc(100vw-40px))] sm:rounded-[28px]"
       >
-        <Drawer.Title className="sr-only">
+        <TitlePrimitive className="sr-only">
           {dream ? `${dream.title} details` : "Dream details"}
-        </Drawer.Title>
-        <Drawer.Description className="sr-only">
+        </TitlePrimitive>
+        <DescriptionPrimitive className="sr-only">
           {dream
             ? `${dream.tagline}. Read the vision, its importance, AI's role, and a description of the artwork.`
             : "Details about the selected dream."}
-        </Drawer.Description>
+        </DescriptionPrimitive>
         <div
           ref={detailsScrollRef}
           className="relative flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain"
@@ -96,13 +106,13 @@ export const DetailsDrawer = ({
             <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
               Dream details
             </span>
-            <Drawer.Close
+            <ClosePrimitive
               ref={closeButtonRef}
               className="grid h-10 w-10 place-items-center rounded-full bg-slate-200 text-xl leading-none text-slate-800 transition hover:bg-slate-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-600"
               aria-label="Close dream details"
             >
               <span aria-hidden="true">×</span>
-            </Drawer.Close>
+            </ClosePrimitive>
           </div>
 
           {dream ? (
@@ -173,8 +183,8 @@ export const DetailsDrawer = ({
             </button>
           </nav>
         ) : null}
-      </Drawer.Content>
-    </Drawer.Portal>
-  </Drawer.Root>
+      </ContentPrimitive>
+    </PortalPrimitive>
+  </RootPrimitive>
   );
 };

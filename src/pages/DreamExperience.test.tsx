@@ -98,17 +98,14 @@ describe("DreamExperience", () => {
     expect(world).toHaveStyle({ transform: "rotateX(0deg) rotateY(0deg)" });
   });
 
-  it("replaces the open gallery explainer when another diamond is selected", async () => {
+  it("keeps background controls accessible while replacing the open explainer", async () => {
     render(<DreamExperience />);
     await startWithHeading();
     fireEvent.click(screen.getByRole("button", { name: /Open dream 01:/ }));
     expect(await screen.findByRole("heading", { name: "Virtual Reality" })).toBeVisible();
 
-    const nextDiamond = document.querySelector<HTMLButtonElement>(
-      '[aria-label^="Open dream 18:"]',
-    );
-    expect(nextDiamond).not.toBeNull();
-    fireEvent.click(nextDiamond!);
+    expect(screen.getByRole("button", { name: "Recenter" })).toBeVisible();
+    fireEvent.click(screen.getByRole("button", { name: /Open dream 18:/ }));
     await waitFor(() =>
       expect(screen.getByRole("heading", { name: "Animal Protection" })).toBeVisible(),
     );

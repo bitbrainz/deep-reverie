@@ -31,6 +31,14 @@ test("homepage hero stays below its transfer budget", async () => {
   assert.ok(hero.size < 400_000, "hero.webp exceeds 400 KB");
 });
 
+test("about page installation photo stays below its transfer budget", async () => {
+  const installationPhoto = await stat("public/images/deep-reverie-at-lumiere.webp");
+  assert.ok(
+    installationPhoto.size < 250_000,
+    "deep-reverie-at-lumiere.webp exceeds 250 KB",
+  );
+});
+
 test("gallery sources cover supported viewport and pixel-density combinations", () => {
   const maxContainerWidth = 1280;
   const sourceWidth = 512;
