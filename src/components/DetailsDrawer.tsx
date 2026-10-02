@@ -1,6 +1,14 @@
-import { PropsWithChildren, useEffect, useLayoutEffect, useRef } from "react";
+import {
+  PropsWithChildren,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { Drawer } from "vaul";
 import { Dream } from "../dreams/data/dreams";
+import { getNarrationUrl } from "../dreams/data/narrations";
 import { BlacklightComparison } from "./BlacklightComparison";
 
 type DetailsDrawerProps = PropsWithChildren<{
@@ -28,27 +36,82 @@ export const DetailsDrawer = ({
 }: DetailsDrawerProps) => {
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const detailsScrollRef = useRef<HTMLDivElement>(null);
+  const activeNarrationRef = useRef<{
+    audio: HTMLAudioElement;
+    dreamId: number;
+  } | null>(null);
+  const [playback, setPlayback] = useState<{
+    dreamId: number | null;
+    status: "idle" | "playing" | "error";
+  }>({ dreamId: null, status: "idle" });
   const selectedDreamId = dream?.id;
-  const canSpeak =
-    typeof window !== "undefined" &&
-    "speechSynthesis" in window &&
-    "SpeechSynthesisUtterance" in window;
+  const narrationUrl = dream ? getNarrationUrl(dream.id) : null;
+  const narrationAvailable = narrationUrl !== null && typeof Audio !== "undefined";
+  const playbackStatus =
+    playback.dreamId === selectedDreamId ? playback.status : "idle";
+
+  const stopActiveNarration = useCallback(() => {
+    const activeNarration = activeNarrationRef.current;
+    if (!activeNarration) return;
+
+    activeNarrationRef.current = null;
+    activeNarration.audio.onended = null;
+    activeNarration.audio.onerror = null;
+    activeNarration.audio.pause();
+
+    try {
+      activeNarration.audio.currentTime = 0;
+    } catch {
+      // A failed media resource may not expose a seekable timeline.
+    }
+  }, []);
 
   useEffect(() => {
-    return () => {
-      if (typeof window !== "undefined" && "speechSynthesis" in window) {
-        window.speechSynthesis.cancel();
-      }
+    return stopActiveNarration;
+  }, [selectedDreamId, open, stopActiveNarration]);
+
+  const toggleNarration = () => {
+    if (!dream || !narrationUrl || !narrationAvailable) return;
+
+    if (playbackStatus === "playing") {
+      stopActiveNarration();
+      setPlayback({ dreamId: dream.id, status: "idle" });
+      return;
+    }
+
+    stopActiveNarration();
+
+    let audio: HTMLAudioElement;
+    try {
+      audio = new Audio(narrationUrl);
+    } catch {
+      setPlayback({ dreamId: dream.id, status: "error" });
+      return;
+    }
+
+    activeNarrationRef.current = { audio, dreamId: dream.id };
+    setPlayback({ dreamId: dream.id, status: "playing" });
+
+    const markUnavailable = () => {
+      if (activeNarrationRef.current?.audio !== audio) return;
+
+      stopActiveNarration();
+      setPlayback({ dreamId: dream.id, status: "error" });
     };
-  }, [dream, open]);
 
-  const readDream = () => {
-    if (!dream || !canSpeak) return;
+    audio.onended = () => {
+      if (activeNarrationRef.current?.audio !== audio) return;
 
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(
-      new SpeechSynthesisUtterance(`${dream.title}. ${dream.imageDescription}`),
-    );
+      activeNarrationRef.current = null;
+      setPlayback({ dreamId: dream.id, status: "idle" });
+    };
+    audio.onerror = markUnavailable;
+
+    try {
+      void audio.play().catch(markUnavailable);
+    } catch {
+      markUnavailable();
+    }
   };
 
   useLayoutEffect(() => {
@@ -119,23 +182,31 @@ export const DetailsDrawer = ({
               <div className="px-5 pt-6 sm:px-8">
                 <button
                   type="button"
-                  onClick={readDream}
-                  disabled={!canSpeak}
+                  onClick={toggleNarration}
+                  disabled={!narrationAvailable}
                   aria-label={
-                    canSpeak
-                      ? `Read ${dream.title} aloud`
-                      : "Speech synthesis is unavailable in this browser"
-                  }
-                  title={
-                    canSpeak
-                      ? `Read ${dream.title} aloud`
-                      : "Speech synthesis is unavailable in this browser"
+                    !narrationAvailable
+                      ? `Narration unavailable for ${dream.title}`
+                      : playbackStatus === "playing"
+                        ? `Stop narration for ${dream.title}`
+                        : `Play narration for ${dream.title}`
                   }
                   className="inline-flex min-h-11 items-center gap-2 rounded-full bg-violet-100 px-5 text-sm font-semibold text-violet-950 transition hover:bg-violet-200 disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-600 focus-visible:ring-offset-2"
                 >
-                  <span aria-hidden="true">▶</span>
-                  {canSpeak ? "Read artwork aloud" : "Speech unavailable"}
+                  <span aria-hidden="true">{playbackStatus === "playing" ? "■" : "▶"}</span>
+                  {!narrationAvailable
+                    ? "Narration unavailable"
+                    : playbackStatus === "playing"
+                      ? "Stop narration"
+                      : playbackStatus === "error"
+                        ? "Try narration again"
+                        : "Play narration"}
                 </button>
+                {playbackStatus === "error" ? (
+                  <p className="mt-2 text-sm text-rose-700" role="status">
+                    Narration is unavailable right now. Please try again.
+                  </p>
+                ) : null}
               </div>
 
               <div className="space-y-6 px-5 py-7 sm:px-8 sm:py-8">
