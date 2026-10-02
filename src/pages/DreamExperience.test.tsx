@@ -24,8 +24,23 @@ class DeviceOrientationEventMock extends Event {
 const stopTrack = vi.fn();
 const getUserMedia = vi.fn();
 
+class AudioMock {
+  static instances: AudioMock[] = [];
+
+  currentTime = 0;
+  onended: (() => void) | null = null;
+  onerror: (() => void) | null = null;
+  pause = vi.fn();
+  play = vi.fn(() => Promise.resolve());
+
+  constructor(readonly src: string) {
+    AudioMock.instances.push(this);
+  }
+}
+
 describe("DreamExperience", () => {
   beforeEach(() => {
+    AudioMock.instances = [];
     DeviceOrientationEventMock.requestPermission.mockResolvedValue("granted");
     getUserMedia.mockResolvedValue({ getTracks: () => [{ stop: stopTrack }] });
     Object.defineProperty(window, "isSecureContext", {
@@ -37,6 +52,7 @@ describe("DreamExperience", () => {
       value: { getUserMedia },
     });
     vi.stubGlobal("DeviceOrientationEvent", DeviceOrientationEventMock);
+    vi.stubGlobal("Audio", AudioMock);
     vi.spyOn(HTMLMediaElement.prototype, "play").mockResolvedValue();
   });
 
@@ -92,7 +108,7 @@ describe("DreamExperience", () => {
       window,
       new DeviceOrientationEventMock("deviceorientation", { alpha: 250, beta: 80 }),
     );
-    expect(world).toHaveStyle({ transform: "rotateX(-10deg) rotateY(20deg)" });
+    expect(world).toHaveStyle({ transform: "rotateX(-1.32deg) rotateY(20deg)" });
 
     fireEvent.click(screen.getByRole("button", { name: "Recenter" }));
     expect(world).toHaveStyle({ transform: "rotateX(0deg) rotateY(0deg)" });
@@ -119,18 +135,28 @@ describe("DreamExperience", () => {
     expect(dreamTen).toBeVisible();
   });
 
-  it("keeps background controls accessible while replacing the open explainer", async () => {
+  it("shows a replaceable AR popover and automatically changes narration", async () => {
     render(<DreamExperience />);
     await startWithHeading();
     fireEvent.click(screen.getByRole("button", { name: /Open dream 01:/ }));
-    expect(await screen.findByRole("heading", { name: "Virtual Reality" })).toBeVisible();
+    expect(
+      await screen.findByRole("dialog", { name: "Virtual Reality" }),
+    ).toBeVisible();
+    expect(AudioMock.instances).toHaveLength(1);
+    expect(AudioMock.instances[0].play).toHaveBeenCalledOnce();
 
     expect(screen.getByRole("button", { name: "Recenter" })).toBeVisible();
     fireEvent.click(screen.getByRole("button", { name: /Open dream 18:/ }));
     await waitFor(() =>
-      expect(screen.getByRole("heading", { name: "Animal Protection" })).toBeVisible(),
+      expect(
+        screen.getByRole("dialog", { name: "Animal Protection" }),
+      ).toBeVisible(),
     );
-    expect(screen.queryByRole("heading", { name: "Virtual Reality" })).not.toBeInTheDocument();
+    expect(AudioMock.instances[0].pause).toHaveBeenCalledOnce();
+    expect(AudioMock.instances[1].play).toHaveBeenCalledOnce();
+    expect(
+      screen.queryByRole("dialog", { name: "Virtual Reality" }),
+    ).not.toBeInTheDocument();
   });
 
   it("shows clear denied and unsupported states", async () => {

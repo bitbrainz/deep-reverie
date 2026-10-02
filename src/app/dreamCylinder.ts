@@ -82,10 +82,10 @@ export const calculateRowHeights = ({
 export const angleForSlot = (
   row: CylinderRow,
   rowIndex: number,
-  rowCount: number,
+  sharedSlotCount: number,
 ) => {
-  if (rowCount <= 0) return 0;
-  const slotAngle = 360 / rowCount;
+  if (sharedSlotCount <= 0) return 0;
+  const slotAngle = 360 / sharedSlotCount;
   const stagger = row === "middle" ? slotAngle / 2 : 0;
   return rowIndex * slotAngle + stagger;
 };
@@ -111,7 +111,7 @@ export const createDreamCylinderLayout = (
       dream: dreams[dreamIndex++],
       row,
       rowIndex,
-      angle: angleForSlot(row, rowIndex, rowCount),
+      angle: angleForSlot(row, rowIndex, largestRowCount),
       heightFromEye: rowHeights[row],
     }));
   });
