@@ -9,6 +9,7 @@ type DetailsDrawerProps = PropsWithChildren<{
   onClose?: () => void;
   onPrevious?: () => void;
   onNext?: () => void;
+  backgroundInteractive?: boolean;
 }>;
 
 const DetailSection = ({ title, children }: PropsWithChildren<{ title: string }>) => (
@@ -25,6 +26,7 @@ export const DetailsDrawer = ({
   onClose,
   onPrevious,
   onNext,
+  backgroundInteractive = false,
 }: DetailsDrawerProps) => {
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const detailsScrollRef = useRef<HTMLDivElement>(null);
@@ -60,13 +62,16 @@ export const DetailsDrawer = ({
   return (
   <Drawer.Root
     open={open}
+    modal={!backgroundInteractive}
     onOpenChange={(nextOpen) => {
       if (!nextOpen) onClose?.();
     }}
   >
     {children}
     <Drawer.Portal>
-      <Drawer.Overlay className="fixed inset-0 z-40 bg-slate-950/75 backdrop-blur-sm" />
+      <Drawer.Overlay
+        className={`fixed inset-0 z-40 bg-slate-950/75 backdrop-blur-sm ${backgroundInteractive ? "pointer-events-none" : ""}`}
+      />
       <Drawer.Content
         data-testid="content"
         onOpenAutoFocus={(event) => {
