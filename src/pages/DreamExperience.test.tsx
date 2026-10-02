@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { DREAMS } from "../dreams/data/dreams";
 import DreamExperience from "./DreamExperience";
 
 class DeviceOrientationEventMock extends Event {
@@ -56,7 +57,7 @@ describe("DreamExperience", () => {
     await screen.findByRole("button", { name: "Recenter" });
   };
 
-  it("requests rear-camera and motion access from the start action", async () => {
+  it("requests permissions and renders the complete live dream collection", async () => {
     render(<DreamExperience />);
     await startWithHeading();
 
@@ -65,7 +66,14 @@ describe("DreamExperience", () => {
       audio: false,
       video: expect.objectContaining({ facingMode: { ideal: "environment" } }),
     });
-    expect(screen.getAllByRole("button", { name: /^Open dream \d+:/ })).toHaveLength(50);
+    expect(screen.getAllByRole("button", { name: /^Open dream \d+:/ })).toHaveLength(
+      DREAMS.length,
+    );
+    expect(
+      screen.getByRole("button", {
+        name: `Open dream 54: ${DREAMS[DREAMS.length - 1].title}`,
+      }),
+    ).toBeVisible();
     expect(screen.getByRole("heading", { name: "What does AI dream of?" })).toBeVisible();
   });
 
@@ -73,6 +81,7 @@ describe("DreamExperience", () => {
     render(<DreamExperience />);
     await startWithHeading(270);
     const world = screen.getByTestId("dream-cylinder-world");
+    expect(world).toContainElement(screen.getByLabelText("About the dream cylinder"));
     expect(world).toHaveStyle({ transform: "rotateX(0deg) rotateY(0deg)" });
 
     fireEvent(

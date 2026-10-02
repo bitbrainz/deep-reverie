@@ -24,7 +24,7 @@ import {
   type OrientationPermissionConstructor,
 } from "../app/deviceOrientation";
 
-const CYLINDER_DREAMS = DREAMS.slice(0, 50);
+const CYLINDER_DREAMS = DREAMS;
 const SENSOR_TIMEOUT_MS = 4_000;
 
 type ExperienceStatus =
@@ -47,6 +47,8 @@ const DreamExperience = () => {
   const streamRef = useRef<MediaStream | null>(null);
   const originRef = useRef<OrientationSample | null>(null);
   const latestSampleRef = useRef<OrientationSample | null>(null);
+  const overviewRef = useRef<HTMLElement>(null);
+  const overviewButtonRef = useRef<HTMLButtonElement>(null);
   const [status, setStatus] = useState<ExperienceStatus>({ kind: "idle" });
   const [heading, setHeading] = useState(0);
   const [pitch, setPitch] = useState(0);
@@ -194,6 +196,29 @@ const DreamExperience = () => {
   };
 
   const selectDreamAtPoint = (event: ReactMouseEvent<HTMLDivElement>) => {
+    if (showOverview && overviewRef.current) {
+      const overviewRect = overviewRef.current.getBoundingClientRect();
+      const isInsideOverview =
+        event.clientX >= overviewRect.left &&
+        event.clientX <= overviewRect.right &&
+        event.clientY >= overviewRect.top &&
+        event.clientY <= overviewRect.bottom;
+
+      if (isInsideOverview) {
+        const buttonRect = overviewButtonRef.current?.getBoundingClientRect();
+        if (
+          buttonRect &&
+          event.clientX >= buttonRect.left &&
+          event.clientX <= buttonRect.right &&
+          event.clientY >= buttonRect.top &&
+          event.clientY <= buttonRect.bottom
+        ) {
+          setShowOverview(false);
+        }
+        return;
+      }
+    }
+
     const candidates = Array.from(
       event.currentTarget.querySelectorAll<HTMLButtonElement>(".dream-diamond"),
     )
@@ -255,7 +280,9 @@ const DreamExperience = () => {
           <header className="dream-experience__header">
             <div>
               <span>Deep Reverie</span>
-              <small>{isActive ? "50 dreams · 360°" : "Rotation gallery"}</small>
+              <small>
+                {isActive ? `${CYLINDER_DREAMS.length} dreams · 360°` : "Rotation gallery"}
+              </small>
             </div>
             {isActive ? (
               <button type="button" onClick={recenter} className="dream-experience__recenter">
@@ -315,24 +342,33 @@ const DreamExperience = () => {
                   );
                 })}
 
+                {showOverview ? (
+                  <aside
+                    ref={overviewRef}
+                    className="dream-cylinder__overview"
+                    style={{
+                      width: `${overviewWidthPixels}px`,
+                      transform: `translate(-50%, -50%) translateZ(${-radiusPixels + 120}px)`,
+                    }}
+                    aria-label="About the dream cylinder"
+                  >
+                    <p>Machine-imagined futures</p>
+                    <h1>What does AI dream of?</h1>
+                    <span>
+                      Turn with your phone to travel through every vision. Tilt to reach
+                      the upper and lower horizons, then touch a diamond to enter its story.
+                    </span>
+                    <button
+                      ref={overviewButtonRef}
+                      type="button"
+                      onClick={() => setShowOverview(false)}
+                    >
+                      Explore the circle
+                    </button>
+                  </aside>
+                ) : null}
+
               </div>
-              {showOverview ? (
-                <aside
-                  className="dream-cylinder__overview"
-                  style={{ width: `min(92vw, ${overviewWidthPixels}px)` }}
-                  aria-label="About the dream cylinder"
-                >
-                  <p>Machine-imagined futures</p>
-                  <h1>What does AI dream of?</h1>
-                  <span>
-                    Turn with your phone to travel through fifty visions. Tilt to reach
-                    the upper and lower horizons, then touch a diamond to enter its story.
-                  </span>
-                  <button type="button" onClick={() => setShowOverview(false)}>
-                    Explore the circle
-                  </button>
-                </aside>
-              ) : null}
             </div>
           ) : (
             <ExperienceGate status={status} onStart={startExperience} />
