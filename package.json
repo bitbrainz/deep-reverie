@@ -10,7 +10,7 @@
     "preview": "vite preview",
     "test": "npm run test:unit && npm run test:assets",
     "test:unit": "vitest run",
-    "test:assets": "node --test test/performance-assets.mjs"
+    "test:assets": "node --test test/performance-assets.mjs test/narration-assets.mjs"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.6",
