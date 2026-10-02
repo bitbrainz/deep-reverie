@@ -60,6 +60,13 @@ describe("dream cylinder layout", () => {
     expect(DEFAULT_CYLINDER_LAYOUT.estimatedEyeHeight).toBe(1.6);
   });
 
+  it("uses a visibly elongated diamond frame", () => {
+    expect(
+      DEFAULT_CYLINDER_LAYOUT.frameHeight /
+        DEFAULT_CYLINDER_LAYOUT.frameWidth,
+    ).toBeGreaterThanOrEqual(1.35);
+  });
+
   it("maps every placement to its matching dream exactly once", () => {
     const layout = createDreamCylinderLayout(CYLINDER_DREAMS);
 
