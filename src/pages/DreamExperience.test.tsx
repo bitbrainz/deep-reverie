@@ -67,7 +67,7 @@ describe("DreamExperience", () => {
       video: expect.objectContaining({ facingMode: { ideal: "environment" } }),
     });
     expect(screen.getByText("50 dreams · 360°")).toBeVisible();
-    expect(screen.getAllByRole("button", { name: /^Open dream \d+:/ })).toHaveLength(50);
+    expect(document.querySelectorAll(".dream-diamond")).toHaveLength(50);
     expect(
       screen.getByRole("button", {
         name: `Open dream 50: ${DREAMS.find(({ id }) => id === 50)?.title}`,
@@ -92,10 +92,31 @@ describe("DreamExperience", () => {
       window,
       new DeviceOrientationEventMock("deviceorientation", { alpha: 250, beta: 80 }),
     );
-    expect(world).toHaveStyle({ transform: "rotateX(10deg) rotateY(-20deg)" });
+    expect(world).toHaveStyle({ transform: "rotateX(-10deg) rotateY(20deg)" });
 
     fireEvent.click(screen.getByRole("button", { name: "Recenter" }));
     expect(world).toHaveStyle({ transform: "rotateX(0deg) rotateY(0deg)" });
+  });
+
+  it("culls rear-facing diamonds instead of relying on GPU backface rendering", async () => {
+    render(<DreamExperience />);
+    await startWithHeading(270);
+
+    const dreamOne = screen.getByRole("button", { name: /Open dream 01:/ });
+    const dreamTen = document.querySelector<HTMLButtonElement>(
+      '[data-dream-id="10"]',
+    );
+    expect(dreamTen).not.toBeNull();
+    expect(dreamOne).toBeVisible();
+    expect(dreamTen).not.toBeVisible();
+
+    fireEvent(
+      window,
+      new DeviceOrientationEventMock("deviceorientation", { alpha: 100, beta: 90 }),
+    );
+
+    expect(dreamOne).not.toBeVisible();
+    expect(dreamTen).toBeVisible();
   });
 
   it("keeps background controls accessible while replacing the open explainer", async () => {

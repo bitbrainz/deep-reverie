@@ -7,6 +7,8 @@ import {
   createDreamCylinderLayout,
   DEFAULT_CYLINDER_LAYOUT,
   distributeRows,
+  isPlacementFrontFacing,
+  placementAngleFromViewer,
 } from "./dreamCylinder";
 import { CYLINDER_DREAMS, DREAM_CYLINDER_IDS } from "./dreamCylinderCollection";
 
@@ -65,5 +67,17 @@ describe("dream cylinder layout", () => {
       DREAM_CYLINDER_IDS,
     );
     expect(new Set(layout.placements.map(({ dream }) => dream.id))).toHaveLength(50);
+  });
+
+  it("only exposes placements on the viewer-facing half of the cylinder", () => {
+    expect(isPlacementFrontFacing(0, 0)).toBe(true);
+    expect(isPlacementFrontFacing(89, 0)).toBe(true);
+    expect(isPlacementFrontFacing(90, 0)).toBe(false);
+    expect(isPlacementFrontFacing(180, 0)).toBe(false);
+
+    // A positive view rotation brings a placement from the right (-90°) forward.
+    expect(placementAngleFromViewer(270, 90)).toBe(0);
+    expect(isPlacementFrontFacing(270, 90)).toBe(true);
+    expect(isPlacementFrontFacing(0, 90)).toBe(false);
   });
 });

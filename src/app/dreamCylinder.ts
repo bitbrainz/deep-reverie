@@ -121,3 +121,16 @@ export const createDreamCylinderLayout = (
 
 export const calculateOverviewWidth = (radius: number, angle: number) =>
   2 * radius * Math.tan((angle * Math.PI) / 360);
+
+const normalizeSignedDegrees = (degrees: number) =>
+  ((degrees + 540) % 360) - 180;
+
+export const placementAngleFromViewer = (
+  placementAngle: number,
+  viewHeading: number,
+) => normalizeSignedDegrees(placementAngle + viewHeading);
+
+export const isPlacementFrontFacing = (
+  placementAngle: number,
+  viewHeading: number,
+) => Math.abs(placementAngleFromViewer(placementAngle, viewHeading)) < 90;

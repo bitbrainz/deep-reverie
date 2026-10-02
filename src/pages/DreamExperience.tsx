@@ -13,6 +13,7 @@ import {
   calculateOverviewWidth,
   createDreamCylinderLayout,
   DEFAULT_CYLINDER_LAYOUT,
+  isPlacementFrontFacing,
 } from "../app/dreamCylinder";
 import { CYLINDER_DREAMS } from "../app/dreamCylinderCollection";
 import {
@@ -238,8 +239,8 @@ const DreamExperience = () => {
         const leftAngle = Number(left.dataset.angle);
         const rightAngle = Number(right.dataset.angle);
         return (
-          Math.abs(signedAngularDifference(leftAngle, heading)) -
-          Math.abs(signedAngularDifference(rightAngle, heading))
+          Math.abs(signedAngularDifference(leftAngle, -heading)) -
+          Math.abs(signedAngularDifference(rightAngle, -heading))
         );
       });
 
@@ -252,7 +253,7 @@ const DreamExperience = () => {
 
   const isActive = status.kind === "active";
   const worldStyle = {
-    transform: `rotateX(${pitch}deg) rotateY(${-heading}deg)`,
+    transform: `rotateX(${-pitch}deg) rotateY(${heading}deg)`,
   } as CSSProperties;
 
   return (
@@ -305,6 +306,10 @@ const DreamExperience = () => {
                 {layout.placements.map((placement, index) => {
                   const yPixels =
                     -placement.heightFromEye * DEFAULT_CYLINDER_LAYOUT.pixelsPerMeter;
+                  const isFrontFacing = isPlacementFrontFacing(
+                    placement.angle,
+                    heading,
+                  );
                   return (
                     <button
                       key={placement.dream.id}
@@ -317,9 +322,12 @@ const DreamExperience = () => {
                           width: `${frameWidthPixels}px`,
                           height: `${frameHeightPixels}px`,
                           transform: `translate(-50%, -50%) rotateY(${placement.angle}deg) translateZ(${-radiusPixels}px) translateY(${yPixels}px)`,
+                          visibility: isFrontFacing ? "visible" : "hidden",
                           "--dream-index": index,
                         } as CSSProperties
                       }
+                      aria-hidden={isFrontFacing ? undefined : true}
+                      tabIndex={isFrontFacing ? 0 : -1}
                       aria-label={`Open dream ${String(placement.dream.id).padStart(2, "0")}: ${placement.dream.title}`}
                       onClick={(event) => {
                         event.stopPropagation();
@@ -348,6 +356,9 @@ const DreamExperience = () => {
                     style={{
                       width: `${overviewWidthPixels}px`,
                       transform: `translate(-50%, -50%) translateZ(${-radiusPixels + 120}px)`,
+                      visibility: isPlacementFrontFacing(0, heading)
+                        ? "visible"
+                        : "hidden",
                     }}
                     aria-label="About the dream cylinder"
                   >
