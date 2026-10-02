@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540">
+  <defs>
+    <linearGradient id="neutral" x1="0" x2="1">
+      <stop offset="0" stop-color="#000"/><stop offset=".25" stop-color="#404040"/>
+      <stop offset=".5" stop-color="#808080"/><stop offset=".75" stop-color="#bfbfbf"/>
+      <stop offset="1" stop-color="#fff"/>
+    </linearGradient>
+    <linearGradient id="hue" x1="0" x2="1">
+      <stop offset="0" stop-color="#f00"/><stop offset=".167" stop-color="#ff0"/>
+      <stop offset=".333" stop-color="#0f0"/><stop offset=".5" stop-color="#0ff"/>
+      <stop offset=".667" stop-color="#00f"/><stop offset=".833" stop-color="#f0f"/>
+      <stop offset="1" stop-color="#f00"/>
+    </linearGradient>
+  </defs>
+  <rect width="960" height="540" fill="#08080d"/>
+  <text x="48" y="54" fill="#fff" font-family="system-ui, sans-serif" font-size="25" font-weight="700">Blacklight calibration fixture</text>
+  <text x="48" y="82" fill="#b8b8c8" font-family="system-ui, sans-serif" font-size="16">Neutrals, low-value colors, saturated hues, and continuous ramps</text>
+  <g transform="translate(48 116)">
+    <text y="-12" fill="#d8d8e0" font-family="system-ui, sans-serif" font-size="14">NEUTRAL VALUE</text>
+    <rect width="864" height="58" rx="4" fill="url(#neutral)"/>
+  </g>
+  <g transform="translate(48 218)">
+    <text y="-12" fill="#d8d8e0" font-family="system-ui, sans-serif" font-size="14">LOW VALUE</text>
+    <rect x="0" width="108" height="76" fill="#330000"/><rect x="108" width="108" height="76" fill="#332200"/>
+    <rect x="216" width="108" height="76" fill="#223300"/><rect x="324" width="108" height="76" fill="#003322"/>
+    <rect x="432" width="108" height="76" fill="#003333"/><rect x="540" width="108" height="76" fill="#001933"/>
+    <rect x="648" width="108" height="76" fill="#190033"/><rect x="756" width="108" height="76" fill="#330022"/>
+  </g>
+  <g transform="translate(48 338)">
+    <text y="-12" fill="#d8d8e0" font-family="system-ui, sans-serif" font-size="14">SATURATED HUES</text>
+    <rect x="0" width="108" height="76" fill="#ff2020"/><rect x="108" width="108" height="76" fill="#ff7a00"/>
+    <rect x="216" width="108" height="76" fill="#fff000"/><rect x="324" width="108" height="76" fill="#7dff00"/>
+    <rect x="432" width="108" height="76" fill="#00ffc8"/><rect x="540" width="108" height="76" fill="#0080ff"/>
+    <rect x="648" width="108" height="76" fill="#6820ff"/><rect x="756" width="108" height="76" fill="#ff20bd"/>
+  </g>
+  <g transform="translate(48 458)">
+    <text y="-12" fill="#d8d8e0" font-family="system-ui, sans-serif" font-size="14">CONTINUOUS HUE</text>
+    <rect width="864" height="46" rx="4" fill="url(#hue)"/>
+  </g>
+</svg>
