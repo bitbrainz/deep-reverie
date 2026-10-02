@@ -1,25 +1,12 @@
-import { useRef, useState } from "react";
-import { DREAMS, Dream } from "../dreams/data/dreams";
+import { DREAMS } from "../dreams/data/dreams";
 import Card from "../components/Card";
 import { DetailsDrawer } from "../components/DetailsDrawer";
 import { AppBar } from "../components/AppBar";
+import { useDreamSelection } from "../dreams/useDreamSelection";
 
 const Gallery = () => {
-  const [selectedDream, setSelectedDream] = useState<Dream | null>(null);
-  const openingCardRef = useRef<HTMLButtonElement | null>(null);
-  const selectedIndex = selectedDream
-    ? DREAMS.findIndex((dream) => dream.id === selectedDream.id)
-    : -1;
-
-  const selectAdjacentDream = (offset: number) => {
-    const nextIndex = (selectedIndex + offset + DREAMS.length) % DREAMS.length;
-    setSelectedDream(DREAMS[nextIndex]);
-  };
-
-  const closeDetails = () => {
-    setSelectedDream(null);
-    window.requestAnimationFrame(() => openingCardRef.current?.focus());
-  };
+  const { selectedDream, selectDream, selectAdjacentDream, closeDetails } =
+    useDreamSelection(DREAMS);
 
   return (
     <div className="min-h-screen bg-slate-950 text-white">
@@ -45,8 +32,7 @@ const Gallery = () => {
               tagline={dream.tagline}
               eager={index < 6}
               onClick={(event) => {
-                openingCardRef.current = event.currentTarget;
-                setSelectedDream(dream);
+                selectDream(dream, event.currentTarget);
               }}
             />
           ))}

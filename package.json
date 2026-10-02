@@ -13,6 +13,7 @@
     "test:assets": "node --test test/performance-assets.mjs"
   },
   "dependencies": {
+    "@radix-ui/react-dialog": "^1.1.6",
     "@tailwindcss/vite": "^4.0.12",
     "@teachablemachine/image": "^0.8.5",
     "react": "^19.0.0",
