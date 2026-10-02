@@ -1,4 +1,29 @@
-# React + TypeScript + Vite
+# Deep Reverie
+
+Deep Reverie is a React/Vite gallery for exploring machine-imagined futures.
+
+## Development
+
+```bash
+npm ci
+npm run dev
+```
+
+Run `npm test`, `npm run lint`, and `npm run build` before shipping changes.
+
+## Rotation gallery
+
+The `/app` route is a camera-backed, rotation-only experience. A visitor explicitly
+starts it to grant rear-camera and device-orientation access; the first sensor heading
+becomes forward, and **Recenter** makes the current direction forward again. No GPS,
+marker tracking, or physical ground detection is used.
+
+An explicit 50-dream installation forms a configurable, continuous 17/16/17 cylinder.
+The layout engine remains count-generic, so its radius and row distribution respond
+when an intentionally supplied collection changes. All artwork details use the same
+`DetailsDrawer` and dream data as `/gallery`.
+
+<!-- The original Vite template notes remain below for toolchain reference. -->
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
