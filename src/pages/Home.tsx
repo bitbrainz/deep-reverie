@@ -20,7 +20,7 @@ export const Home = () => {
           images—Deep Reverie invites visitors to engage with the installation
           and reflect on how far AI has come.
         </p>
-        <div className="flex space-x-4">
+        <div className="flex flex-wrap justify-center gap-4">
           <Link
             to="/ar"
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
@@ -32,6 +32,12 @@ export const Home = () => {
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
           >
             View All Artwork
+          </Link>
+          <Link
+            to="/about"
+            className="border border-white/70 bg-black/20 px-4 py-2 font-bold text-white backdrop-blur-sm transition hover:bg-white hover:text-slate-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+          >
+            About the Art
           </Link>
         </div>
       </div>
