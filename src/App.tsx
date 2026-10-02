@@ -6,6 +6,7 @@ import { Routes, Route } from "react-router";
 const Gallery = lazy(() => import("./pages/Gallery"));
 const AR = lazy(() => import("./pages/AR"));
 const Debug = lazy(() => import("./pages/Debug"));
+const About = lazy(() => import("./pages/About"));
 
 export const App = () => {
   return (
@@ -13,6 +14,7 @@ export const App = () => {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/gallery" element={<Gallery />} />
+        <Route path="/about" element={<About />} />
         <Route path="/debug" element={<Debug />} />
         <Route path="/ar" element={<AR />} />
       </Routes>
