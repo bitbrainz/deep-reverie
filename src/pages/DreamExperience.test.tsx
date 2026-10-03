@@ -86,7 +86,7 @@ describe("DreamExperience", () => {
     await screen.findByRole("button", { name: "Recenter" });
   };
 
-  it("requests permissions and renders the authoritative 50-dream cylinder", async () => {
+  it("requests permissions and renders the complete 51-dream cylinder", async () => {
     render(<DreamExperience />);
     await startWithHeading();
 
@@ -95,9 +95,9 @@ describe("DreamExperience", () => {
       audio: false,
       video: expect.objectContaining({ facingMode: { ideal: "environment" } }),
     });
-    expect(screen.getByText("50 dreams · 360°")).toBeVisible();
-    expect(document.querySelectorAll(".dream-diamond")).toHaveLength(50);
-    expect(document.querySelectorAll('.dream-diamond img[loading="eager"]')).toHaveLength(50);
+    expect(screen.getByText("51 dreams · 360°")).toBeVisible();
+    expect(document.querySelectorAll(".dream-diamond")).toHaveLength(51);
+    expect(document.querySelectorAll('.dream-diamond img[loading="eager"]')).toHaveLength(51);
     expect(
       screen
         .getByRole("button", { name: "Open Animal Protection" })
@@ -111,12 +111,12 @@ describe("DreamExperience", () => {
     );
     expect(
       screen.getByRole("button", {
-        name: `Open ${DREAMS.find(({ id }) => id === 50)?.title}`,
+        name: `Open ${DREAMS.find(({ id }) => id === 51)?.title}`,
       }),
     ).toBeVisible();
     expect(
       screen.queryByRole("button", {
-        name: `Open ${DREAMS.find(({ id }) => id === 51)?.title}`,
+        name: `Open ${DREAMS.find(({ id }) => id === 52)?.title}`,
       }),
     ).not.toBeInTheDocument();
     expect(screen.queryByLabelText("About the dream cylinder")).not.toBeInTheDocument();

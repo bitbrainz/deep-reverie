@@ -1,6 +1,6 @@
 import { DREAMS, type Dream } from "../dreams/data/dreams";
 
-// `/app` is an authored 50-piece installation. Keep this selection explicit so
+// `/app` is an authored 51-piece installation. Keep this selection explicit so
 // additions to the shared gallery do not silently change the cylinder contract.
 export const DREAM_CYLINDER_IDS = [
   1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
@@ -8,6 +8,7 @@ export const DREAM_CYLINDER_IDS = [
   21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
   31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
   41, 42, 43, 44, 45, 46, 47, 48, 49, 50,
+  51,
 ] as const;
 
 const dreamById = new Map(DREAMS.map((dream) => [dream.id, dream]));
