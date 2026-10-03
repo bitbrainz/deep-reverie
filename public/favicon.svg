@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <title>Deep Reverie</title>
+  <rect width="64" height="64" rx="12" fill="#080612" />
+  <path d="M32 3 61 32 32 61 3 32Z" fill="#FFE16A" />
+  <path d="M32 9 55 32 32 55 9 32Z" fill="#B899E7" />
+  <path d="m32 9 23 23H32Z" fill="#F044FF" />
+  <path d="m32 55-23-23h23Z" fill="#6947A8" />
+  <path d="m32 17 15 15-15 15-15-15Z" fill="#080612" />
+</svg>
