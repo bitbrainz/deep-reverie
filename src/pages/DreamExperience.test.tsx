@@ -194,7 +194,7 @@ describe("DreamExperience", () => {
     expect(document.body).toHaveClass("dream-experience-active");
     expect(music.loop).toBe(true);
     expect(music.preload).toBe("auto");
-    expect(music.volume).toBe(0.22);
+    expect(music.volume).toBe(0.3);
     expect(music.play).toHaveBeenCalledOnce();
     unmount();
     expect(music.pause).toHaveBeenCalledOnce();
@@ -214,10 +214,10 @@ describe("DreamExperience", () => {
     fireEvent.click(screen.getByRole("button", { name: "Open Virtual Reality" }));
     await screen.findByRole("dialog", { name: "Virtual Reality" });
     const narration = getAudio("/audio/narrations/01-virtual-reality.mp3");
-    expect(music.volume).toBe(0.06);
+    expect(music.volume).toBe(0.2);
 
     narration.onended?.();
-    expect(music.volume).toBe(0.22);
+    expect(music.volume).toBe(0.3);
   });
 
   it("uses the first heading as forward and recenters without reloading", async () => {
@@ -373,10 +373,19 @@ describe("DreamExperience", () => {
 
     fireEvent.click(dreamOne);
     const popover = await screen.findByTestId("ar-dream-popover");
+    const tether = screen.getByTestId("ar-dream-tether");
     expect(popover).toHaveStyle({
-      transform: "translate3d(212px, 340px, 0)",
+      transform: "translate3d(212px, 246.39999999999998px, 0)",
       visibility: "visible",
       width: "238px",
+    });
+    expect(tether).toHaveStyle({
+      left: "140px",
+      top: "246.39999999999998px",
+      width: "72px",
+      height: "36px",
+      transform: "none",
+      visibility: "visible",
     });
 
     const measurePopover = vi
@@ -398,6 +407,13 @@ describe("DreamExperience", () => {
         visibility: "visible",
       }),
     );
+    expect(tether).toHaveStyle({
+      left: "150px",
+      top: "190px",
+      width: "72px",
+      height: "92.39999999999998px",
+      visibility: "visible",
+    });
     expect(measurePopover).not.toHaveBeenCalled();
     expect(measureViewport).not.toHaveBeenCalled();
 
@@ -413,6 +429,13 @@ describe("DreamExperience", () => {
         visibility: "visible",
       }),
     );
+    expect(tether).toHaveStyle({
+      left: "-120px",
+      top: "-310px",
+      width: "72px",
+      height: "92.4px",
+      visibility: "visible",
+    });
 
     const world = screen.getByTestId("dream-cylinder-world");
     const otherDream = screen.getByRole("button", { name: "Open Animal Protection" });
@@ -422,6 +445,7 @@ describe("DreamExperience", () => {
 
     fireEvent.click(world, { clientX: 100, clientY: 100 });
     expect(screen.queryByTestId("ar-dream-popover")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("ar-dream-tether")).not.toBeInTheDocument();
     expect(
       screen.queryByRole("dialog", { name: "Animal Protection" }),
     ).not.toBeInTheDocument();
