@@ -11,6 +11,13 @@ npm run dev
 
 Run `npm test`, `npm run lint`, and `npm run build` before shipping changes.
 
+## Deployment
+
+The connected Cloudflare Pages project deploys pushes and pull requests from this
+repository. Its build command is `npm run build` and its output directory is `dist`.
+The build intentionally does not emit a top-level `404.html`, so Cloudflare Pages
+serves client-side routes through its native single-page application fallback.
+
 ## Rotation gallery
 
 The `/app` route is a camera-backed, rotation-only experience. A visitor explicitly
