@@ -96,6 +96,8 @@ describe("About the Art", () => {
       "https://www.youtube-nocookie.com/embed/597IAhuQfZ4",
     );
     expect(screen.getByRole("heading", { name: "Bitbrainz" })).toBeVisible();
+    expect(screen.getByText("Deep Reverie at Lumière · Toronto, 2025")).toBeVisible();
+    expect(screen.getByText("Deep Reverie · Bitbrainz · 2024")).toBeVisible();
     const projectHeading = screen.getByRole("heading", {
       name: /A future, dreamed by a machine/i,
     });
@@ -107,6 +109,7 @@ describe("About the Art", () => {
     ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
     expect(screen.getByText(/turns public space into a luminous daydream/i)).toBeVisible();
     expect(screen.getByText(/Bolton Fire Bell/i)).toBeVisible();
+    expect(screen.queryByRole("link", { name: /Visit Bitbrainz/i })).not.toBeInTheDocument();
     expect(document.body).not.toHaveTextContent(/\b54\b/);
     expect(screen.queryByText("Choose how to explore")).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /About the Art & Artists/ })).not.toBeInTheDocument();

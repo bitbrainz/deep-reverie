@@ -7,6 +7,8 @@ const gallerySource = await readFile("src/pages/Gallery.tsx", "utf8");
 const cardSource = await readFile("src/components/Card.tsx", "utf8");
 const experienceSource = await readFile("src/pages/DreamExperience.tsx", "utf8");
 const artworkSource = await readFile("src/dreams/dreamArtwork.ts", "utf8");
+const documentSource = await readFile("index.html", "utf8");
+const faviconSource = await readFile("public/favicon.svg", "utf8");
 const dreamFiles = [
   ...dreamSource.matchAll(/fileName: "([^"]+\.png)"/g),
 ].map((match) => match[1]);
@@ -58,6 +60,18 @@ test("about page installation photo stays below its transfer budget", async () =
     installationPhoto.size < 250_000,
     "deep-reverie-at-lumiere.webp exceeds 250 KB",
   );
+});
+
+test("the document uses the lightweight Deep Reverie favicon", () => {
+  assert.match(
+    documentSource,
+    /<link rel="icon" type="image\/svg\+xml" href="%BASE_URL%favicon\.svg" \/>/,
+  );
+  assert.doesNotMatch(documentSource, /vite\.svg/);
+  assert.match(faviconSource, /viewBox="0 0 64 64"/);
+  assert.match(faviconSource, /#080612/);
+  assert.match(faviconSource, /#ffe16a/);
+  assert.ok(Buffer.byteLength(faviconSource) < 2_000, "favicon.svg exceeds 2 KB");
 });
 
 test("gallery sources cover supported viewport and pixel-density combinations", () => {

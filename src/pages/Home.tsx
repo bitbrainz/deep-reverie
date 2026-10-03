@@ -166,18 +166,12 @@ export const Home = () => {
             <p className="mt-6 max-w-4xl text-lg leading-8 sm:text-xl">
               Bitbrainz is an art collective that creates interactive public art powered by emerging technologies. The collective uses computer engineering and emerging technologies to build magical and accessible human-machine experiences. Their work has appeared in parks, community spaces and public events, and includes these installations: “Deep Reverie”, “Mobius Ensemble”, “Virtual Visage” and “Bloom Promenade”. Bitbrainz also created the Bolton Fire Bell, a permanent light sculpture for the City of Bolton.
             </p>
-            <a
-              href="https://bitbrainz.com/projects/deep-reverie/"
-              className="mt-8 inline-flex min-h-11 items-center border-b-2 border-[#211600] text-sm font-extrabold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#211600] focus-visible:ring-offset-4 focus-visible:ring-offset-[#ffe16a]"
-            >
-              Visit Bitbrainz ↗
-            </a>
           </div>
         </div>
       </section>
 
       <footer className="flex flex-col gap-2 bg-[#080612] px-5 py-8 text-sm text-[#9f96b0] sm:flex-row sm:items-center sm:justify-between sm:px-8">
-        <p>Deep Reverie · Bitbrainz · 2025</p>
+        <p>Deep Reverie · Bitbrainz · 2024</p>
         <a href="#home-title" className="font-semibold text-[#d8d1e7] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c8b9ff]">
           Back to top ↑
         </a>
