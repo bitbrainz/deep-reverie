@@ -58,13 +58,20 @@ describe("Gallery", () => {
     vi.stubGlobal("Image", ImageMock);
   });
 
-  it("keeps mobile card overlays to title-only content", () => {
-    render(<Gallery />);
+  it("shows each title below its artwork in one accessible gallery control", () => {
+    const { container } = render(<Gallery />);
+    const card = screen.getByRole("button", { name: "View Virtual Reality" });
+    const artwork = card.querySelector("img");
+    const artworkFrame = artwork?.parentElement;
+    const caption = screen.getByText("Virtual Reality");
 
-    expect(screen.getByText("Immersive digital worlds for all")).toHaveClass(
-      "hidden",
-      "lg:block",
-    );
+    expect(container.querySelector("main")?.previousElementSibling).toBeNull();
+    expect(card).toContainElement(artwork);
+    expect(card).toContainElement(caption);
+    expect(artworkFrame).toHaveClass("aspect-square");
+    expect(artworkFrame?.nextElementSibling).toBe(caption);
+    expect(card).toHaveClass("focus-visible:ring-2");
+    expect(screen.queryByText("Immersive digital worlds for all")).not.toBeInTheDocument();
   });
 
   it("waits for the selected detail image before opening the drawer", async () => {
