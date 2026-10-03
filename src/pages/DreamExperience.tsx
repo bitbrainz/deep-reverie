@@ -35,6 +35,9 @@ import { publicAssetPath } from "../app/publicAssetPath";
 const SENSOR_TIMEOUT_MS = 4_000;
 const POPOVER_GAP_PX = 12;
 const POPOVER_MAX_WIDTH_PX = 238;
+const POPOVER_VIEWPORT_WIDTH_RATIO = 0.56;
+const POPOVER_VIEWPORT_MARGIN_PX = 12;
+const POPOVER_TETHER_MIN_RUN_PX = 12;
 const TETHER_ANCHOR_FROM_TOP = 0.14;
 const TETHER_MIN_RISE_PX = 36;
 
@@ -52,6 +55,8 @@ const stopStream = (stream: MediaStream | null) => {
   stream?.getTracks().forEach((track) => track.stop());
 };
 
+const roundPixel = (value: number) => Math.round(value * 10) / 10;
+
 const DreamExperience = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const viewportRef = useRef<HTMLElement>(null);
@@ -62,6 +67,7 @@ const DreamExperience = () => {
   const viewportGeometryRef = useRef<{
     left: number;
     top: number;
+    width: number;
   } | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const orientationFrameRef = useRef<number | null>(null);
@@ -246,17 +252,30 @@ const DreamExperience = () => {
       viewportGeometry = {
         left: viewportRect.left,
         top: viewportRect.top,
+        width: viewportRect.width,
       };
       viewportGeometryRef.current = viewportGeometry;
     }
     const diamondRect = diamond.getBoundingClientRect();
-    const left =
-      diamondRect.right - viewportGeometry.left + POPOVER_GAP_PX;
+    const popoverWidth = roundPixel(
+      Math.max(
+        0,
+        Math.min(
+          POPOVER_MAX_WIDTH_PX,
+          viewportGeometry.width * POPOVER_VIEWPORT_WIDTH_RATIO,
+          viewportGeometry.width - POPOVER_VIEWPORT_MARGIN_PX * 2,
+          (viewportGeometry.width -
+            POPOVER_VIEWPORT_MARGIN_PX * 2 -
+            POPOVER_TETHER_MIN_RUN_PX * 2) /
+            2,
+        ),
+      ),
+    );
+    popover.style.width = `${popoverWidth}px`;
     let popoverSize = popoverSizeRef.current;
-    if (!popoverSize.width || !popoverSize.height) {
-      popover.style.width = `${POPOVER_MAX_WIDTH_PX}px`;
+    if (popoverSize.width !== popoverWidth || !popoverSize.height) {
       const popoverRect = popover.getBoundingClientRect();
-      popoverSize = { width: popoverRect.width, height: popoverRect.height };
+      popoverSize = { width: popoverWidth, height: popoverRect.height };
       popoverSizeRef.current = popoverSize;
     }
     const anchorLeft =
@@ -267,17 +286,56 @@ const DreamExperience = () => {
     const centeredTop =
       diamondRect.top - viewportGeometry.top +
       (diamondRect.height - popoverSize.height) / 2;
-    const popoverTop = Math.min(
-      centeredTop,
-      anchorTop - TETHER_MIN_RISE_PX,
+    const minimumPopoverLeft = Math.min(
+      POPOVER_VIEWPORT_MARGIN_PX,
+      Math.max(viewportGeometry.width - popoverWidth, 0),
     );
-    popover.style.transform = `translate3d(${left}px, ${popoverTop}px, 0)`;
+    const maximumPopoverLeft = Math.max(
+      viewportGeometry.width - popoverWidth - POPOVER_VIEWPORT_MARGIN_PX,
+      minimumPopoverLeft,
+    );
+    const clampPopoverLeft = (left: number) =>
+      roundPixel(
+        Math.min(Math.max(left, minimumPopoverLeft), maximumPopoverLeft),
+      );
+    const rightPopoverLeft = clampPopoverLeft(
+      diamondRect.right - viewportGeometry.left + POPOVER_GAP_PX,
+    );
+    const leftPopoverLeft = clampPopoverLeft(
+      diamondRect.left -
+        viewportGeometry.left -
+        POPOVER_GAP_PX -
+        popoverWidth,
+    );
+    const rightEndpoint = rightPopoverLeft;
+    const leftEndpoint = leftPopoverLeft + popoverWidth;
+    const attachToPopoverRight = rightEndpoint < anchorLeft;
+    const popoverLeft = attachToPopoverRight
+      ? leftPopoverLeft
+      : rightPopoverLeft;
+    const popoverTop = roundPixel(
+      Math.min(centeredTop, anchorTop - TETHER_MIN_RISE_PX),
+    );
+    popover.style.transform = `translate3d(${popoverLeft}px, ${popoverTop}px, 0)`;
+    popover.classList.toggle(
+      "ar-dream-popover--left",
+      attachToPopoverRight,
+    );
 
-    tether.style.left = `${anchorLeft}px`;
+    const tetherEndpoint = attachToPopoverRight
+      ? leftEndpoint
+      : rightEndpoint;
+    const tetherRunsLeft = tetherEndpoint < anchorLeft;
+    const tetherLeft = roundPixel(Math.min(tetherEndpoint, anchorLeft));
+    const tetherWidth = roundPixel(
+      Math.abs(tetherEndpoint - anchorLeft),
+    );
+    tether.style.left = `${tetherLeft}px`;
     tether.style.top = `${popoverTop}px`;
-    tether.style.width = `${Math.max(left - anchorLeft, 0)}px`;
-    tether.style.height = `${anchorTop - popoverTop}px`;
+    tether.style.width = `${Math.max(tetherWidth, 0)}px`;
+    tether.style.height = `${roundPixel(anchorTop - popoverTop)}px`;
     tether.style.transform = "none";
+    tether.classList.toggle("ar-dream-tether--left", tetherRunsLeft);
   }, []);
 
   useLayoutEffect(() => {

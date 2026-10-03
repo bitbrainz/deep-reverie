@@ -405,6 +405,19 @@ body.dream-experience-active {
   transform: translate(-50%, -50%);
 }
 
+.ar-dream-tether--left {
+  border-right: 2px solid #f2d795;
+  border-left: 0;
+  border-top-left-radius: 0;
+  border-top-right-radius: 1.2rem;
+}
+
+.ar-dream-tether--left::before {
+  right: -1px;
+  left: auto;
+  transform: translate(50%, -50%);
+}
+
 .ar-dream-popover {
   position: absolute;
   z-index: 35;
@@ -431,6 +444,10 @@ body.dream-experience-active {
   will-change: transform;
 }
 
+.ar-dream-popover--left {
+  border-radius: 1.2rem 0 1.2rem 1.2rem;
+}
+
 .ar-dream-popover__footer {
   display: flex;
   align-items: center;
@@ -441,7 +458,7 @@ body.dream-experience-active {
 .ar-dream-popover h2 {
   margin: 0;
   font-family: Georgia, "Times New Roman", serif;
-  font-size: 1.7rem;
+  font-size: clamp(1.4rem, 6vw, 1.7rem);
   font-weight: 400;
   line-height: 1;
   letter-spacing: -0.035em;
