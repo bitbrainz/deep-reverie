@@ -291,7 +291,7 @@ describe("DreamExperience", () => {
     expect(dream).toHaveAttribute("aria-pressed", "true");
   });
 
-  it("keeps the flat popover beside the moving diamond and dismisses without selecting through the background", async () => {
+  it("keeps the flat popover in the mobile viewport while tethering to a moving diamond", async () => {
     render(<DreamExperience />);
     await startWithHeading();
 
@@ -314,14 +314,15 @@ describe("DreamExperience", () => {
     const popover = await screen.findByTestId("ar-dream-popover");
     const tether = screen.getByTestId("ar-dream-tether");
     expect(popover).toHaveStyle({
-      transform: "translate3d(212px, 246.39999999999998px, 0)",
+      transform: "translate3d(207px, 246.4px, 0)",
       visibility: "visible",
-      width: "238px",
+      width: "171px",
     });
+    expect(popover).not.toHaveClass("ar-dream-popover--left");
     expect(tether).toHaveStyle({
       left: "140px",
-      top: "246.39999999999998px",
-      width: "72px",
+      top: "246.4px",
+      width: "67px",
       height: "36px",
       transform: "none",
       visibility: "visible",
@@ -329,7 +330,7 @@ describe("DreamExperience", () => {
 
     const measurePopover = vi
       .spyOn(popover, "getBoundingClientRect")
-      .mockReturnValue(rect(0, 0, 238, 300));
+      .mockReturnValue(rect(0, 0, 171, 300));
     fireEvent(window, new Event("resize"));
     expect(measurePopover).toHaveBeenCalledOnce();
     measurePopover.mockClear();
@@ -341,37 +342,81 @@ describe("DreamExperience", () => {
       new DeviceOrientationEventMock("deviceorientation", { alpha: 260, beta: 90 }),
     );
     await waitFor(() =>
-      expect(popover).toHaveStyle({
-        transform: "translate3d(222px, 190px, 0)",
+      expect(tether).toHaveStyle({
+        left: "150px",
+        top: "190px",
+        width: "57px",
+        height: "92.4px",
         visibility: "visible",
       }),
     );
-    expect(tether).toHaveStyle({
-      left: "150px",
-      top: "190px",
-      width: "72px",
-      height: "92.39999999999998px",
+    expect(popover).toHaveStyle({
+      transform: "translate3d(207px, 190px, 0)",
       visibility: "visible",
     });
     expect(measurePopover).not.toHaveBeenCalled();
     expect(measureViewport).not.toHaveBeenCalled();
 
-    diamondLeft = -180;
-    diamondTop = -240;
+    diamondLeft = 135;
     fireEvent(
       window,
       new DeviceOrientationEventMock("deviceorientation", { alpha: 250, beta: 90 }),
     );
     await waitFor(() =>
-      expect(popover).toHaveStyle({
-        transform: "translate3d(-48px, -310px, 0)",
+      expect(tether).toHaveStyle({
+        left: "195px",
+        top: "190px",
+        width: "12px",
+        height: "92.4px",
         visibility: "visible",
       }),
     );
+    expect(popover).toHaveStyle({
+      transform: "translate3d(207px, 190px, 0)",
+      visibility: "visible",
+    });
+    expect(popover).not.toHaveClass("ar-dream-popover--left");
+    expect(tether).not.toHaveClass("ar-dream-tether--left");
+
+    diamondLeft = 290;
+    fireEvent(
+      window,
+      new DeviceOrientationEventMock("deviceorientation", { alpha: 240, beta: 90 }),
+    );
+    await waitFor(() =>
+      expect(popover).toHaveStyle({
+        transform: "translate3d(107px, 190px, 0)",
+        visibility: "visible",
+      }),
+    );
+    expect(popover).toHaveClass("ar-dream-popover--left");
+    expect(tether).toHaveClass("ar-dream-tether--left");
+    expect(tether).toHaveStyle({
+      left: "278px",
+      top: "190px",
+      width: "72px",
+      height: "92.4px",
+      visibility: "visible",
+    });
+
+    diamondLeft = -180;
+    diamondTop = -240;
+    fireEvent(
+      window,
+      new DeviceOrientationEventMock("deviceorientation", { alpha: 230, beta: 90 }),
+    );
+    await waitFor(() =>
+      expect(popover).toHaveStyle({
+        transform: "translate3d(12px, -310px, 0)",
+        visibility: "visible",
+      }),
+    );
+    expect(popover).not.toHaveClass("ar-dream-popover--left");
+    expect(tether).not.toHaveClass("ar-dream-tether--left");
     expect(tether).toHaveStyle({
       left: "-120px",
       top: "-310px",
-      width: "72px",
+      width: "132px",
       height: "92.4px",
       visibility: "visible",
     });
