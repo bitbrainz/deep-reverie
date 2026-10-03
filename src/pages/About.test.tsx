@@ -72,14 +72,25 @@ describe("About the Art", () => {
       </MemoryRouter>,
     );
 
-    expect(screen.getByRole("link", { name: /Explore in AR/ })).toHaveAttribute("href", "/app");
-    fireEvent.click(screen.getByRole("link", { name: /Explore in AR/ }));
+    const arAction = screen.getByRole("link", { name: /Explore in AR/ });
+    const galleryAction = screen.getByRole("link", { name: /Browse the Artwork/ });
+
+    expect(arAction).toHaveAttribute("href", "/app");
+    expect(arAction).toHaveClass("min-h-20", "gap-3", "rounded-xl", "px-4", "py-3");
+    expect(galleryAction).toHaveClass("min-h-20", "gap-3", "rounded-xl", "px-4", "py-3");
+    expect(arAction).not.toHaveClass("min-h-24", "gap-4", "px-5");
+    expect(screen.getByText("Explore in AR")).toHaveClass("text-lg", "leading-tight");
+    expect(screen.getByText("Camera and volume required")).toHaveClass("text-xs", "leading-4");
+    expect(screen.getByText("Browse the Artwork")).toHaveClass("text-lg", "leading-tight");
+    expect(screen.getByText("View the complete gallery")).toHaveClass("text-xs", "leading-4");
+
+    fireEvent.click(arAction);
     expect(prepareAccess).toHaveBeenCalledOnce();
-    expect(screen.getByRole("link", { name: /Browse the Artwork/ })).toHaveAttribute(
+    expect(galleryAction).toHaveAttribute(
       "href",
       "/gallery",
     );
-    expect(screen.getByRole("link", { name: /Browse the Artwork/ })).toHaveClass(
+    expect(galleryAction).toHaveClass(
       "bg-[#fff0b3]/95",
     );
     expect(screen.getByRole("link", { name: /By Bitbrainz/ })).toHaveAttribute(

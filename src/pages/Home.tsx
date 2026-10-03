@@ -6,7 +6,7 @@ import { publicAssetPath } from "../app/publicAssetPath";
 const INSTALLATION_FILM_URL = "https://www.youtube.com/watch?v=597IAhuQfZ4";
 
 const ArrowIcon = () => (
-  <svg aria-hidden="true" viewBox="0 0 24 24" className="h-6 w-6 fill-none stroke-current stroke-2">
+  <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5 fill-none stroke-current stroke-2">
     <path d="M5 12h14M13 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
@@ -14,19 +14,22 @@ const ArrowIcon = () => (
 const ARIcon = () => (
   <span
     aria-hidden="true"
-    className="grid h-11 w-11 shrink-0 place-items-center rounded-[10px] border-2 border-current text-sm font-black tracking-[-0.04em]"
+    className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border-[1.5px] border-current text-xs font-black tracking-[-0.04em]"
   >
     AR
   </span>
 );
 
 const GalleryIcon = () => (
-  <svg aria-hidden="true" viewBox="0 0 48 48" className="h-11 w-11 fill-none stroke-current stroke-[2.4]">
+  <svg aria-hidden="true" viewBox="0 0 48 48" className="h-9 w-9 shrink-0 fill-none stroke-current stroke-[2.4]">
     <rect x="7" y="8" width="34" height="32" rx="2" />
     <circle cx="32" cy="17" r="3" />
     <path d="m10 36 10-11 7 7 5-5 7 8" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
+
+const HOME_ACTION_CLASS =
+  "group flex min-h-20 items-center gap-3 rounded-xl px-4 py-3 text-[#211600] transition hover:shadow-none focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#fff6ca] motion-reduce:transition-none";
 
 export const Home = () => {
   return (
@@ -63,7 +66,7 @@ export const Home = () => {
         </header>
 
         <div className="absolute inset-x-0 bottom-0 z-10 mx-auto w-full max-w-3xl px-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:px-8 sm:pb-8">
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-2.5 sm:grid-cols-2">
             <Link
               to="/app"
               onClick={(event) => {
@@ -77,30 +80,30 @@ export const Home = () => {
                   void prepareExperienceAccess();
                 }
               }}
-              className="group flex min-h-24 items-center gap-4 rounded-[14px] bg-[#ffe16a] px-5 text-[#211600] shadow-[0_18px_55px_rgba(255,211,73,0.24)] transition hover:bg-[#fff0a3] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#fff6ca] motion-reduce:transition-none"
+              className={`${HOME_ACTION_CLASS} border border-transparent bg-[#ffe16a] shadow-[0_12px_36px_rgba(255,211,73,0.2)] hover:bg-[#fff0a3]`}
               aria-label="Explore in AR — camera and volume required"
             >
               <ARIcon />
               <span className="min-w-0 flex-1">
-                <span className="block text-xl font-extrabold tracking-[-0.025em]">Explore in AR</span>
-                <span className="mt-0.5 block text-sm font-medium text-[#5a4300]">Camera and volume required</span>
+                <span className="block text-lg font-extrabold leading-tight tracking-[-0.02em]">Explore in AR</span>
+                <span className="mt-0.5 block text-xs font-medium leading-4 text-[#5a4300]">Camera and volume required</span>
               </span>
-              <span className="transition-transform group-hover:translate-x-1 motion-reduce:transition-none">
+              <span className="transition-transform group-hover:translate-x-0.5 motion-reduce:transition-none">
                 <ArrowIcon />
               </span>
             </Link>
 
             <Link
               to="/gallery"
-              className="group flex min-h-24 items-center gap-4 rounded-[14px] border border-[#ffe16a] bg-[#fff0b3]/95 px-5 text-[#211600] shadow-[0_18px_55px_rgba(255,218,83,0.2)] backdrop-blur-md transition hover:bg-[#fff7d6] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#fff6ca] motion-reduce:transition-none"
+              className={`${HOME_ACTION_CLASS} border border-[#ffe16a] bg-[#fff0b3]/95 shadow-[0_12px_36px_rgba(255,218,83,0.16)] backdrop-blur-md hover:bg-[#fff7d6]`}
               aria-label="Browse the Artwork — view the complete gallery"
             >
               <GalleryIcon />
               <span className="min-w-0 flex-1">
-                <span className="block text-xl font-extrabold tracking-[-0.025em]">Browse the Artwork</span>
-                <span className="mt-0.5 block text-sm font-medium text-[#5a4300]">View the complete gallery</span>
+                <span className="block text-lg font-extrabold leading-tight tracking-[-0.02em]">Browse the Artwork</span>
+                <span className="mt-0.5 block text-xs font-medium leading-4 text-[#5a4300]">View the complete gallery</span>
               </span>
-              <span className="transition-transform group-hover:translate-x-1 motion-reduce:transition-none">
+              <span className="transition-transform group-hover:translate-x-0.5 motion-reduce:transition-none">
                 <ArrowIcon />
               </span>
             </Link>
