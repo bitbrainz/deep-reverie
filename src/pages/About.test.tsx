@@ -112,6 +112,25 @@ describe("About the Art", () => {
     expect(screen.queryByRole("link", { name: /About the Art & Artists/ })).not.toBeInTheDocument();
   });
 
+  it("keeps the homepage artist details without linking to the external Bitbrainz project", () => {
+    render(
+      <MemoryRouter>
+        <Home />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByRole("link", { name: /By Bitbrainz/ })).toHaveAttribute(
+      "href",
+      "#the-artist",
+    );
+    expect(screen.getByRole("heading", { name: "Bitbrainz" })).toBeVisible();
+    expect(screen.getByText(/Bolton Fire Bell/i)).toBeVisible();
+    expect(screen.queryByRole("link", { name: /Visit Bitbrainz/i })).not.toBeInTheDocument();
+    expect(
+      document.querySelector('a[href="https://bitbrainz.com/projects/deep-reverie/"]'),
+    ).not.toBeInTheDocument();
+  });
+
   it("keeps the home film and gallery available if its installation image fails", () => {
     render(
       <MemoryRouter>
