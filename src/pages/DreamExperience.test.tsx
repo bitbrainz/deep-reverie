@@ -255,6 +255,9 @@ describe("DreamExperience", () => {
     expect(screen.getByRole("button", { name: "Open Virtual Reality" })).toHaveClass(
       "dream-diamond--selected",
     );
+    expect(screen.getByTestId("dream-cylinder-stage")).toHaveClass(
+      "dream-cylinder__stage--selected",
+    );
     expect(AudioMock.instances).toHaveLength(1);
     expect(AudioMock.instances[0].play).toHaveBeenCalledOnce();
 
@@ -337,6 +340,9 @@ describe("DreamExperience", () => {
 
     fireEvent.click(world, { clientX: 100, clientY: 100 });
     expect(screen.queryByTestId("ar-dream-popover")).not.toBeInTheDocument();
+    expect(screen.getByTestId("dream-cylinder-stage")).not.toHaveClass(
+      "dream-cylinder__stage--selected",
+    );
     expect(
       screen.queryByRole("dialog", { name: "Animal Protection" }),
     ).not.toBeInTheDocument();

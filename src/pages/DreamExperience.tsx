@@ -36,7 +36,7 @@ const SENSOR_TIMEOUT_MS = 4_000;
 const POPOVER_GAP_PX = 12;
 const VIEWPORT_EDGE_PX = 16;
 const POPOVER_MAX_WIDTH_PX = 238;
-const POPOVER_MIN_WIDTH_PX = 148;
+const POPOVER_MIN_WIDTH_PX = 104;
 
 const FAR_PARTICLES: readonly CSSProperties[] = [
   { left: "7%", top: "14%", width: 2, height: 2, opacity: 0.42 },
@@ -462,70 +462,74 @@ const DreamExperience = () => {
               role="group"
             >
               <div
-                className="dream-cylinder__world"
-                style={worldStyle}
-                data-testid="dream-cylinder-world"
-                onClick={(event) => {
-                  // When a card is open, the next background tap is always a
-                  // dismissal. Do not let the manual diamond hit-test replace
-                  // the selection before the outer click-away handler runs.
-                  if (selectedDream) return;
-                  selectDreamAtPoint(event);
-                }}
+                className={`dream-cylinder__stage ${selectedDream ? "dream-cylinder__stage--selected" : ""}`}
+                data-testid="dream-cylinder-stage"
               >
-                {layout.placements.map((placement, index) => {
-                  const yPixels =
-                    -placement.verticalOffset * DEFAULT_CYLINDER_LAYOUT.pixelsPerMeter;
-                  const isFrontFacing = isPlacementFrontFacing(
-                    placement.angle,
-                    heading,
-                  );
-                  const isSelected = selectedDream?.id === placement.dream.id;
-                  return (
-                    <div
-                      key={placement.dream.id}
-                      className="dream-placement"
-                      style={
-                        {
-                          width: `${frameWidthPixels}px`,
-                          height: `${frameHeightPixels}px`,
-                          transform: `translate(-50%, -50%) rotateY(${placement.angle}deg) translateZ(${-radiusPixels}px) translateY(${yPixels}px)`,
-                          visibility: isFrontFacing ? "visible" : "hidden",
-                        } as CSSProperties
-                      }
-                    >
-                      <button
-                        ref={isSelected ? selectedDiamondRef : null}
-                        type="button"
-                        className={`dream-diamond ${isSelected ? "dream-diamond--selected" : ""}`}
-                        data-angle={placement.angle}
-                        data-dream-id={placement.dream.id}
-                        style={{ "--dream-index": index } as CSSProperties}
-                        aria-hidden={isFrontFacing ? undefined : true}
-                        tabIndex={isFrontFacing ? 0 : -1}
-                        aria-pressed={isSelected}
-                        aria-label={`Open ${placement.dream.title}`}
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          openDream(placement.dream, event.currentTarget);
-                        }}
+                <div
+                  className="dream-cylinder__world"
+                  style={worldStyle}
+                  data-testid="dream-cylinder-world"
+                  onClick={(event) => {
+                    // When a card is open, the next background tap is always a
+                    // dismissal. Do not let the manual diamond hit-test replace
+                    // the selection before the outer click-away handler runs.
+                    if (selectedDream) return;
+                    selectDreamAtPoint(event);
+                  }}
+                >
+                  {layout.placements.map((placement, index) => {
+                    const yPixels =
+                      -placement.verticalOffset * DEFAULT_CYLINDER_LAYOUT.pixelsPerMeter;
+                    const isFrontFacing = isPlacementFrontFacing(
+                      placement.angle,
+                      heading,
+                    );
+                    const isSelected = selectedDream?.id === placement.dream.id;
+                    return (
+                      <div
+                        key={placement.dream.id}
+                        className="dream-placement"
+                        style={
+                          {
+                            width: `${frameWidthPixels}px`,
+                            height: `${frameHeightPixels}px`,
+                            transform: `translate(-50%, -50%) rotateY(${placement.angle}deg) translateZ(${-radiusPixels}px) translateY(${yPixels}px)`,
+                            visibility: isFrontFacing ? "visible" : "hidden",
+                          } as CSSProperties
+                        }
                       >
-                        <span className="dream-diamond__image">
-                          <img
-                            src={publicAssetPath(
-                              `images/thumbnails/${placement.dream.fileName.replace(".png", ".webp")}`,
-                            )}
-                            alt=""
-                            draggable={false}
-                            loading="eager"
-                            decoding="async"
-                          />
-                        </span>
-                      </button>
-                    </div>
-                  );
-                })}
-
+                        <button
+                          ref={isSelected ? selectedDiamondRef : null}
+                          type="button"
+                          className={`dream-diamond ${isSelected ? "dream-diamond--selected" : ""}`}
+                          data-angle={placement.angle}
+                          data-dream-id={placement.dream.id}
+                          style={{ "--dream-index": index } as CSSProperties}
+                          aria-hidden={isFrontFacing ? undefined : true}
+                          tabIndex={isFrontFacing ? 0 : -1}
+                          aria-pressed={isSelected}
+                          aria-label={`Open ${placement.dream.title}`}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            openDream(placement.dream, event.currentTarget);
+                          }}
+                        >
+                          <span className="dream-diamond__image">
+                            <img
+                              src={publicAssetPath(
+                                `images/thumbnails/${placement.dream.fileName.replace(".png", ".webp")}`,
+                              )}
+                              alt=""
+                              draggable={false}
+                              loading="eager"
+                              decoding="async"
+                            />
+                          </span>
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           ) : (
