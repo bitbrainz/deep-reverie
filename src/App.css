@@ -259,6 +259,7 @@
 
 .dream-diamond {
   position: absolute;
+  isolation: isolate;
   inset: 0;
   width: 100%;
   height: 100%;
@@ -273,20 +274,36 @@
   opacity: 0;
   animation: dream-diamond-arrival 640ms cubic-bezier(0.2, 0.75, 0.25, 1) forwards;
   animation-delay: calc((var(--dream-index) % 12) * 34ms);
+  transition: filter 180ms ease, transform 180ms ease;
   -webkit-tap-highlight-color: transparent;
 }
 
+.dream-diamond::after,
 .dream-diamond::before {
   position: absolute;
-  inset: 0;
-  background: linear-gradient(145deg, #f7e6a8 0%, #b899e7 46%, #61577d 100%);
   clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
   content: "";
   pointer-events: none;
 }
 
+.dream-diamond::before {
+  z-index: 1;
+  inset: 0;
+  background: linear-gradient(145deg, #f7e6a8 0%, #b899e7 46%, #61577d 100%);
+}
+
+.dream-diamond::after {
+  z-index: 0;
+  inset: -8px;
+  background: #f6d887;
+  box-shadow: 0 0 24px rgba(246, 216, 135, 0.9);
+  opacity: 0;
+  transition: opacity 180ms ease;
+}
+
 .dream-diamond__image {
   position: absolute;
+  z-index: 2;
   inset: 5px;
   overflow: hidden;
   background: #171225;
@@ -310,38 +327,38 @@
   transition: transform 220ms ease, filter 220ms ease;
 }
 
-.dream-diamond__number {
-  position: absolute;
-  right: 28%;
-  bottom: 16%;
-  display: grid;
-  min-width: 2rem;
-  min-height: 2rem;
-  place-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.38);
-  border-radius: 999px;
-  background: rgba(10, 7, 18, 0.7);
-  color: white;
-  font-size: 0.62rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  backdrop-filter: blur(8px);
-}
-
 .dream-diamond:hover img,
 .dream-diamond:focus-visible img {
   filter: saturate(1.12) brightness(1.08);
   transform: scale(1.035);
 }
 
+.dream-diamond--selected {
+  z-index: 2;
+  filter:
+    drop-shadow(0 18px 24px rgba(0, 0, 0, 0.48))
+    drop-shadow(0 0 14px rgba(246, 216, 135, 0.72));
+  transform: translateZ(12px) scale(1.07);
+}
+
+.dream-diamond--selected::after {
+  opacity: 1;
+}
+
+.dream-diamond--selected img {
+  filter: saturate(1.12) brightness(1.08);
+}
+
 .ar-dream-popover {
   position: absolute;
-  z-index: 5;
-  top: 50%;
-  width: 248px;
-  max-height: 390px;
+  z-index: 35;
+  top: max(5.25rem, env(safe-area-inset-top));
+  right: max(1rem, env(safe-area-inset-right));
+  width: min(280px, calc(100vw - 2rem));
+  max-height: min(430px, calc(100dvh - 10rem));
   overflow: hidden;
   border: 1px solid rgba(242, 215, 149, 0.58);
+  border-radius: 1.2rem 0.35rem 1.2rem 1.2rem;
   padding: 1.25rem;
   background:
     radial-gradient(circle at 16% 0%, rgba(190, 146, 255, 0.28), transparent 42%),
@@ -354,37 +371,6 @@
   backdrop-filter: blur(18px);
   animation: ar-popover-arrival 220ms ease-out both;
   pointer-events: auto;
-}
-
-.ar-dream-popover--right {
-  left: calc(100% + 1.15rem);
-  border-radius: 0.4rem 1.3rem 1.3rem;
-  transform: translateY(-50%) translateZ(8px) scale(1.45);
-  transform-origin: left center;
-}
-
-.ar-dream-popover--left {
-  right: calc(100% + 1.15rem);
-  border-radius: 1.3rem 0.4rem 1.3rem 1.3rem;
-  transform: translateY(-50%) translateZ(8px) scale(1.45);
-  transform-origin: right center;
-}
-
-.ar-dream-popover__tether {
-  position: absolute;
-  top: 1.15rem;
-  width: 1.2rem;
-  height: 1px;
-  background: linear-gradient(90deg, #f2d795, rgba(242, 215, 149, 0.15));
-}
-
-.ar-dream-popover--right .ar-dream-popover__tether {
-  right: 100%;
-}
-
-.ar-dream-popover--left .ar-dream-popover__tether {
-  left: 100%;
-  transform: rotate(180deg);
 }
 
 .ar-dream-popover__header,
@@ -474,21 +460,19 @@
   animation: ar-audio-pulse 1.15s ease-in-out infinite;
 }
 
-.ar-dream-popover__audio {
-  min-width: 3.6rem;
+.ar-dream-popover__details {
   min-height: 2.25rem;
   border: 1px solid rgba(242, 215, 149, 0.7);
   border-radius: 999px;
-  padding: 0 0.8rem;
-  background: rgba(242, 215, 149, 0.12);
-  color: #f8e6b8;
+  padding: 0 0.95rem;
+  background: #f2d795;
+  color: #181020;
   font-size: 0.68rem;
   font-weight: 800;
 }
 
-.ar-dream-popover__audio:disabled {
-  cursor: not-allowed;
-  opacity: 0.5;
+.ar-dream-popover__details:hover {
+  background: #ffe7ad;
 }
 
 .ar-dream-popover__error {

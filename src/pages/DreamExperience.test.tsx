@@ -84,6 +84,7 @@ describe("DreamExperience", () => {
     });
     expect(screen.getByText("50 dreams · 360°")).toBeVisible();
     expect(document.querySelectorAll(".dream-diamond")).toHaveLength(50);
+    expect(document.querySelector(".dream-diamond__number")).not.toBeInTheDocument();
     expect(
       screen.getByRole("button", {
         name: `Open dream 50: ${DREAMS.find(({ id }) => id === 50)?.title}`,
@@ -142,6 +143,14 @@ describe("DreamExperience", () => {
     expect(
       await screen.findByRole("dialog", { name: "Virtual Reality" }),
     ).toBeVisible();
+    expect(document.querySelector(".dream-placement .ar-dream-popover")).toBeNull();
+    expect(screen.getByRole("button", { name: /Open dream 01:/ })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    expect(screen.getByRole("button", { name: /Open dream 01:/ })).toHaveClass(
+      "dream-diamond--selected",
+    );
     expect(AudioMock.instances).toHaveLength(1);
     expect(AudioMock.instances[0].play).toHaveBeenCalledOnce();
 
@@ -157,6 +166,28 @@ describe("DreamExperience", () => {
     expect(
       screen.queryByRole("dialog", { name: "Virtual Reality" }),
     ).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Open dream 18:/ })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+  });
+
+  it("opens the existing scrollable gallery details modal", async () => {
+    render(<DreamExperience />);
+    await startWithHeading();
+    fireEvent.click(screen.getByRole("button", { name: /Open dream 01:/ }));
+    fireEvent.click(await screen.findByRole("button", { name: "View details" }));
+
+    const details = await screen.findByTestId("content");
+    expect(details).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Virtual Reality details" })).toBeInTheDocument();
+    expect(details.querySelector(".overflow-y-auto")).not.toBeNull();
+    expect(document.documentElement).toHaveStyle({
+      overflow: "hidden",
+      overscrollBehavior: "none",
+    });
+    expect(screen.queryByRole("dialog", { name: "Virtual Reality" })).not.toBeInTheDocument();
+    expect(AudioMock.instances[0].pause).toHaveBeenCalledOnce();
   });
 
   it("shows clear denied and unsupported states", async () => {
