@@ -70,4 +70,6 @@ test("the live cylinder uses lightweight thumbnail artwork", () => {
   assert.match(experienceSource, /images\/thumbnails\//);
   assert.doesNotMatch(experienceSource, /images\/thumbnails-2x\//);
   assert.doesNotMatch(experienceSource, /images\/saturated\//);
+  assert.match(experienceSource, /loading="eager"/);
+  assert.doesNotMatch(experienceSource, /loading=.*lazy/);
 });

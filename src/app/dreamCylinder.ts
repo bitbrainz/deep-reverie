@@ -7,8 +7,6 @@ export type CylinderLayoutConfig = {
   frameHeight: number;
   horizontalGap: number;
   rowSpacing: number;
-  estimatedEyeHeight: number;
-  groundClearance: number;
   pixelsPerMeter: number;
   overviewAngle: number;
 };
@@ -20,23 +18,21 @@ export type DreamPlacement = {
   row: CylinderRow;
   rowIndex: number;
   angle: number;
-  heightFromEye: number;
+  verticalOffset: number;
 };
 
 export type DreamCylinderLayout = {
   placements: DreamPlacement[];
   rowCounts: RowCounts;
   radius: number;
-  rowHeights: Record<CylinderRow, number>;
+  rowOffsets: Record<CylinderRow, number>;
 };
 
 export const DEFAULT_CYLINDER_LAYOUT: CylinderLayoutConfig = {
   frameWidth: 0.9,
   frameHeight: 1.25,
   horizontalGap: 0.1,
-  rowSpacing: 0.1,
-  estimatedEyeHeight: 1.6,
-  groundClearance: 0.4,
+  rowSpacing: 0.04,
   pixelsPerMeter: 260,
   overviewAngle: 60,
 };
@@ -63,19 +59,16 @@ export const calculateCylinderRadius = (
   return (largestRowCount * (frameWidth + horizontalGap)) / (2 * Math.PI);
 };
 
-export const calculateRowHeights = ({
+export const calculateRowOffsets = ({
   frameHeight,
   rowSpacing,
-  estimatedEyeHeight,
-  groundClearance,
 }: CylinderLayoutConfig): Record<CylinderRow, number> => {
-  const bottomCenterFromGround = groundClearance + frameHeight / 2;
   const rowStep = frameHeight + rowSpacing;
 
   return {
-    bottom: bottomCenterFromGround - estimatedEyeHeight,
-    middle: bottomCenterFromGround + rowStep - estimatedEyeHeight,
-    top: bottomCenterFromGround + rowStep * 2 - estimatedEyeHeight,
+    bottom: -rowStep,
+    middle: 0,
+    top: rowStep,
   };
 };
 
@@ -101,7 +94,7 @@ export const createDreamCylinderLayout = (
     config.frameWidth,
     config.horizontalGap,
   );
-  const rowHeights = calculateRowHeights(config);
+  const rowOffsets = calculateRowOffsets(config);
   const rowOrder: CylinderRow[] = ["top", "middle", "bottom"];
   let dreamIndex = 0;
 
@@ -112,11 +105,11 @@ export const createDreamCylinderLayout = (
       row,
       rowIndex,
       angle: angleForSlot(row, rowIndex, largestRowCount),
-      heightFromEye: rowHeights[row],
+      verticalOffset: rowOffsets[row],
     }));
   });
 
-  return { placements, rowCounts, radius, rowHeights };
+  return { placements, rowCounts, radius, rowOffsets };
 };
 
 export const calculateOverviewWidth = (radius: number, angle: number) =>

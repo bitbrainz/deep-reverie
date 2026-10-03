@@ -69,6 +69,18 @@ const DreamExperience = () => {
   const frameHeightPixels =
     DEFAULT_CYLINDER_LAYOUT.frameHeight * DEFAULT_CYLINDER_LAYOUT.pixelsPerMeter;
 
+  useLayoutEffect(() => {
+    const page = document.documentElement;
+    const body = document.body;
+    page.classList.add("dream-experience-active");
+    body.classList.add("dream-experience-active");
+
+    return () => {
+      page.classList.remove("dream-experience-active");
+      body.classList.remove("dream-experience-active");
+    };
+  }, []);
+
   const releaseCamera = useCallback(() => {
     stopStream(streamRef.current);
     streamRef.current = null;
@@ -343,7 +355,7 @@ const DreamExperience = () => {
               >
                 {layout.placements.map((placement, index) => {
                   const yPixels =
-                    -placement.heightFromEye * DEFAULT_CYLINDER_LAYOUT.pixelsPerMeter;
+                    -placement.verticalOffset * DEFAULT_CYLINDER_LAYOUT.pixelsPerMeter;
                   const isFrontFacing = isPlacementFrontFacing(
                     placement.angle,
                     heading,
@@ -383,7 +395,8 @@ const DreamExperience = () => {
                             src={`/images/thumbnails/${placement.dream.fileName.replace(".png", ".webp")}`}
                             alt=""
                             draggable={false}
-                            loading={index < 8 ? "eager" : "lazy"}
+                            loading="eager"
+                            decoding="async"
                           />
                         </span>
                       </button>
@@ -401,7 +414,6 @@ const DreamExperience = () => {
             <ARDreamPopover
               ref={popoverRef}
               dream={selectedDream}
-              onClose={closeSelectedDream}
               onDetails={() => setShowDetails(true)}
             />
           ) : null}

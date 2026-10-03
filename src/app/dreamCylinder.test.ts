@@ -3,7 +3,7 @@ import { DREAMS } from "../dreams/data/dreams";
 import {
   angleForSlot,
   calculateCylinderRadius,
-  calculateRowHeights,
+  calculateRowOffsets,
   createDreamCylinderLayout,
   DEFAULT_CYLINDER_LAYOUT,
   distributeRows,
@@ -55,15 +55,16 @@ describe("dream cylinder layout", () => {
     expect(eighteenPerRow.radius).toBeGreaterThan(larger.radius);
   });
 
-  it("places the lowest point at the configured ground clearance", () => {
-    const heights = calculateRowHeights(DEFAULT_CYLINDER_LAYOUT);
-    const lowestPointFromGround =
-      DEFAULT_CYLINDER_LAYOUT.estimatedEyeHeight +
-      heights.bottom -
-      DEFAULT_CYLINDER_LAYOUT.frameHeight / 2;
+  it("centers the middle row and positions outer rows symmetrically", () => {
+    const offsets = calculateRowOffsets(DEFAULT_CYLINDER_LAYOUT);
+    const rowStep =
+      DEFAULT_CYLINDER_LAYOUT.frameHeight + DEFAULT_CYLINDER_LAYOUT.rowSpacing;
 
-    expect(lowestPointFromGround).toBeCloseTo(0.4);
-    expect(DEFAULT_CYLINDER_LAYOUT.estimatedEyeHeight).toBe(1.6);
+    expect(offsets.middle).toBe(0);
+    expect(offsets.top).toBeCloseTo(rowStep);
+    expect(offsets.bottom).toBeCloseTo(-rowStep);
+    expect(DEFAULT_CYLINDER_LAYOUT).not.toHaveProperty("estimatedEyeHeight");
+    expect(DEFAULT_CYLINDER_LAYOUT).not.toHaveProperty("groundClearance");
   });
 
   it("uses a visibly elongated diamond frame", () => {
@@ -73,11 +74,12 @@ describe("dream cylinder layout", () => {
     ).toBeGreaterThanOrEqual(1.35);
   });
 
-  it("uses larger frames with one consistent margin in both directions", () => {
+  it("uses larger frames with tighter spacing between rows", () => {
     expect(DEFAULT_CYLINDER_LAYOUT.frameWidth).toBe(0.9);
     expect(DEFAULT_CYLINDER_LAYOUT.frameHeight).toBe(1.25);
     expect(DEFAULT_CYLINDER_LAYOUT.horizontalGap).toBe(0.1);
-    expect(DEFAULT_CYLINDER_LAYOUT.rowSpacing).toBe(
+    expect(DEFAULT_CYLINDER_LAYOUT.rowSpacing).toBe(0.04);
+    expect(DEFAULT_CYLINDER_LAYOUT.rowSpacing).toBeLessThan(
       DEFAULT_CYLINDER_LAYOUT.horizontalGap,
     );
   });

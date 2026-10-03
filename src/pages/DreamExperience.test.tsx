@@ -97,6 +97,13 @@ describe("DreamExperience", () => {
     });
     expect(screen.getByText("50 dreams · 360°")).toBeVisible();
     expect(document.querySelectorAll(".dream-diamond")).toHaveLength(50);
+    expect(document.querySelectorAll('.dream-diamond img[loading="eager"]')).toHaveLength(50);
+    expect(
+      screen
+        .getByRole("button", { name: /Open dream 18:/ })
+        .closest(".dream-placement")
+        ?.getAttribute("style"),
+    ).toContain("translateY(0px)");
     expect(document.querySelector(".dream-diamond__number")).not.toBeInTheDocument();
     expect(document.querySelector(".dream-diamond img")).toHaveAttribute(
       "src",
@@ -113,6 +120,16 @@ describe("DreamExperience", () => {
       }),
     ).not.toBeInTheDocument();
     expect(screen.queryByLabelText("About the dream cylinder")).not.toBeInTheDocument();
+  });
+
+  it("locks page scrolling for the whole experience and restores it on unmount", () => {
+    const { unmount } = render(<DreamExperience />);
+
+    expect(document.documentElement).toHaveClass("dream-experience-active");
+    expect(document.body).toHaveClass("dream-experience-active");
+    unmount();
+    expect(document.documentElement).not.toHaveClass("dream-experience-active");
+    expect(document.body).not.toHaveClass("dream-experience-active");
   });
 
   it("uses the first heading as forward and recenters without reloading", async () => {
