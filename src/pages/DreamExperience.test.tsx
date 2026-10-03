@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { DREAMS } from "../dreams/data/dreams";
+import { prepareExperienceAccess } from "../app/experienceAccess";
 import DreamExperience from "./DreamExperience";
 
 class DeviceOrientationEventMock extends Event {
@@ -85,6 +86,27 @@ describe("DreamExperience", () => {
     );
     await screen.findByRole("button", { name: "Recenter" });
   };
+
+  it("uses the homepage permission gesture instead of showing a second entry CTA", async () => {
+    void prepareExperienceAccess();
+    render(<DreamExperience />);
+
+    expect(
+      screen.queryByRole("button", { name: "Enter the gallery" }),
+    ).not.toBeInTheDocument();
+    await screen.findByRole("button", { name: "Finding your direction…" });
+    fireEvent(
+      window,
+      new DeviceOrientationEventMock("deviceorientation", {
+        alpha: 270,
+        beta: 90,
+      }),
+    );
+
+    expect(await screen.findByRole("button", { name: "Recenter" })).toBeVisible();
+    expect(DeviceOrientationEventMock.requestPermission).toHaveBeenCalledOnce();
+    expect(getUserMedia).toHaveBeenCalledOnce();
+  });
 
   it("requests permissions and renders the complete 51-dream cylinder", async () => {
     render(<DreamExperience />);
@@ -321,7 +343,7 @@ describe("DreamExperience", () => {
     render(<DreamExperience />);
     fireEvent.click(screen.getByRole("button", { name: "Enter the gallery" }));
     expect(
-      screen.getByText(/does not provide the motion sensor needed/),
+      await screen.findByText(/does not provide the motion sensor needed/),
     ).toBeVisible();
   });
 

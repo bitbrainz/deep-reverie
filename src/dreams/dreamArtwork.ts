@@ -1,9 +1,12 @@
 import type { Dream } from "./data/dreams";
+import { publicAssetPath } from "../app/publicAssetPath";
 
 const preloadCache = new Map<string, Promise<void>>();
 
 export const getDreamDetailUrl = (dream: Pick<Dream, "fileName">) =>
-  `/images/saturated/${dream.fileName.replace(".png", ".webp")}`;
+  publicAssetPath(
+    `images/saturated/${dream.fileName.replace(".png", ".webp")}`,
+  );
 
 export const preloadDreamArtwork = (dream: Pick<Dream, "fileName">) => {
   const src = getDreamDetailUrl(dream);

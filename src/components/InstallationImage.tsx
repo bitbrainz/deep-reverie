@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { publicAssetPath } from "../app/publicAssetPath";
 
 type InstallationImageProps = {
   className?: string;
@@ -26,7 +27,7 @@ export const InstallationImage = ({
         </div>
       ) : (
         <img
-          src="/images/deep-reverie-at-lumiere.webp"
+          src={publicAssetPath("images/deep-reverie-at-lumiere.webp")}
           alt="Deep Reverie's vivid neon artwork glowing in a geometric outdoor frame at night"
           className={`h-full w-full object-cover transition-transform duration-700 motion-reduce:transition-none ${
             crop === "tight"

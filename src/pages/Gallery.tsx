@@ -3,6 +3,7 @@ import Card from "../components/Card";
 import { DetailsDrawer } from "../components/DetailsDrawer";
 import { useDreamSelection } from "../dreams/useDreamSelection";
 import { preloadDreamArtwork } from "../dreams/dreamArtwork";
+import { publicAssetPath } from "../app/publicAssetPath";
 
 const Gallery = () => {
   const { selectedDream, selectDream, selectAdjacentDream, closeDetails } =
@@ -42,7 +43,9 @@ const Gallery = () => {
           {DREAMS.map((dream, index) => (
             <Card
               key={dream.id}
-              imageUrl={`/images/thumbnails/${dream.fileName.replace(".png", ".webp")}`}
+              imageUrl={publicAssetPath(
+                `images/thumbnails/${dream.fileName.replace(".png", ".webp")}`,
+              )}
               title={dream.title}
               eager={index < 6}
               onPreload={() => void preloadDreamArtwork(dream)}

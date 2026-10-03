@@ -23,8 +23,14 @@ import {
   signedAngularDifference,
   stabilizePitch,
   type OrientationEventWithCompass,
-  type OrientationPermissionConstructor,
 } from "../app/deviceOrientation";
+import {
+  hasPreparedExperienceAccess,
+  requestExperienceAccess,
+  subscribeToPreparedExperienceAccess,
+  type ExperienceAccessResult,
+} from "../app/experienceAccess";
+import { publicAssetPath } from "../app/publicAssetPath";
 
 const SENSOR_TIMEOUT_MS = 4_000;
 const POPOVER_GAP_PX = 12;
@@ -60,7 +66,11 @@ const DreamExperience = () => {
   const orientationFrameRef = useRef<number | null>(null);
   const originRef = useRef<OrientationSample | null>(null);
   const latestSampleRef = useRef<OrientationSample | null>(null);
-  const [status, setStatus] = useState<ExperienceStatus>({ kind: "idle" });
+  const [status, setStatus] = useState<ExperienceStatus>(() =>
+    hasPreparedExperienceAccess()
+      ? { kind: "requesting" }
+      : { kind: "idle" },
+  );
   const [heading, setHeading] = useState(0);
   const [pitch, setPitch] = useState(0);
   const [showDetails, setShowDetails] = useState(false);
@@ -94,6 +104,20 @@ const DreamExperience = () => {
     if (videoRef.current) videoRef.current.srcObject = null;
   }, []);
 
+  const applyAccessResult = useCallback((result: ExperienceAccessResult) => {
+    if (result.kind !== "granted") {
+      setStatus(result);
+      return;
+    }
+
+    streamRef.current = result.stream;
+    if (videoRef.current) {
+      videoRef.current.srcObject = result.stream;
+      void videoRef.current.play().catch(() => undefined);
+    }
+    setStatus({ kind: "awaiting-orientation" });
+  }, []);
+
   const startExperience = useCallback(async () => {
     releaseCamera();
     originRef.current = null;
@@ -101,64 +125,22 @@ const DreamExperience = () => {
     setHeading(0);
     setPitch(0);
 
-    if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
-      setStatus({
-        kind: "unsupported",
-        detail: "A secure browser with rear-camera access is required.",
-      });
-      return;
-    }
-
-    if (!("DeviceOrientationEvent" in window)) {
-      setStatus({
-        kind: "unsupported",
-        detail: "This device does not provide the motion sensor needed to look around.",
-      });
-      return;
-    }
-
     setStatus({ kind: "requesting" });
-    const orientationConstructor =
-      DeviceOrientationEvent as OrientationPermissionConstructor;
-    const motionPermission = orientationConstructor.requestPermission
-      ? orientationConstructor.requestPermission()
-      : Promise.resolve<"granted">("granted");
-    const cameraPermission = navigator.mediaDevices.getUserMedia({
-      audio: false,
-      video: {
-        facingMode: { ideal: "environment" },
-        width: { ideal: 1280 },
-        height: { ideal: 720 },
-      },
+    applyAccessResult(await requestExperienceAccess());
+  }, [applyAccessResult, releaseCamera]);
+
+  useEffect(() => {
+    if (!hasPreparedExperienceAccess()) return;
+
+    return subscribeToPreparedExperienceAccess((result) => {
+      releaseCamera();
+      originRef.current = null;
+      latestSampleRef.current = null;
+      setHeading(0);
+      setPitch(0);
+      applyAccessResult(result);
     });
-    const [motionResult, cameraResult] = await Promise.allSettled([
-      motionPermission,
-      cameraPermission,
-    ]);
-
-    const motionGranted =
-      motionResult.status === "fulfilled" && motionResult.value === "granted";
-    const cameraGranted = cameraResult.status === "fulfilled";
-    if (!motionGranted || !cameraGranted) {
-      if (cameraResult.status === "fulfilled") stopStream(cameraResult.value);
-      const blocked = [
-        !cameraGranted ? "camera" : null,
-        !motionGranted ? "motion" : null,
-      ].filter(Boolean);
-      setStatus({
-        kind: "denied",
-        detail: `Allow ${blocked.join(" and ")} access in your browser settings, then try again.`,
-      });
-      return;
-    }
-
-    streamRef.current = cameraResult.value;
-    if (videoRef.current) {
-      videoRef.current.srcObject = cameraResult.value;
-      void videoRef.current.play().catch(() => undefined);
-    }
-    setStatus({ kind: "awaiting-orientation" });
-  }, [releaseCamera]);
+  }, [applyAccessResult, releaseCamera]);
 
   useEffect(() => {
     if (
@@ -437,7 +419,9 @@ const DreamExperience = () => {
                       >
                         <span className="dream-diamond__image">
                           <img
-                            src={`/images/thumbnails/${placement.dream.fileName.replace(".png", ".webp")}`}
+                            src={publicAssetPath(
+                              `images/thumbnails/${placement.dream.fileName.replace(".png", ".webp")}`,
+                            )}
                             alt=""
                             draggable={false}
                             loading="eager"
@@ -496,7 +480,7 @@ const ExperienceGate = ({
   return (
     <div className="dream-experience__gate">
       <div className="dream-experience__gate-diamond" aria-hidden="true">
-        <img src="/images/thumbnails/54_Title.webp" alt="" />
+        <img src={publicAssetPath("images/thumbnails/54_Title.webp")} alt="" />
       </div>
       <p className="dream-experience__eyebrow">Augmented Reality Gallery</p>
       <h1>{isFailure ? "The gallery could not open" : "Face forward"}</h1>
