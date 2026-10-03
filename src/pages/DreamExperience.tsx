@@ -35,8 +35,8 @@ import { publicAssetPath } from "../app/publicAssetPath";
 const SENSOR_TIMEOUT_MS = 4_000;
 const POPOVER_GAP_PX = 12;
 const POPOVER_MAX_WIDTH_PX = 238;
-const BACKGROUND_MUSIC_VOLUME = 0.30;
-const DUCKED_BACKGROUND_MUSIC_VOLUME = 0.20;
+const BACKGROUND_MUSIC_VOLUME = 0.3;
+const DUCKED_BACKGROUND_MUSIC_VOLUME = 0.2;
 const TETHER_ANCHOR_FROM_TOP = 0.14;
 const TETHER_MIN_RISE_PX = 36;
 
@@ -58,7 +58,7 @@ const DreamExperience = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const viewportRef = useRef<HTMLElement>(null);
   const selectedDiamondRef = useRef<HTMLButtonElement>(null);
-  const popoverRef = useRef<HTMLElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
   const tetherRef = useRef<HTMLSpanElement>(null);
   const popoverSizeRef = useRef({ width: 0, height: 0 });
   const viewportGeometryRef = useRef<{
