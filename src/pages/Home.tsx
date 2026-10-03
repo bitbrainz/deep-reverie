@@ -22,7 +22,7 @@ export const Home = () => {
         </p>
         <div className="flex flex-wrap justify-center gap-4">
           <Link
-            to="/ar"
+            to="/app"
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
           >
             Start AR Experience

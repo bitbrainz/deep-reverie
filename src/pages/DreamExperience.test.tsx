@@ -38,6 +38,19 @@ class AudioMock {
   }
 }
 
+const rect = (left: number, top: number, width: number, height: number) =>
+  ({
+    x: left,
+    y: top,
+    top,
+    right: left + width,
+    bottom: top + height,
+    left,
+    width,
+    height,
+    toJSON: () => ({}),
+  }) as DOMRect;
+
 describe("DreamExperience", () => {
   beforeEach(() => {
     AudioMock.instances = [];
@@ -85,6 +98,10 @@ describe("DreamExperience", () => {
     expect(screen.getByText("50 dreams · 360°")).toBeVisible();
     expect(document.querySelectorAll(".dream-diamond")).toHaveLength(50);
     expect(document.querySelector(".dream-diamond__number")).not.toBeInTheDocument();
+    expect(document.querySelector(".dream-diamond img")).toHaveAttribute(
+      "src",
+      expect.stringContaining("/images/thumbnails/"),
+    );
     expect(
       screen.getByRole("button", {
         name: `Open dream 50: ${DREAMS.find(({ id }) => id === 50)?.title}`,
@@ -170,6 +187,40 @@ describe("DreamExperience", () => {
       "aria-pressed",
       "true",
     );
+  });
+
+  it("keeps the flat popover beside the moving diamond and closes on click-away", async () => {
+    render(<DreamExperience />);
+    await startWithHeading();
+
+    const viewport = document.querySelector<HTMLElement>(
+      ".dream-experience__viewport",
+    );
+    const dreamOne = screen.getByRole("button", { name: /Open dream 01:/ });
+    expect(viewport).not.toBeNull();
+
+    let diamondLeft = 80;
+    vi.spyOn(viewport!, "getBoundingClientRect").mockReturnValue(
+      rect(0, 0, 390, 844),
+    );
+    vi.spyOn(dreamOne, "getBoundingClientRect").mockImplementation(() =>
+      rect(diamondLeft, 260, 120, 160),
+    );
+
+    fireEvent.click(dreamOne);
+    const popover = await screen.findByTestId("ar-dream-popover");
+    expect(popover).toHaveStyle({ left: "212px", visibility: "visible" });
+
+    diamondLeft = 110;
+    fireEvent(
+      window,
+      new DeviceOrientationEventMock("deviceorientation", { alpha: 260, beta: 90 }),
+    );
+    expect(popover).toHaveStyle({ left: "242px", visibility: "visible" });
+
+    fireEvent.click(viewport!);
+    expect(screen.queryByTestId("ar-dream-popover")).not.toBeInTheDocument();
+    expect(AudioMock.instances[0].pause).toHaveBeenCalledOnce();
   });
 
   it("opens the existing scrollable gallery details modal", async () => {

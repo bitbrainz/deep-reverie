@@ -5,6 +5,7 @@ import { test } from "node:test";
 const dreamSource = await readFile("src/dreams/data/dreams.ts", "utf8");
 const gallerySource = await readFile("src/pages/Gallery.tsx", "utf8");
 const cardSource = await readFile("src/components/Card.tsx", "utf8");
+const experienceSource = await readFile("src/pages/DreamExperience.tsx", "utf8");
 const dreamFiles = [
   ...dreamSource.matchAll(/fileName: "([^"]+\.png)"/g),
 ].map((match) => match[1]);
@@ -63,4 +64,10 @@ test("gallery sources cover supported viewport and pixel-density combinations", 
       `${display.name} requires more than ${sourceWidth}px`,
     );
   }
+});
+
+test("the live cylinder uses lightweight thumbnail artwork", () => {
+  assert.match(experienceSource, /images\/thumbnails\//);
+  assert.doesNotMatch(experienceSource, /images\/thumbnails-2x\//);
+  assert.doesNotMatch(experienceSource, /images\/saturated\//);
 });

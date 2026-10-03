@@ -33,6 +33,10 @@ describe("About the Art", () => {
     );
 
     expect(screen.getByRole("link", { name: "About the Art" })).toHaveAttribute("href", "/about");
+    expect(screen.getByRole("link", { name: "Start AR Experience" })).toHaveAttribute(
+      "href",
+      "/app",
+    );
   });
 
   it("keeps useful next steps available if the installation image fails", () => {
