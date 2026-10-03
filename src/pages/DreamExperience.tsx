@@ -35,8 +35,8 @@ import { publicAssetPath } from "../app/publicAssetPath";
 const SENSOR_TIMEOUT_MS = 4_000;
 const POPOVER_GAP_PX = 12;
 const POPOVER_MAX_WIDTH_PX = 238;
-const BACKGROUND_MUSIC_VOLUME = 0.22;
-const DUCKED_BACKGROUND_MUSIC_VOLUME = 0.06;
+const BACKGROUND_MUSIC_VOLUME = 0.30;
+const DUCKED_BACKGROUND_MUSIC_VOLUME = 0.20;
 
 type ExperienceStatus =
   | { kind: "idle" }
