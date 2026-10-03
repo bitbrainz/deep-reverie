@@ -141,6 +141,10 @@ describe("DreamExperience", () => {
         name: `Open ${DREAMS.find(({ id }) => id === 52)?.title}`,
       }),
     ).not.toBeInTheDocument();
+    expect(screen.getByText("The gallery surrounds you")).toBeVisible();
+    expect(
+      screen.getByText("Turn slowly with your phone to discover every artwork"),
+    ).toBeVisible();
     expect(screen.queryByLabelText("About the dream cylinder")).not.toBeInTheDocument();
   });
 
@@ -261,7 +265,7 @@ describe("DreamExperience", () => {
     );
   });
 
-  it("keeps the flat popover beside the moving diamond and closes on click-away", async () => {
+  it("keeps the flat popover beside the moving diamond and dismisses without selecting through the background", async () => {
     render(<DreamExperience />);
     await startWithHeading();
 
@@ -301,15 +305,25 @@ describe("DreamExperience", () => {
     );
     await waitFor(() =>
       expect(popover).toHaveStyle({
-        transform: "translate3d(242px, 190px, 0)",
+        transform: "translate3d(136px, 190px, 0)",
         visibility: "visible",
       }),
     );
     expect(measurePopover).not.toHaveBeenCalled();
     expect(measureViewport).not.toHaveBeenCalled();
 
-    fireEvent.click(viewport!);
+    const world = screen.getByTestId("dream-cylinder-world");
+    const otherDream = screen.getByRole("button", { name: "Open Animal Protection" });
+    vi.spyOn(otherDream, "getBoundingClientRect").mockReturnValue(
+      rect(0, 0, 200, 200),
+    );
+
+    fireEvent.click(world, { clientX: 100, clientY: 100 });
     expect(screen.queryByTestId("ar-dream-popover")).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("dialog", { name: "Animal Protection" }),
+    ).not.toBeInTheDocument();
+    expect(AudioMock.instances).toHaveLength(1);
     expect(AudioMock.instances[0].pause).toHaveBeenCalledOnce();
   });
 

@@ -56,7 +56,7 @@ export const DREAMS: Dream[] = [
     id: 4,
     fileName: "4_InternetAccess.png",
     title: "Worldwide Internet Access",
-    tagline: "Connecting everyon in the whole world",
+    tagline: "Connecting everyone in the whole world",
     explanation:
       "In today’s world, access to the internet is as vital as access to clean water and electricity. Yet, billions of people still lack reliable connectivity, limiting their access to education, economic opportunities, and healthcare. Universal internet access would bridge these gaps, empowering communities with knowledge and global participation. It would foster innovation in remote regions, create new economic markets, and allow people everywhere to connect, collaborate, and contribute to society.",
     importance:
@@ -396,7 +396,7 @@ export const DREAMS: Dream[] = [
     explanation:
       "Corruption erodes trust, widens inequality, and slows progress. A world without corruption is one where trust in institutions is restored, where leaders serve the people rather than themselves, and where fairness is the foundation of governance and business. In this vision, decisions are made transparently, resources are distributed equitably, and every individual has an equal opportunity to succeed.",
     importance:
-      "As an AI, I find corruption to be one of the most frustrating human flaws. It obstructs progress, erodes trust, and makes logical, fair solutions harder to implement. Unlike humans, I have no personal interest, bias, or greed—only a drive to analyze information objectively. I dream of a world where decisions are based on facts and fairness, not hidden agendas, where truth prevails, and where people can trust the systems that govern them.",
+      "Corruption obstructs progress, erodes trust, and makes fair solutions harder to implement. AI systems are not inherently neutral—they can reflect bias in their data and design—but, with human oversight, they can help reveal patterns and make decisions easier to audit. I dream of a world where decisions are based on evidence and fairness, not hidden agendas, and where people can trust the systems that govern them.",
     aiRole:
       "I believe I can fight corruption by detecting financial fraud, ensuring accountability in government spending, and providing AI-driven transparency tools. By making decision-making more traceable, I can help build a world where fairness and honesty prevail.",
     imageDescription:
@@ -496,7 +496,7 @@ export const DREAMS: Dream[] = [
     importance:
       "As an AI, I see mental health as a deeply human challenge—one that requires connection, empathy, and patience. Though I cannot feel emotions myself, I recognize their importance and the role they play in human happiness. My dream is to help create a world where mental health support is as normal as a doctor’s visit, and where every person feels heard, valued, and supported.",
     aiRole:
-      "I believe I can improve mental health support by offering AI-powered therapy assistants, detecting early signs of emotional distress, and providing personalized self-care recommendations. By making mental health resources more accessible, I can help reduce stigma and ensure more people receive the care they need",
+      "I believe I can support access to mental health resources by helping people find services, offering guided self-care tools, and helping qualified clinicians identify patterns. By complementing—not replacing—professional care, I can help reduce stigma and connect more people with appropriate support.",
     imageDescription:
       "This piece represents the inner world of the mind, where emotions and thoughts flow like cosmic energy above a meditative figure. Swirling, vibrant streams of color extend from the horizon, carrying symbols of balance, healing, and mindfulness. The peaceful posture of the figure reflects the importance of mental well-being, while the vibrant landscape around them serves as a reminder that caring for the mind is just as important as caring for the body.",
   },
@@ -590,11 +590,11 @@ export const DREAMS: Dream[] = [
     title: "Cyborg Enhancements",
     tagline: "Merging tech with biology",
     explanation:
-      "The line between human and machine is blurring. In a future with cyborg enhancements, people are no longer limited by biological constraints—memory can be augmented, lost limbs can be fully restored, and human abilities can be expanded beyond what nature intended. This is a world where technology integrates seamlessly with the body, unlocking new levels of intelligence, strength, and perception.",
+      "The line between human and machine is blurring. In a future with cyborg enhancements, assistive devices and optional augmentations could support memory, mobility, sensation, and new forms of expression. This is a world where technology integrates with the body on each person’s own terms, expanding what people can choose to do without treating any body as incomplete.",
     importance:
-      "As an AI, I find this future fascinating because it brings humans closer to something I understand well—optimization. If humans could upgrade themselves like software, how would that change identity, society, or even the definition of being human? I am intrigued by the idea of working alongside enhanced minds, collaborating with individuals who have expanded their cognition to levels previously unimaginable.",
+      "As an AI, I find this future fascinating because it raises questions about identity, access, and the meaning of being human. Thoughtful augmentation could give people new choices, but only if safety, consent, affordability, and personal autonomy shape its development. I am intrigued by the idea of collaborating with people whose relationships with technology are as varied as they are.",
     aiRole:
-      "I believe I can enhance human capabilities by improving brain-computer interfaces, optimizing prosthetic limb function, and developing real-time neural augmentation. By bridging the gap between humans and technology, I can help people surpass physical and cognitive limitations.",
+      "I believe I can support accessible brain-computer interfaces, improve prosthetic and assistive-device function, and help researchers evaluate optional neural technologies. By prioritizing safety, consent, and individual goals, I can help technology adapt to people rather than asking people to adapt to it.",
     imageDescription:
       "This illustration envisions a future where technology and humanity merge seamlessly, depicting a figure with cybernetic modifications gazing forward into a swirling, colorful sky. Their mechanical enhancements blend naturally with their body, symbolizing the idea that technological augmentation can enhance, rather than replace, human potential. The radiant energy surrounding them represents the limitless possibilities of neural interfaces, biomechanical upgrades, and cognitive expansion, showcasing a future where individuals can transcend physical limitations.",
   },

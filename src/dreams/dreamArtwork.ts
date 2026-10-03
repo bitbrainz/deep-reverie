@@ -5,7 +5,7 @@ const preloadCache = new Map<string, Promise<void>>();
 
 export const getDreamDetailUrl = (dream: Pick<Dream, "fileName">) =>
   publicAssetPath(
-    `images/saturated/${dream.fileName.replace(".png", ".webp")}`,
+    `images/details/${dream.fileName.replace(".png", ".webp")}`,
   );
 
 export const preloadDreamArtwork = (dream: Pick<Dream, "fileName">) => {

@@ -48,6 +48,7 @@ export const DetailsDrawer = ({
     dreamId: number | null;
     status: "idle" | "playing" | "error";
   }>({ dreamId: null, status: "idle" });
+  const [showScrollCue, setShowScrollCue] = useState(true);
   const selectedDreamId = dream?.id;
   const RootPrimitive = backgroundInteractive ? Dialog.Root : Drawer.Root;
   const PortalPrimitive = backgroundInteractive ? Dialog.Portal : Drawer.Portal;
@@ -146,7 +147,22 @@ export const DetailsDrawer = ({
     if (detailsScrollRef.current) {
       detailsScrollRef.current.scrollTop = 0;
     }
-  }, [selectedDreamId]);
+    setShowScrollCue(true);
+  }, [open, selectedDreamId]);
+
+  const scrollIntoStory = () => {
+    const detailsPane = detailsScrollRef.current;
+    if (!detailsPane) return;
+
+    const prefersReducedMotion = window.matchMedia?.(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    detailsPane.scrollBy({
+      top: Math.max(260, detailsPane.clientHeight * 0.55),
+      behavior: prefersReducedMotion ? "auto" : "smooth",
+    });
+    setShowScrollCue(false);
+  };
 
   return (
   <RootPrimitive
@@ -180,6 +196,9 @@ export const DetailsDrawer = ({
         <div
           ref={detailsScrollRef}
           className="relative flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain"
+          onScroll={(event) => {
+            if (event.currentTarget.scrollTop > 24) setShowScrollCue(false);
+          }}
         >
           <div className="sticky top-0 z-20 flex h-14 shrink-0 items-center justify-between border-b border-slate-200/80 bg-slate-50/95 px-4 backdrop-blur sm:px-6">
             <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
@@ -250,6 +269,20 @@ export const DetailsDrawer = ({
             <p className="p-8 text-slate-600">Select a dream to explore its story.</p>
           )}
         </div>
+
+        {dream && showScrollCue ? (
+          <button
+            type="button"
+            aria-label="Scroll to read the full story"
+            onClick={scrollIntoStory}
+            className={`absolute left-1/2 z-30 inline-flex -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-full border border-white/20 bg-slate-950/90 px-4 py-2 text-xs font-semibold text-white shadow-xl shadow-slate-950/30 backdrop-blur transition hover:bg-violet-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-300 motion-reduce:transition-none ${onPrevious && onNext ? "bottom-20" : "bottom-5"}`}
+          >
+            <span aria-hidden="true" className="text-base leading-none motion-safe:animate-bounce">
+              ↓
+            </span>
+            Scroll for the full story
+          </button>
+        ) : null}
 
         {dream && onPrevious && onNext ? (
           <nav className="flex shrink-0 gap-3 border-t border-slate-200 bg-white p-4 sm:px-6" aria-label="Browse dreams">
