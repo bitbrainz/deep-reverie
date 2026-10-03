@@ -35,6 +35,8 @@ import { publicAssetPath } from "../app/publicAssetPath";
 const SENSOR_TIMEOUT_MS = 4_000;
 const POPOVER_GAP_PX = 12;
 const POPOVER_MAX_WIDTH_PX = 238;
+const BACKGROUND_MUSIC_VOLUME = 0.8;
+const DUCKED_BACKGROUND_MUSIC_VOLUME = 0.5;
 const TETHER_ANCHOR_FROM_TOP = 0.14;
 const TETHER_MIN_RISE_PX = 36;
 
@@ -56,7 +58,7 @@ const DreamExperience = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const viewportRef = useRef<HTMLElement>(null);
   const selectedDiamondRef = useRef<HTMLButtonElement>(null);
-  const popoverRef = useRef<HTMLElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
   const tetherRef = useRef<HTMLSpanElement>(null);
   const popoverSizeRef = useRef({ width: 0, height: 0 });
   const viewportGeometryRef = useRef<{
@@ -64,6 +66,7 @@ const DreamExperience = () => {
     top: number;
   } | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const backgroundMusicRef = useRef<HTMLAudioElement | null>(null);
   const orientationFrameRef = useRef<number | null>(null);
   const originRef = useRef<OrientationSample | null>(null);
   const latestSampleRef = useRef<OrientationSample | null>(null);
@@ -105,6 +108,54 @@ const DreamExperience = () => {
     if (videoRef.current) videoRef.current.srcObject = null;
   }, []);
 
+  const startBackgroundMusic = useCallback(() => {
+    if (typeof Audio === "undefined") return;
+
+    let music = backgroundMusicRef.current;
+    if (!music) {
+      try {
+        music = new Audio(publicAssetPath("audio/music.mp3"));
+      } catch {
+        return;
+      }
+      music.loop = true;
+      music.preload = "auto";
+      music.volume = BACKGROUND_MUSIC_VOLUME;
+      backgroundMusicRef.current = music;
+    }
+
+    if (music.paused === false) return;
+
+    try {
+      void music.play().catch(() => undefined);
+    } catch {
+      // Browser autoplay rules may require the existing entry gesture below.
+    }
+  }, []);
+
+  const setBackgroundMusicDucked = useCallback((isNarrating: boolean) => {
+    const music = backgroundMusicRef.current;
+    if (!music) return;
+    music.volume = isNarrating
+      ? DUCKED_BACKGROUND_MUSIC_VOLUME
+      : BACKGROUND_MUSIC_VOLUME;
+  }, []);
+
+  useEffect(() => {
+    startBackgroundMusic();
+    return () => {
+      const music = backgroundMusicRef.current;
+      backgroundMusicRef.current = null;
+      if (!music) return;
+      music.pause();
+      try {
+        music.currentTime = 0;
+      } catch {
+        // A failed media resource may not expose a seekable timeline.
+      }
+    };
+  }, [startBackgroundMusic]);
+
   const applyAccessResult = useCallback((result: ExperienceAccessResult) => {
     if (result.kind !== "granted") {
       setStatus(result);
@@ -124,6 +175,7 @@ const DreamExperience = () => {
   }, []);
 
   const startExperience = useCallback(async () => {
+    startBackgroundMusic();
     releaseCamera();
     originRef.current = null;
     latestSampleRef.current = null;
@@ -132,7 +184,7 @@ const DreamExperience = () => {
 
     setStatus({ kind: "requesting" });
     applyAccessResult(await requestExperienceAccess());
-  }, [applyAccessResult, releaseCamera]);
+  }, [applyAccessResult, releaseCamera, startBackgroundMusic]);
 
   useEffect(() => {
     if (!hasPreparedExperienceAccess()) return;
@@ -304,6 +356,9 @@ const DreamExperience = () => {
       event.currentTarget.querySelectorAll<HTMLButtonElement>(".dream-diamond"),
     )
       .filter((diamond) => {
+        const placement = diamond.closest<HTMLElement>(".dream-placement");
+        if (placement?.style.visibility === "hidden") return false;
+
         const rect = diamond.getBoundingClientRect();
         if (rect.width === 0 || rect.height === 0) return false;
         const normalizedX = (event.clientX - rect.left) / rect.width;
@@ -397,7 +452,6 @@ const DreamExperience = () => {
                   // Perspective transforms can cause a visible diamond tap to
                   // resolve to either the rotating world or its containing
                   // stage. Handle both paths from this shared ancestor.
-                  if (selectedDream) return;
                   selectDreamAtPoint(event);
                 }}
               >
@@ -477,6 +531,7 @@ const DreamExperience = () => {
                 ref={popoverRef}
                 dream={selectedDream}
                 onDetails={showSelectedDetails}
+                onNarrationPlayingChange={setBackgroundMusicDucked}
               />
             </>
           ) : null}

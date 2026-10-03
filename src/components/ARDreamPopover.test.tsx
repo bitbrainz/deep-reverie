@@ -51,6 +51,85 @@ describe("ARDreamPopover", () => {
     expect(AudioMock.instances[0].play).toHaveBeenCalledOnce();
     expect(screen.getByRole("button", { name: "Details" })).toBeVisible();
     expect(screen.queryByRole("button", { name: /Stop narration/ })).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("region", { name: "Virtual Reality narration text" }),
+    ).toHaveTextContent(
+      "I envision virtual reality as a doorway into vivid digital worlds",
+    );
+    expect(screen.queryByText(DREAMS[0].explanation)).not.toBeInTheDocument();
+  });
+
+  it("reports narration playback changes for background-music ducking", () => {
+    const onNarrationPlayingChange = vi.fn();
+    const { unmount } = render(
+      <ARDreamPopover
+        dream={DREAMS[0]}
+        onDetails={vi.fn()}
+        onNarrationPlayingChange={onNarrationPlayingChange}
+      />,
+    );
+
+    expect(onNarrationPlayingChange).toHaveBeenLastCalledWith(true);
+    AudioMock.instances[0].onended?.();
+    expect(onNarrationPlayingChange).toHaveBeenLastCalledWith(false);
+
+    unmount();
+    expect(onNarrationPlayingChange).toHaveBeenLastCalledWith(false);
+  });
+
+  it("lets mouse and touch dragging scroll through the narration text", () => {
+    render(<ARDreamPopover dream={DREAMS[0]} onDetails={vi.fn()} />);
+    const narration = screen.getByRole("region", {
+      name: "Virtual Reality narration text",
+    });
+
+    const pointerEvent = (
+      type: string,
+      values: Record<string, string | number>,
+    ) => {
+      const event = new Event(type, { bubbles: true, cancelable: true });
+      Object.entries(values).forEach(([key, value]) =>
+        Object.defineProperty(event, key, { value }),
+      );
+      return event;
+    };
+
+    fireEvent(
+      narration,
+      pointerEvent("pointerdown", {
+        pointerId: 7,
+        pointerType: "mouse",
+        button: 0,
+        clientY: 160,
+      }),
+    );
+    fireEvent(
+      narration,
+      pointerEvent("pointermove", { pointerId: 7, clientY: 100 }),
+    );
+
+    expect(narration.scrollTop).toBe(60);
+    expect(narration).toHaveAttribute("data-dragging", "true");
+
+    fireEvent(narration, pointerEvent("pointerup", { pointerId: 7 }));
+    expect(narration).not.toHaveAttribute("data-dragging");
+
+    fireEvent(
+      narration,
+      pointerEvent("pointerdown", {
+        pointerId: 8,
+        pointerType: "touch",
+        button: 0,
+        clientY: 200,
+      }),
+    );
+    fireEvent(
+      narration,
+      pointerEvent("pointermove", { pointerId: 8, clientY: 150 }),
+    );
+
+    expect(narration.scrollTop).toBe(110);
+    fireEvent(narration, pointerEvent("pointerup", { pointerId: 8 }));
   });
 
   it("stops the old narration when the selected dream changes", async () => {
@@ -72,13 +151,19 @@ describe("ARDreamPopover", () => {
 
   it("reports when automatic playback is interrupted without adding playback controls", async () => {
     AudioMock.rejectPlayback = true;
+    const onNarrationPlayingChange = vi.fn();
     render(
-      <ARDreamPopover dream={DREAMS[0]} onDetails={vi.fn()} />,
+      <ARDreamPopover
+        dream={DREAMS[0]}
+        onDetails={vi.fn()}
+        onNarrationPlayingChange={onNarrationPlayingChange}
+      />,
     );
 
     expect(
       await screen.findByText("Narration could not start on this device."),
     ).toBeVisible();
+    expect(onNarrationPlayingChange).toHaveBeenLastCalledWith(false);
     expect(screen.queryByRole("button", { name: /narration/i })).not.toBeInTheDocument();
   });
 

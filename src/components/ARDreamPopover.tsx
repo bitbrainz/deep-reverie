@@ -6,42 +6,52 @@ import {
   useLayoutEffect,
   useRef,
   useState,
+  type PointerEvent as ReactPointerEvent,
 } from "react";
 import type { Dream } from "../dreams/data/dreams";
 import { getNarrationUrl } from "../dreams/data/narrations";
+import { getNarrationText } from "../dreams/data/narrationText";
 
 type ARDreamPopoverProps = {
   dream: Dream;
   onDetails: () => void;
+  onNarrationPlayingChange?: (isPlaying: boolean) => void;
 };
 
 type PlaybackStatus = "starting" | "playing" | "idle" | "error" | "unavailable";
 
 export const ARDreamPopover = memo(
-  forwardRef<HTMLElement, ARDreamPopoverProps>(function ARDreamPopover(
-    { dream, onDetails },
+  forwardRef<HTMLDivElement, ARDreamPopoverProps>(function ARDreamPopover(
+    { dream, onDetails, onNarrationPlayingChange },
     ref,
   ) {
     const titleId = useId();
     const activeAudioRef = useRef<HTMLAudioElement | null>(null);
+    const dragRef = useRef<{
+      pointerId: number;
+      startY: number;
+      scrollTop: number;
+    } | null>(null);
     const [playbackStatus, setPlaybackStatus] =
       useState<PlaybackStatus>("starting");
     const narrationUrl = getNarrationUrl(dream.id);
+    const narrationText = getNarrationText(dream.id) ?? dream.explanation;
 
     const stopNarration = useCallback(() => {
       const audio = activeAudioRef.current;
-      if (!audio) return;
-
-      activeAudioRef.current = null;
-      audio.onended = null;
-      audio.onerror = null;
-      audio.pause();
-      try {
-        audio.currentTime = 0;
-      } catch {
-        // A failed media resource may not expose a seekable timeline.
+      if (audio) {
+        activeAudioRef.current = null;
+        audio.onended = null;
+        audio.onerror = null;
+        audio.pause();
+        try {
+          audio.currentTime = 0;
+        } catch {
+          // A failed media resource may not expose a seekable timeline.
+        }
       }
-    }, []);
+      onNarrationPlayingChange?.(false);
+    }, [onNarrationPlayingChange]);
 
     const startNarration = useCallback(() => {
       stopNarration();
@@ -70,18 +80,48 @@ export const ARDreamPopover = memo(
       audio.onended = () => {
         if (activeAudioRef.current !== audio) return;
         activeAudioRef.current = null;
+        onNarrationPlayingChange?.(false);
         setPlaybackStatus("idle");
       };
       audio.onerror = markUnavailable;
 
       try {
         const playback = audio.play();
+        onNarrationPlayingChange?.(true);
         setPlaybackStatus("playing");
         void playback.catch(markUnavailable);
       } catch {
         markUnavailable();
       }
-    }, [narrationUrl, stopNarration]);
+    }, [narrationUrl, onNarrationPlayingChange, stopNarration]);
+
+    const startDragging = (event: ReactPointerEvent<HTMLDivElement>) => {
+      if (event.pointerType === "mouse" && event.button !== 0) return;
+      dragRef.current = {
+        pointerId: event.pointerId,
+        startY: event.clientY,
+        scrollTop: event.currentTarget.scrollTop,
+      };
+      event.currentTarget.setPointerCapture?.(event.pointerId);
+      event.currentTarget.dataset.dragging = "true";
+    };
+
+    const dragToScroll = (event: ReactPointerEvent<HTMLDivElement>) => {
+      const drag = dragRef.current;
+      if (!drag || drag.pointerId !== event.pointerId) return;
+      event.currentTarget.scrollTop =
+        drag.scrollTop + drag.startY - event.clientY;
+      event.preventDefault();
+    };
+
+    const stopDragging = (event: ReactPointerEvent<HTMLDivElement>) => {
+      if (dragRef.current?.pointerId !== event.pointerId) return;
+      dragRef.current = null;
+      delete event.currentTarget.dataset.dragging;
+      if (event.currentTarget.hasPointerCapture?.(event.pointerId)) {
+        event.currentTarget.releasePointerCapture(event.pointerId);
+      }
+    };
 
     // Start during the selection commit so mobile browsers retain the tap's
     // transient media-playback permission.
@@ -91,7 +131,7 @@ export const ARDreamPopover = memo(
     }, [startNarration, stopNarration]);
 
     return (
-      <aside
+      <div
         ref={ref}
         className="ar-dream-popover"
         role="dialog"
@@ -102,7 +142,18 @@ export const ARDreamPopover = memo(
       >
         <h2 id={titleId}>{dream.title}</h2>
         <p className="ar-dream-popover__tagline">{dream.tagline}</p>
-        <p className="ar-dream-popover__copy">{dream.explanation}</p>
+        <div
+          className="ar-dream-popover__copy"
+          role="region"
+          aria-label={`${dream.title} narration text`}
+          tabIndex={0}
+          onPointerDown={startDragging}
+          onPointerMove={dragToScroll}
+          onPointerUp={stopDragging}
+          onPointerCancel={stopDragging}
+        >
+          {narrationText}
+        </div>
         <footer className="ar-dream-popover__footer">
           <span
             className={`ar-dream-popover__status ${playbackStatus === "playing" ? "is-playing" : ""}`}
@@ -131,7 +182,7 @@ export const ARDreamPopover = memo(
             Narration could not start on this device.
           </p>
         ) : null}
-      </aside>
+      </div>
     );
   }),
 );
