@@ -143,15 +143,11 @@ describe("DreamExperience", () => {
     ).not.toBeInTheDocument();
     expect(
       screen.getByRole("status", {
-        name: "Turn with your phone to orbit all 51 dreams. Tap on a diamond to hear about the dream.",
+        name: "Turn around to view the gallery. Tap on a diamond to hear about it.",
       }),
     ).toBeVisible();
-    expect(screen.getByText("Turn with your phone")).toBeVisible();
-    expect(screen.getByText("to orbit all 51 dreams")).toBeVisible();
-    expect(
-      screen.getByText("Tap on a diamond to hear about the dream"),
-    ).toBeVisible();
-    expect(document.querySelector(".dream-experience__guide-orbit")).not.toBeNull();
+    expect(screen.getByText("Turn around to view the gallery")).toBeVisible();
+    expect(screen.getByText("Tap on a diamond to hear about it")).toBeVisible();
     expect(screen.queryByTestId("ambient-particles")).not.toBeInTheDocument();
     expect(document.querySelector(".dream-experience__particle")).toBeNull();
     expect(screen.queryByLabelText("About the dream cylinder")).not.toBeInTheDocument();
@@ -274,6 +270,24 @@ describe("DreamExperience", () => {
       "aria-pressed",
       "true",
     );
+  });
+
+  it("selects a visible diamond when perspective hit testing resolves to the stage", async () => {
+    render(<DreamExperience />);
+    await startWithHeading();
+
+    const stage = screen.getByTestId("dream-cylinder-stage");
+    const dream = screen.getByRole("button", { name: "Open Virtual Reality" });
+    vi.spyOn(dream, "getBoundingClientRect").mockReturnValue(
+      rect(100, 200, 120, 160),
+    );
+
+    fireEvent.click(stage, { clientX: 160, clientY: 280 });
+
+    expect(
+      await screen.findByRole("dialog", { name: "Virtual Reality" }),
+    ).toBeVisible();
+    expect(dream).toHaveAttribute("aria-pressed", "true");
   });
 
   it("keeps the flat popover beside the moving diamond and dismisses without selecting through the background", async () => {

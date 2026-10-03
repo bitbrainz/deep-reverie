@@ -374,18 +374,18 @@ const DreamExperience = () => {
               <div
                 className="dream-cylinder__stage"
                 data-testid="dream-cylinder-stage"
+                onClick={(event) => {
+                  // Perspective transforms can cause a visible diamond tap to
+                  // resolve to either the rotating world or its containing
+                  // stage. Handle both paths from this shared ancestor.
+                  if (selectedDream) return;
+                  selectDreamAtPoint(event);
+                }}
               >
                 <div
                   className="dream-cylinder__world"
                   style={worldStyle}
                   data-testid="dream-cylinder-world"
-                  onClick={(event) => {
-                    // When a card is open, the next background tap is always a
-                    // dismissal. Do not let the manual diamond hit-test replace
-                    // the selection before the outer click-away handler runs.
-                    if (selectedDream) return;
-                    selectDreamAtPoint(event);
-                  }}
                 >
                   {layout.placements.map((placement, index) => {
                     const yPixels =
@@ -458,25 +458,14 @@ const DreamExperience = () => {
             <div
               className="dream-experience__guide"
               role="status"
-              aria-label="Turn with your phone to orbit all 51 dreams. Tap on a diamond to hear about the dream."
+              aria-label="Turn around to view the gallery. Tap on a diamond to hear about it."
             >
-              <svg
-                aria-hidden="true"
-                className="dream-experience__guide-orbit"
-                viewBox="0 0 48 48"
-              >
-                <path d="M8 24c0-7 7-12 16-12 6.8 0 12.6 2.9 15 7" />
-                <path d="m35 14 4 5-6 2" />
-                <path d="M40 24c0 7-7 12-16 12-6.8 0-12.6-2.9-15-7" />
-                <path d="m13 34-4-5 6-2" />
-              </svg>
-              <span>
-                <strong>Turn with your phone</strong>
-                <small>to orbit all 51 dreams</small>
-                <small className="dream-experience__guide-tap">
-                  Tap on a diamond to hear about the dream
-                </small>
-              </span>
+              <div className="dream-experience__guide-primary">
+                <span aria-hidden="true">«</span>
+                <strong>Turn around to view the gallery</strong>
+                <span aria-hidden="true">»</span>
+              </div>
+              <small>Tap on a diamond to hear about it</small>
             </div>
           ) : null}
       </section>
