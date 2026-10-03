@@ -34,7 +34,6 @@ import { publicAssetPath } from "../app/publicAssetPath";
 
 const SENSOR_TIMEOUT_MS = 4_000;
 const POPOVER_GAP_PX = 12;
-const VIEWPORT_EDGE_PX = 16;
 const POPOVER_MAX_WIDTH_PX = 238;
 
 type ExperienceStatus =
@@ -61,8 +60,6 @@ const DreamExperience = () => {
   const viewportGeometryRef = useRef<{
     left: number;
     top: number;
-    width: number;
-    height: number;
   } | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const orientationFrameRef = useRef<number | null>(null);
@@ -245,15 +242,12 @@ const DreamExperience = () => {
       viewportGeometry = {
         left: viewportRect.left,
         top: viewportRect.top,
-        width: viewportRect.width,
-        height: viewportRect.height,
       };
       viewportGeometryRef.current = viewportGeometry;
     }
     const diamondRect = diamond.getBoundingClientRect();
-    const rightSide =
+    const left =
       diamondRect.right - viewportGeometry.left + POPOVER_GAP_PX;
-    const left = Math.max(rightSide, VIEWPORT_EDGE_PX);
     let popoverSize = popoverSizeRef.current;
     if (!popoverSize.width || !popoverSize.height) {
       popover.style.width = `${POPOVER_MAX_WIDTH_PX}px`;
@@ -264,13 +258,7 @@ const DreamExperience = () => {
     const centeredTop =
       diamondRect.top - viewportGeometry.top +
       (diamondRect.height - popoverSize.height) / 2;
-    const maximumTop = Math.max(
-      VIEWPORT_EDGE_PX,
-      viewportGeometry.height - popoverSize.height - VIEWPORT_EDGE_PX,
-    );
-
-    const top = Math.min(Math.max(centeredTop, VIEWPORT_EDGE_PX), maximumTop);
-    popover.style.transform = `translate3d(${left}px, ${top}px, 0)`;
+    popover.style.transform = `translate3d(${left}px, ${centeredTop}px, 0)`;
   }, []);
 
   useLayoutEffect(() => {
@@ -470,7 +458,7 @@ const DreamExperience = () => {
             <div
               className="dream-experience__guide"
               role="status"
-              aria-label="Turn with your phone to orbit all 51 dreams"
+              aria-label="Turn with your phone to orbit all 51 dreams. Tap on a diamond to hear about the dream."
             >
               <svg
                 aria-hidden="true"
@@ -485,6 +473,9 @@ const DreamExperience = () => {
               <span>
                 <strong>Turn with your phone</strong>
                 <small>to orbit all 51 dreams</small>
+                <small className="dream-experience__guide-tap">
+                  Tap on a diamond to hear about the dream
+                </small>
               </span>
             </div>
           ) : null}

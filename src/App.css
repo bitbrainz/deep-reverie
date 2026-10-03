@@ -638,6 +638,12 @@ body.dream-experience-active {
   text-transform: uppercase;
 }
 
+.dream-experience__guide .dream-experience__guide-tap {
+  margin-top: 0.18rem;
+  color: #faf8ff;
+  letter-spacing: 0.055em;
+}
+
 @keyframes dream-diamond-arrival {
   from { opacity: 0; }
   to { opacity: 1; }

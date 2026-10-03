@@ -143,11 +143,14 @@ describe("DreamExperience", () => {
     ).not.toBeInTheDocument();
     expect(
       screen.getByRole("status", {
-        name: "Turn with your phone to orbit all 51 dreams",
+        name: "Turn with your phone to orbit all 51 dreams. Tap on a diamond to hear about the dream.",
       }),
     ).toBeVisible();
     expect(screen.getByText("Turn with your phone")).toBeVisible();
     expect(screen.getByText("to orbit all 51 dreams")).toBeVisible();
+    expect(
+      screen.getByText("Tap on a diamond to hear about the dream"),
+    ).toBeVisible();
     expect(document.querySelector(".dream-experience__guide-orbit")).not.toBeNull();
     expect(screen.queryByTestId("ambient-particles")).not.toBeInTheDocument();
     expect(document.querySelector(".dream-experience__particle")).toBeNull();
@@ -284,11 +287,12 @@ describe("DreamExperience", () => {
     expect(viewport).not.toBeNull();
 
     let diamondLeft = 80;
+    let diamondTop = 260;
     const measureViewport = vi
       .spyOn(viewport!, "getBoundingClientRect")
       .mockReturnValue(rect(0, 0, 390, 844));
     vi.spyOn(dreamOne, "getBoundingClientRect").mockImplementation(() =>
-      rect(diamondLeft, 260, 120, 160),
+      rect(diamondLeft, diamondTop, 120, 160),
     );
 
     fireEvent.click(dreamOne);
@@ -320,6 +324,19 @@ describe("DreamExperience", () => {
     );
     expect(measurePopover).not.toHaveBeenCalled();
     expect(measureViewport).not.toHaveBeenCalled();
+
+    diamondLeft = -180;
+    diamondTop = -240;
+    fireEvent(
+      window,
+      new DeviceOrientationEventMock("deviceorientation", { alpha: 250, beta: 90 }),
+    );
+    await waitFor(() =>
+      expect(popover).toHaveStyle({
+        transform: "translate3d(-48px, -310px, 0)",
+        visibility: "visible",
+      }),
+    );
 
     const world = screen.getByTestId("dream-cylinder-world");
     const otherDream = screen.getByRole("button", { name: "Open Animal Protection" });
