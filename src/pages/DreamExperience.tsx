@@ -35,6 +35,8 @@ import { publicAssetPath } from "../app/publicAssetPath";
 const SENSOR_TIMEOUT_MS = 4_000;
 const POPOVER_GAP_PX = 12;
 const POPOVER_MAX_WIDTH_PX = 238;
+const TETHER_ANCHOR_FROM_TOP = 0.14;
+const TETHER_RISE_PX = 36;
 
 type ExperienceStatus =
   | { kind: "idle" }
@@ -55,6 +57,7 @@ const DreamExperience = () => {
   const viewportRef = useRef<HTMLElement>(null);
   const selectedDiamondRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLElement>(null);
+  const tetherRef = useRef<HTMLSpanElement>(null);
   const popoverSizeRef = useRef({ width: 0, height: 0 });
   const viewportGeometryRef = useRef<{
     left: number;
@@ -228,11 +231,13 @@ const DreamExperience = () => {
     const viewport = viewportRef.current;
     const diamond = selectedDiamondRef.current;
     const popover = popoverRef.current;
-    if (!viewport || !diamond || !popover) return;
+    const tether = tetherRef.current;
+    if (!viewport || !diamond || !popover || !tether) return;
 
     const placement = diamond.closest<HTMLElement>(".dream-placement");
     const isVisible = placement?.style.visibility !== "hidden";
     popover.style.visibility = isVisible ? "visible" : "hidden";
+    tether.style.visibility = isVisible ? "visible" : "hidden";
     if (!isVisible) return;
 
     let viewportGeometry = viewportGeometryRef.current;
@@ -258,6 +263,19 @@ const DreamExperience = () => {
       diamondRect.top - viewportGeometry.top +
       (diamondRect.height - popoverSize.height) / 2;
     popover.style.transform = `translate3d(${left}px, ${centeredTop}px, 0)`;
+
+    const anchorLeft =
+      diamondRect.left - viewportGeometry.left + diamondRect.width / 2;
+    const anchorTop =
+      diamondRect.top - viewportGeometry.top +
+      diamondRect.height * TETHER_ANCHOR_FROM_TOP;
+    const horizontalRun = left - anchorLeft;
+    const tetherLength = Math.hypot(horizontalRun, TETHER_RISE_PX);
+    const tetherAngle = Math.atan2(-TETHER_RISE_PX, horizontalRun);
+    tether.style.left = `${anchorLeft}px`;
+    tether.style.top = `${anchorTop}px`;
+    tether.style.width = `${tetherLength}px`;
+    tether.style.transform = `rotate(${tetherAngle}rad)`;
   }, []);
 
   useLayoutEffect(() => {
@@ -446,11 +464,19 @@ const DreamExperience = () => {
           )}
 
           {selectedDream && !showDetails ? (
-            <ARDreamPopover
-              ref={popoverRef}
-              dream={selectedDream}
-              onDetails={showSelectedDetails}
-            />
+            <>
+              <span
+                ref={tetherRef}
+                className="ar-dream-tether"
+                data-testid="ar-dream-tether"
+                aria-hidden="true"
+              />
+              <ARDreamPopover
+                ref={popoverRef}
+                dream={selectedDream}
+                onDetails={showSelectedDetails}
+              />
+            </>
           ) : null}
 
           {isActive ? (

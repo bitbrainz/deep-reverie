@@ -377,6 +377,33 @@ body.dream-experience-active {
   filter: saturate(1.12) brightness(1.08);
 }
 
+.ar-dream-tether {
+  position: absolute;
+  z-index: 34;
+  height: 1px;
+  background: linear-gradient(90deg, #f2d795, rgba(242, 215, 149, 0.72));
+  box-shadow: 0 0 0.7rem rgba(242, 215, 149, 0.55);
+  pointer-events: none;
+  transform-origin: left center;
+  visibility: hidden;
+}
+
+.ar-dream-tether::before {
+  position: absolute;
+  top: 50%;
+  left: -0.2rem;
+  width: 0.42rem;
+  height: 0.42rem;
+  border: 1px solid rgba(255, 240, 199, 0.95);
+  border-radius: 50%;
+  background: #f2d795;
+  box-shadow:
+    0 0 0 3px rgba(242, 215, 149, 0.2),
+    0 0 0.9rem rgba(242, 215, 149, 0.8);
+  content: "";
+  transform: translateY(-50%);
+}
+
 .ar-dream-popover {
   position: absolute;
   z-index: 35;
