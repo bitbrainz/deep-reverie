@@ -38,32 +38,6 @@ const VIEWPORT_EDGE_PX = 16;
 const POPOVER_MAX_WIDTH_PX = 238;
 const POPOVER_MIN_WIDTH_PX = 104;
 
-const FAR_PARTICLES: readonly CSSProperties[] = [
-  { left: "7%", top: "14%", width: 2, height: 2, opacity: 0.42 },
-  { left: "23%", top: "30%", width: 3, height: 3, opacity: 0.54 },
-  { left: "42%", top: "11%", width: 2, height: 2, opacity: 0.38 },
-  { left: "61%", top: "24%", width: 3, height: 3, opacity: 0.48 },
-  { left: "88%", top: "16%", width: 2, height: 2, opacity: 0.5 },
-  { left: "14%", top: "59%", width: 2, height: 2, opacity: 0.46 },
-  { left: "36%", top: "72%", width: 3, height: 3, opacity: 0.4 },
-  { left: "57%", top: "52%", width: 2, height: 2, opacity: 0.52 },
-  { left: "78%", top: "66%", width: 3, height: 3, opacity: 0.43 },
-  { left: "93%", top: "83%", width: 2, height: 2, opacity: 0.48 },
-];
-
-const NEAR_PARTICLES: readonly CSSProperties[] = [
-  { left: "11%", top: "42%", width: 4, height: 4, opacity: 0.62 },
-  { left: "31%", top: "19%", width: 5, height: 5, opacity: 0.56 },
-  { left: "49%", top: "39%", width: 4, height: 4, opacity: 0.68 },
-  { left: "71%", top: "13%", width: 5, height: 5, opacity: 0.58 },
-  { left: "86%", top: "47%", width: 4, height: 4, opacity: 0.64 },
-  { left: "19%", top: "82%", width: 5, height: 5, opacity: 0.52 },
-  { left: "54%", top: "78%", width: 4, height: 4, opacity: 0.66 },
-  { left: "82%", top: "91%", width: 5, height: 5, opacity: 0.5 },
-];
-
-const roundParallax = (value: number) => Math.round(value * 100) / 100;
-
 type ExperienceStatus =
   | { kind: "idle" }
   | { kind: "requesting" }
@@ -377,12 +351,6 @@ const DreamExperience = () => {
   const worldStyle = {
     transform: `rotateX(${-pitch}deg) rotateY(${heading}deg)`,
   } as CSSProperties;
-  const farParticleStyle = {
-    transform: `translate3d(${roundParallax(-heading * 0.18)}px, ${roundParallax(-pitch * 0.22)}px, 0)`,
-  } as CSSProperties;
-  const nearParticleStyle = {
-    transform: `translate3d(${roundParallax(-heading * 0.42)}px, ${roundParallax(-pitch * 0.5)}px, 0)`,
-  } as CSSProperties;
 
   return (
     <main className="dream-experience">
@@ -411,33 +379,6 @@ const DreamExperience = () => {
             aria-hidden="true"
           />
           <div className="dream-experience__veil" aria-hidden="true" />
-
-          {isActive ? (
-            <div
-              className="dream-experience__particles"
-              data-testid="ambient-particles"
-              aria-hidden="true"
-            >
-              <div
-                className="dream-experience__particle-layer dream-experience__particle-layer--far"
-                data-testid="particle-layer-far"
-                style={farParticleStyle}
-              >
-                {FAR_PARTICLES.map((style, index) => (
-                  <i key={index} className="dream-experience__particle" style={style} />
-                ))}
-              </div>
-              <div
-                className="dream-experience__particle-layer dream-experience__particle-layer--near"
-                data-testid="particle-layer-near"
-                style={nearParticleStyle}
-              >
-                {NEAR_PARTICLES.map((style, index) => (
-                  <i key={index} className="dream-experience__particle" style={style} />
-                ))}
-              </div>
-            </div>
-          ) : null}
 
           <header className="dream-experience__header">
             <div>
@@ -545,10 +486,25 @@ const DreamExperience = () => {
           ) : null}
 
           {isActive ? (
-            <div className="dream-experience__guide">
-              <span aria-hidden="true">«</span>
-              <strong>Turn around to view the gallery</strong>
-              <span aria-hidden="true">»</span>
+            <div
+              className="dream-experience__guide"
+              role="status"
+              aria-label="Turn with your phone to orbit all 51 dreams"
+            >
+              <svg
+                aria-hidden="true"
+                className="dream-experience__guide-orbit"
+                viewBox="0 0 48 48"
+              >
+                <path d="M8 24c0-7 7-12 16-12 6.8 0 12.6 2.9 15 7" />
+                <path d="m35 14 4 5-6 2" />
+                <path d="M40 24c0 7-7 12-16 12-6.8 0-12.6-2.9-15-7" />
+                <path d="m13 34-4-5 6-2" />
+              </svg>
+              <span>
+                <strong>Turn with your phone</strong>
+                <small>to orbit all 51 dreams</small>
+              </span>
             </div>
           ) : null}
       </section>

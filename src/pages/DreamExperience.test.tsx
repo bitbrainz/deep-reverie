@@ -141,9 +141,16 @@ describe("DreamExperience", () => {
         name: `Open ${DREAMS.find(({ id }) => id === 52)?.title}`,
       }),
     ).not.toBeInTheDocument();
-    expect(screen.getByText("Turn around to view the gallery")).toBeVisible();
-    expect(screen.getByTestId("ambient-particles").children).toHaveLength(2);
-    expect(document.querySelectorAll(".dream-experience__particle")).toHaveLength(18);
+    expect(
+      screen.getByRole("status", {
+        name: "Turn with your phone to orbit all 51 dreams",
+      }),
+    ).toBeVisible();
+    expect(screen.getByText("Turn with your phone")).toBeVisible();
+    expect(screen.getByText("to orbit all 51 dreams")).toBeVisible();
+    expect(document.querySelector(".dream-experience__guide-orbit")).not.toBeNull();
+    expect(screen.queryByTestId("ambient-particles")).not.toBeInTheDocument();
+    expect(document.querySelector(".dream-experience__particle")).toBeNull();
     expect(screen.queryByLabelText("About the dream cylinder")).not.toBeInTheDocument();
   });
 
@@ -161,11 +168,7 @@ describe("DreamExperience", () => {
     render(<DreamExperience />);
     await startWithHeading(270);
     const world = screen.getByTestId("dream-cylinder-world");
-    const farParticles = screen.getByTestId("particle-layer-far");
-    const nearParticles = screen.getByTestId("particle-layer-near");
     expect(world).toHaveStyle({ transform: "rotateX(0deg) rotateY(0deg)" });
-    expect(farParticles).toHaveStyle({ transform: "translate3d(0px, 0px, 0)" });
-    expect(nearParticles).toHaveStyle({ transform: "translate3d(0px, 0px, 0)" });
 
     fireEvent(
       window,
@@ -174,17 +177,8 @@ describe("DreamExperience", () => {
     await waitFor(() =>
       expect(world).toHaveStyle({ transform: "rotateX(-1.32deg) rotateY(20deg)" }),
     );
-    expect(farParticles).toHaveStyle({
-      transform: "translate3d(-3.6px, -0.29px, 0)",
-    });
-    expect(nearParticles).toHaveStyle({
-      transform: "translate3d(-8.4px, -0.66px, 0)",
-    });
-
     fireEvent.click(screen.getByRole("button", { name: "Recenter" }));
     expect(world).toHaveStyle({ transform: "rotateX(0deg) rotateY(0deg)" });
-    expect(farParticles).toHaveStyle({ transform: "translate3d(0px, 0px, 0)" });
-    expect(nearParticles).toHaveStyle({ transform: "translate3d(0px, 0px, 0)" });
   });
 
   it("culls rear-facing diamonds instead of relying on GPU backface rendering", async () => {
