@@ -56,10 +56,11 @@ const DreamExperience = () => {
   const viewportRef = useRef<HTMLElement>(null);
   const selectedDiamondRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLElement>(null);
-  const popoverHeightRef = useRef(0);
+  const popoverSizeRef = useRef({ width: 0, height: 0 });
   const viewportGeometryRef = useRef<{
     left: number;
     top: number;
+    width: number;
     height: number;
   } | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -243,29 +244,49 @@ const DreamExperience = () => {
       viewportGeometry = {
         left: viewportRect.left,
         top: viewportRect.top,
+        width: viewportRect.width,
         height: viewportRect.height,
       };
       viewportGeometryRef.current = viewportGeometry;
     }
     const diamondRect = diamond.getBoundingClientRect();
-    const popoverHeight =
-      popoverHeightRef.current || popover.getBoundingClientRect().height;
-    popoverHeightRef.current = popoverHeight;
+    let popoverSize = popoverSizeRef.current;
+    if (!popoverSize.width || !popoverSize.height) {
+      const popoverRect = popover.getBoundingClientRect();
+      popoverSize = { width: popoverRect.width, height: popoverRect.height };
+      popoverSizeRef.current = popoverSize;
+    }
     const centeredTop =
       diamondRect.top - viewportGeometry.top +
-      (diamondRect.height - popoverHeight) / 2;
+      (diamondRect.height - popoverSize.height) / 2;
     const maximumTop = Math.max(
       VIEWPORT_EDGE_PX,
-      viewportGeometry.height - popoverHeight - VIEWPORT_EDGE_PX,
+      viewportGeometry.height - popoverSize.height - VIEWPORT_EDGE_PX,
     );
 
-    const left = diamondRect.right - viewportGeometry.left + POPOVER_GAP_PX;
+    const rightSide =
+      diamondRect.right - viewportGeometry.left + POPOVER_GAP_PX;
+    const leftSide =
+      diamondRect.left -
+      viewportGeometry.left -
+      popoverSize.width -
+      POPOVER_GAP_PX;
+    const maximumLeft = Math.max(
+      VIEWPORT_EDGE_PX,
+      viewportGeometry.width - popoverSize.width - VIEWPORT_EDGE_PX,
+    );
+    const left =
+      rightSide <= maximumLeft
+        ? rightSide
+        : leftSide >= VIEWPORT_EDGE_PX
+          ? leftSide
+          : Math.min(Math.max(rightSide, VIEWPORT_EDGE_PX), maximumLeft);
     const top = Math.min(Math.max(centeredTop, VIEWPORT_EDGE_PX), maximumTop);
     popover.style.transform = `translate3d(${left}px, ${top}px, 0)`;
   }, []);
 
   useLayoutEffect(() => {
-    popoverHeightRef.current = 0;
+    popoverSizeRef.current = { width: 0, height: 0 };
     positionPopover();
   }, [positionPopover, selectedDream, showDetails]);
 
@@ -275,7 +296,7 @@ const DreamExperience = () => {
 
   useEffect(() => {
     const handleResize = () => {
-      popoverHeightRef.current = 0;
+      popoverSizeRef.current = { width: 0, height: 0 };
       viewportGeometryRef.current = null;
       positionPopover();
     };
@@ -378,7 +399,13 @@ const DreamExperience = () => {
                 className="dream-cylinder__world"
                 style={worldStyle}
                 data-testid="dream-cylinder-world"
-                onClick={selectDreamAtPoint}
+                onClick={(event) => {
+                  // When a card is open, the next background tap is always a
+                  // dismissal. Do not let the manual diamond hit-test replace
+                  // the selection before the outer click-away handler runs.
+                  if (selectedDream) return;
+                  selectDreamAtPoint(event);
+                }}
               >
                 {layout.placements.map((placement, index) => {
                   const yPixels =
@@ -448,9 +475,21 @@ const DreamExperience = () => {
           ) : null}
 
           {isActive ? (
-            <div className="dream-experience__guide" aria-live="polite">
-              <span aria-hidden="true" />
-              Turn to look around
+            <div className="dream-experience__guide">
+              <svg
+                aria-hidden="true"
+                className="dream-experience__guide-orbit"
+                viewBox="0 0 48 48"
+              >
+                <path d="M8 24c0-7 7-12 16-12 6.8 0 12.6 2.9 15 7" />
+                <path d="m35 14 4 5-6 2" />
+                <path d="M40 24c0 7-7 12-16 12-6.8 0-12.6-2.9-15-7" />
+                <path d="m13 34-4-5 6-2" />
+              </svg>
+              <span>
+                <strong>The gallery surrounds you</strong>
+                <small>Turn slowly with your phone to discover every artwork</small>
+              </span>
             </div>
           ) : null}
       </section>

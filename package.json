@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "assets:details": "node scripts/generate-detail-images.mjs",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "npm run test:unit && npm run test:assets && npm run test:deployment",

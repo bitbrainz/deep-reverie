@@ -6,11 +6,23 @@ const dreamSource = await readFile("src/dreams/data/dreams.ts", "utf8");
 const gallerySource = await readFile("src/pages/Gallery.tsx", "utf8");
 const cardSource = await readFile("src/components/Card.tsx", "utf8");
 const experienceSource = await readFile("src/pages/DreamExperience.tsx", "utf8");
+const artworkSource = await readFile("src/dreams/dreamArtwork.ts", "utf8");
 const documentSource = await readFile("index.html", "utf8");
 const faviconSource = await readFile("public/favicon.svg", "utf8");
 const dreamFiles = [
   ...dreamSource.matchAll(/fileName: "([^"]+\.png)"/g),
 ].map((match) => match[1]);
+
+const readLossyWebpDimensions = (image) => {
+  assert.equal(image.toString("ascii", 0, 4), "RIFF");
+  assert.equal(image.toString("ascii", 8, 12), "WEBP");
+  assert.equal(image.toString("ascii", 12, 16), "VP8 ");
+  assert.deepEqual([...image.subarray(23, 26)], [0x9d, 0x01, 0x2a]);
+  return {
+    width: image.readUInt16LE(26) & 0x3fff,
+    height: image.readUInt16LE(28) & 0x3fff,
+  };
+};
 
 test("every artwork has budgeted WebP gallery and detail assets", async () => {
   assert.equal(dreamFiles.length, 54);
@@ -21,12 +33,20 @@ test("every artwork has budgeted WebP gallery and detail assets", async () => {
     const highDensityThumbnail = await stat(
       `public/images/thumbnails-2x/${webpName}`,
     );
-    const detail = await stat(`public/images/saturated/${webpName}`);
+    const sourceDetail = await stat(`public/images/saturated/${webpName}`);
+    const popupPath = `public/images/details/${webpName}`;
+    const popupDetail = await stat(popupPath);
+    const popupDimensions = readLossyWebpDimensions(await readFile(popupPath));
 
     assert.ok(thumbnail.size < 25_000, `${webpName} thumbnail exceeds 25 KB`);
     assert.ok(highDensityThumbnail.size < 100_000, `${webpName} 2x thumbnail exceeds 100 KB`);
-    assert.ok(detail.size < 1_000_000, `${webpName} detail exceeds 1 MB`);
+    assert.ok(sourceDetail.size < 1_000_000, `${webpName} source detail exceeds 1 MB`);
+    assert.ok(popupDetail.size < 160_000, `${webpName} popup detail exceeds 160 KB`);
+    assert.deepEqual(popupDimensions, { width: 768, height: 768 });
   }
+
+  assert.match(artworkSource, /images\/details\//);
+  assert.doesNotMatch(artworkSource, /images\/saturated\//);
 });
 
 test("homepage hero stays below its transfer budget", async () => {
