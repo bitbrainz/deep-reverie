@@ -82,6 +82,21 @@ export const DetailsDrawer = ({
     return stopActiveNarration;
   }, [selectedDreamId, open, stopActiveNarration]);
 
+  useEffect(() => {
+    if (!open || backgroundInteractive) return;
+
+    const page = document.documentElement;
+    const previousOverflow = page.style.overflow;
+    const previousOverscrollBehavior = page.style.overscrollBehavior;
+    page.style.overflow = "hidden";
+    page.style.overscrollBehavior = "none";
+
+    return () => {
+      page.style.overflow = previousOverflow;
+      page.style.overscrollBehavior = previousOverscrollBehavior;
+    };
+  }, [backgroundInteractive, open]);
+
   const toggleNarration = () => {
     if (!dream || !narrationUrl || !narrationAvailable) return;
 

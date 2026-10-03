@@ -1,4 +1,5 @@
 import { Link } from "react-router";
+import { InstallationImage } from "../components/InstallationImage";
 
 const INSTALLATION_FILM_URL = "https://www.youtube.com/watch?v=597IAhuQfZ4";
 
@@ -111,6 +112,7 @@ export const Home = () => {
           </div>
 
           <div>
+            <InstallationImage className="mb-6 rounded-[14px]" />
             <div className="aspect-video overflow-hidden rounded-[14px] border border-white/10 bg-black shadow-[0_30px_90px_rgba(94,48,164,0.2)]">
               <iframe
                 className="h-full w-full"
