@@ -85,7 +85,7 @@ export const Home = () => {
               <GalleryIcon />
               <span className="min-w-0 flex-1">
                 <span className="block text-xl font-extrabold tracking-[-0.025em]">Browse the Artwork</span>
-                <span className="mt-0.5 block text-sm font-semibold text-[#493200]">View the complete gallery</span>
+                <span className="mt-0.5 block text-sm font-semibold text-[#1f1500]">View the complete gallery</span>
               </span>
               <span className="transition-transform group-hover:translate-x-1 motion-reduce:transition-none">
                 <ArrowIcon />

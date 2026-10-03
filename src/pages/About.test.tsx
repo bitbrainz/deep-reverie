@@ -5,6 +5,34 @@ import { App } from "../App";
 import About from "./About";
 import { Home } from "./Home";
 
+const relativeLuminance = (hex: string) => {
+  const channels = hex.match(/[a-f\d]{2}/gi)?.map((channel) => parseInt(channel, 16) / 255) ?? [];
+  const [red, green, blue] = channels.map((channel) =>
+    channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4,
+  );
+
+  return 0.2126 * red + 0.7152 * green + 0.0722 * blue;
+};
+
+const contrastRatio = (foreground: string, background: string) => {
+  const foregroundLuminance = relativeLuminance(foreground);
+  const backgroundLuminance = relativeLuminance(background);
+
+  return (Math.max(foregroundLuminance, backgroundLuminance) + 0.05)
+    / (Math.min(foregroundLuminance, backgroundLuminance) + 0.05);
+};
+
+const blendHex = (foreground: string, opacity: number, background: string) => {
+  const parse = (hex: string) => hex.match(/[a-f\d]{2}/gi)?.map((channel) => parseInt(channel, 16)) ?? [];
+  const foregroundChannels = parse(foreground);
+  const backgroundChannels = parse(background);
+
+  return `#${foregroundChannels
+    .map((channel, index) => Math.round(channel * opacity + backgroundChannels[index] * (1 - opacity)))
+    .map((channel) => channel.toString(16).padStart(2, "0"))
+    .join("")}`;
+};
+
 describe("About the Art", () => {
   it("is reachable through the app route and presents the approved media", async () => {
     render(
@@ -57,6 +85,22 @@ describe("About the Art", () => {
     expect(document.body).not.toHaveTextContent(/\b54\b/);
     expect(screen.queryByText("Choose how to explore")).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /About the Art & Artists/ })).not.toBeInTheDocument();
+  });
+
+  it("keeps the secondary exploration label at WCAG AA contrast over the hero", () => {
+    render(
+      <MemoryRouter>
+        <Home />
+      </MemoryRouter>,
+    );
+
+    const label = screen.getByText("View the complete gallery");
+    const action = screen.getByRole("link", { name: /Browse the Artwork/ });
+    const compositedBackground = blendHex("#c58d14", 0.95, "#080612");
+
+    expect(action).toHaveClass("bg-[#c58d14]/95");
+    expect(label).toHaveClass("text-[#1f1500]");
+    expect(contrastRatio("#1f1500", compositedBackground)).toBeGreaterThanOrEqual(4.5);
   });
 
   it("keeps the home film and gallery available if its installation image fails", () => {
