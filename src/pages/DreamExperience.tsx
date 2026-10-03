@@ -50,6 +50,12 @@ const DreamExperience = () => {
   const viewportRef = useRef<HTMLElement>(null);
   const selectedDiamondRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLElement>(null);
+  const popoverHeightRef = useRef(0);
+  const viewportGeometryRef = useRef<{
+    left: number;
+    top: number;
+    height: number;
+  } | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const orientationFrameRef = useRef<number | null>(null);
   const originRef = useRef<OrientationSample | null>(null);
@@ -236,6 +242,8 @@ const DreamExperience = () => {
     closeDetails();
   };
 
+  const showSelectedDetails = useCallback(() => setShowDetails(true), []);
+
   const positionPopover = useCallback(() => {
     const viewport = viewportRef.current;
     const diamond = selectedDiamondRef.current;
@@ -247,28 +255,50 @@ const DreamExperience = () => {
     popover.style.visibility = isVisible ? "visible" : "hidden";
     if (!isVisible) return;
 
-    const viewportRect = viewport.getBoundingClientRect();
+    let viewportGeometry = viewportGeometryRef.current;
+    if (!viewportGeometry) {
+      const viewportRect = viewport.getBoundingClientRect();
+      viewportGeometry = {
+        left: viewportRect.left,
+        top: viewportRect.top,
+        height: viewportRect.height,
+      };
+      viewportGeometryRef.current = viewportGeometry;
+    }
     const diamondRect = diamond.getBoundingClientRect();
-    const popoverRect = popover.getBoundingClientRect();
+    const popoverHeight =
+      popoverHeightRef.current || popover.getBoundingClientRect().height;
+    popoverHeightRef.current = popoverHeight;
     const centeredTop =
-      diamondRect.top - viewportRect.top +
-      (diamondRect.height - popoverRect.height) / 2;
+      diamondRect.top - viewportGeometry.top +
+      (diamondRect.height - popoverHeight) / 2;
     const maximumTop = Math.max(
       VIEWPORT_EDGE_PX,
-      viewportRect.height - popoverRect.height - VIEWPORT_EDGE_PX,
+      viewportGeometry.height - popoverHeight - VIEWPORT_EDGE_PX,
     );
 
-    popover.style.left = `${diamondRect.right - viewportRect.left + POPOVER_GAP_PX}px`;
-    popover.style.top = `${Math.min(Math.max(centeredTop, VIEWPORT_EDGE_PX), maximumTop)}px`;
+    const left = diamondRect.right - viewportGeometry.left + POPOVER_GAP_PX;
+    const top = Math.min(Math.max(centeredTop, VIEWPORT_EDGE_PX), maximumTop);
+    popover.style.transform = `translate3d(${left}px, ${top}px, 0)`;
   }, []);
 
   useLayoutEffect(() => {
+    popoverHeightRef.current = 0;
     positionPopover();
-  }, [heading, pitch, positionPopover, selectedDream, showDetails]);
+  }, [positionPopover, selectedDream, showDetails]);
+
+  useLayoutEffect(() => {
+    positionPopover();
+  }, [heading, pitch, positionPopover]);
 
   useEffect(() => {
-    window.addEventListener("resize", positionPopover);
-    return () => window.removeEventListener("resize", positionPopover);
+    const handleResize = () => {
+      popoverHeightRef.current = 0;
+      viewportGeometryRef.current = null;
+      positionPopover();
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, [positionPopover]);
 
   const selectDreamAtPoint = (event: ReactMouseEvent<HTMLDivElement>) => {
@@ -345,7 +375,7 @@ const DreamExperience = () => {
               <span>Deep Reverie</span>
               <small>
                 {isActive
-                  ? `${CYLINDER_DREAMS.length} dreams · 360°`
+                  ? "AI Dreams"
                   : "Augmented Reality Gallery"}
               </small>
             </div>
@@ -429,7 +459,7 @@ const DreamExperience = () => {
             <ARDreamPopover
               ref={popoverRef}
               dream={selectedDream}
-              onDetails={() => setShowDetails(true)}
+              onDetails={showSelectedDetails}
             />
           ) : null}
 

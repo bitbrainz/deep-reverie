@@ -32,7 +32,8 @@ export const DEFAULT_CYLINDER_LAYOUT: CylinderLayoutConfig = {
   frameWidth: 0.9,
   frameHeight: 1.25,
   horizontalGap: 0.1,
-  rowSpacing: 0.04,
+  // Overlap staggered rows so their diagonal edges form one continuous lattice.
+  rowSpacing: -0.59,
   pixelsPerMeter: 260,
   overviewAngle: 60,
 };

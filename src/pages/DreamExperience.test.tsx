@@ -95,7 +95,7 @@ describe("DreamExperience", () => {
       audio: false,
       video: expect.objectContaining({ facingMode: { ideal: "environment" } }),
     });
-    expect(screen.getByText("51 dreams · 360°")).toBeVisible();
+    expect(screen.getByText("AI Dreams")).toBeVisible();
     expect(document.querySelectorAll(".dream-diamond")).toHaveLength(51);
     expect(document.querySelectorAll('.dream-diamond img[loading="eager"]')).toHaveLength(51);
     expect(
@@ -250,16 +250,27 @@ describe("DreamExperience", () => {
     expect(viewport).not.toBeNull();
 
     let diamondLeft = 80;
-    vi.spyOn(viewport!, "getBoundingClientRect").mockReturnValue(
-      rect(0, 0, 390, 844),
-    );
+    const measureViewport = vi
+      .spyOn(viewport!, "getBoundingClientRect")
+      .mockReturnValue(rect(0, 0, 390, 844));
     vi.spyOn(dreamOne, "getBoundingClientRect").mockImplementation(() =>
       rect(diamondLeft, 260, 120, 160),
     );
 
     fireEvent.click(dreamOne);
     const popover = await screen.findByTestId("ar-dream-popover");
-    expect(popover).toHaveStyle({ left: "212px", visibility: "visible" });
+    expect(popover).toHaveStyle({
+      transform: "translate3d(212px, 340px, 0)",
+      visibility: "visible",
+    });
+
+    const measurePopover = vi
+      .spyOn(popover, "getBoundingClientRect")
+      .mockReturnValue(rect(0, 0, 238, 300));
+    fireEvent(window, new Event("resize"));
+    expect(measurePopover).toHaveBeenCalledOnce();
+    measurePopover.mockClear();
+    measureViewport.mockClear();
 
     diamondLeft = 110;
     fireEvent(
@@ -267,8 +278,13 @@ describe("DreamExperience", () => {
       new DeviceOrientationEventMock("deviceorientation", { alpha: 260, beta: 90 }),
     );
     await waitFor(() =>
-      expect(popover).toHaveStyle({ left: "242px", visibility: "visible" }),
+      expect(popover).toHaveStyle({
+        transform: "translate3d(242px, 190px, 0)",
+        visibility: "visible",
+      }),
     );
+    expect(measurePopover).not.toHaveBeenCalled();
+    expect(measureViewport).not.toHaveBeenCalled();
 
     fireEvent.click(viewport!);
     expect(screen.queryByTestId("ar-dream-popover")).not.toBeInTheDocument();
