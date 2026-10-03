@@ -80,7 +80,7 @@ describe("Gallery", () => {
     fireEvent.click(screen.getByRole("button", { name: "View Deep Reverie" }));
     expect(screen.queryByTestId("content")).not.toBeInTheDocument();
     expect(ImageMock.instances.at(-1)?.src).toContain(
-      "/images/saturated/54_Title.webp",
+      "/images/details/54_Title.webp",
     );
 
     ImageMock.instances.at(-1)?.finishLoading();

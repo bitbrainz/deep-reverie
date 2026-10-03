@@ -73,14 +73,14 @@ describe("dream cylinder layout", () => {
   });
 
   it("overlaps the staggered rows into a continuous diamond grid", () => {
-    expect(DEFAULT_CYLINDER_LAYOUT.frameWidth).toBe(0.9);
-    expect(DEFAULT_CYLINDER_LAYOUT.frameHeight).toBe(1.25);
-    expect(DEFAULT_CYLINDER_LAYOUT.horizontalGap).toBe(0.1);
-    expect(DEFAULT_CYLINDER_LAYOUT.rowSpacing).toBe(-0.59);
+    expect(DEFAULT_CYLINDER_LAYOUT.frameWidth).toBe(1.06);
+    expect(DEFAULT_CYLINDER_LAYOUT.frameHeight).toBe(1.46);
+    expect(DEFAULT_CYLINDER_LAYOUT.horizontalGap).toBe(0.18);
+    expect(DEFAULT_CYLINDER_LAYOUT.rowSpacing).toBe(-0.68);
     expect(
       DEFAULT_CYLINDER_LAYOUT.frameHeight +
         DEFAULT_CYLINDER_LAYOUT.rowSpacing,
-    ).toBeCloseTo(0.66);
+    ).toBeCloseTo(0.78);
   });
 
   it("maps every placement to its matching dream exactly once", () => {

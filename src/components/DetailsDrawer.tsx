@@ -48,6 +48,7 @@ export const DetailsDrawer = ({
     dreamId: number | null;
     status: "idle" | "playing" | "error";
   }>({ dreamId: null, status: "idle" });
+  const [showScrollCue, setShowScrollCue] = useState(false);
   const selectedDreamId = dream?.id;
   const RootPrimitive = backgroundInteractive ? Dialog.Root : Drawer.Root;
   const PortalPrimitive = backgroundInteractive ? Dialog.Portal : Drawer.Portal;
@@ -146,7 +147,8 @@ export const DetailsDrawer = ({
     if (detailsScrollRef.current) {
       detailsScrollRef.current.scrollTop = 0;
     }
-  }, [selectedDreamId]);
+    setShowScrollCue(open && selectedDreamId !== undefined);
+  }, [open, selectedDreamId]);
 
   return (
   <RootPrimitive
@@ -180,6 +182,9 @@ export const DetailsDrawer = ({
         <div
           ref={detailsScrollRef}
           className="relative flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain"
+          onScroll={(event) => {
+            if (event.currentTarget.scrollTop > 0) setShowScrollCue(false);
+          }}
         >
           <div className="sticky top-0 z-20 flex h-14 shrink-0 items-center justify-between border-b border-slate-200/80 bg-slate-50/95 px-4 backdrop-blur sm:px-6">
             <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
@@ -250,6 +255,19 @@ export const DetailsDrawer = ({
             <p className="p-8 text-slate-600">Select a dream to explore its story.</p>
           )}
         </div>
+
+        {showScrollCue ? (
+          <div
+            className={`pointer-events-none absolute inset-x-0 z-30 flex justify-center ${dream && onPrevious && onNext ? "bottom-20" : "bottom-4"}`}
+            role="status"
+            aria-label="More dream details below"
+          >
+            <span className="inline-flex items-center gap-2 rounded-full border border-[#f2d795]/50 bg-[#080711]/90 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.14em] text-[#faf8ff] shadow-lg backdrop-blur">
+              <span aria-hidden="true" className="text-base leading-none text-[#f2d795]">↓</span>
+              Scroll to explore
+            </span>
+          </div>
+        ) : null}
 
         {dream && onPrevious && onNext ? (
           <nav className="flex shrink-0 gap-3 border-t border-slate-200 bg-white p-4 sm:px-6" aria-label="Browse dreams">

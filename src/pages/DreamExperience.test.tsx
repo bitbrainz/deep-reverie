@@ -291,6 +291,10 @@ describe("DreamExperience", () => {
       .mockReturnValue(rect(0, 0, 238, 300));
     fireEvent(window, new Event("resize"));
     expect(measurePopover).toHaveBeenCalledOnce();
+    expect(popover).toHaveStyle({
+      transform: "translate3d(76px, 432px, 0)",
+      visibility: "visible",
+    });
     measurePopover.mockClear();
     measureViewport.mockClear();
 
@@ -301,7 +305,7 @@ describe("DreamExperience", () => {
     );
     await waitFor(() =>
       expect(popover).toHaveStyle({
-        transform: "translate3d(242px, 190px, 0)",
+        transform: "translate3d(76px, 432px, 0)",
         visibility: "visible",
       }),
     );
@@ -310,6 +314,29 @@ describe("DreamExperience", () => {
 
     fireEvent.click(viewport!);
     expect(screen.queryByTestId("ar-dream-popover")).not.toBeInTheDocument();
+    expect(AudioMock.instances[0].pause).toHaveBeenCalledOnce();
+  });
+
+  it("closes a selected dream on a cylinder background tap without selecting the frame underneath", async () => {
+    render(<DreamExperience />);
+    await startWithHeading();
+
+    const selected = screen.getByRole("button", { name: "Open Virtual Reality" });
+    const underneath = screen.getByRole("button", { name: "Open Animal Protection" });
+    const world = screen.getByTestId("dream-cylinder-world");
+    vi.spyOn(underneath, "getBoundingClientRect").mockReturnValue(
+      rect(100, 200, 160, 220),
+    );
+
+    fireEvent.click(selected);
+    expect(await screen.findByRole("dialog", { name: "Virtual Reality" })).toBeVisible();
+
+    fireEvent.click(world, { clientX: 180, clientY: 310 });
+
+    expect(screen.queryByTestId("ar-dream-popover")).not.toBeInTheDocument();
+    expect(selected).toHaveAttribute("aria-pressed", "false");
+    expect(underneath).toHaveAttribute("aria-pressed", "false");
+    expect(AudioMock.instances).toHaveLength(1);
     expect(AudioMock.instances[0].pause).toHaveBeenCalledOnce();
   });
 
@@ -355,5 +382,18 @@ describe("DreamExperience", () => {
     expect(screen.getByRole("button", { name: "Enter the gallery" })).toBeVisible();
     expect(screen.getByText("Camera and volume required")).toBeVisible();
     expect(screen.queryByText(/location or mapping/i)).not.toBeInTheDocument();
+  });
+
+  it("uses an explicit accessible orbit cue", async () => {
+    render(<DreamExperience />);
+    await startWithHeading();
+
+    expect(
+      screen.getByRole("status", {
+        name: "Turn with your phone to orbit all 51 dreams",
+      }),
+    ).toBeVisible();
+    expect(screen.getByText("Turn with your phone")).toBeVisible();
+    expect(screen.getByText("to orbit all 51 dreams")).toBeVisible();
   });
 });

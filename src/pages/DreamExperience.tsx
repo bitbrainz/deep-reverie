@@ -57,9 +57,11 @@ const DreamExperience = () => {
   const selectedDiamondRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLElement>(null);
   const popoverHeightRef = useRef(0);
+  const popoverWidthRef = useRef(0);
   const viewportGeometryRef = useRef<{
     left: number;
     top: number;
+    width: number;
     height: number;
   } | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -243,29 +245,65 @@ const DreamExperience = () => {
       viewportGeometry = {
         left: viewportRect.left,
         top: viewportRect.top,
+        width: viewportRect.width,
         height: viewportRect.height,
       };
       viewportGeometryRef.current = viewportGeometry;
     }
     const diamondRect = diamond.getBoundingClientRect();
-    const popoverHeight =
-      popoverHeightRef.current || popover.getBoundingClientRect().height;
+    const popoverRect =
+      popoverHeightRef.current && popoverWidthRef.current
+        ? null
+        : popover.getBoundingClientRect();
+    const popoverHeight = popoverHeightRef.current || popoverRect?.height || 0;
+    const popoverWidth = popoverWidthRef.current || popoverRect?.width || 0;
     popoverHeightRef.current = popoverHeight;
-    const centeredTop =
+    popoverWidthRef.current = popoverWidth;
+    let top =
       diamondRect.top - viewportGeometry.top +
       (diamondRect.height - popoverHeight) / 2;
     const maximumTop = Math.max(
       VIEWPORT_EDGE_PX,
       viewportGeometry.height - popoverHeight - VIEWPORT_EDGE_PX,
     );
+    top = Math.min(Math.max(top, VIEWPORT_EDGE_PX), maximumTop);
 
-    const left = diamondRect.right - viewportGeometry.left + POPOVER_GAP_PX;
-    const top = Math.min(Math.max(centeredTop, VIEWPORT_EDGE_PX), maximumTop);
+    const rightLeft =
+      diamondRect.right - viewportGeometry.left + POPOVER_GAP_PX;
+    const leftLeft =
+      diamondRect.left - viewportGeometry.left - popoverWidth - POPOVER_GAP_PX;
+    const maximumLeft = Math.max(
+      VIEWPORT_EDGE_PX,
+      viewportGeometry.width - popoverWidth - VIEWPORT_EDGE_PX,
+    );
+    const fitsRight =
+      rightLeft + popoverWidth <= viewportGeometry.width - VIEWPORT_EDGE_PX;
+    const fitsLeft = leftLeft >= VIEWPORT_EDGE_PX;
+    let left = fitsRight
+      ? rightLeft
+      : fitsLeft
+        ? leftLeft
+        : (viewportGeometry.width - popoverWidth) / 2;
+
+    if (!fitsRight && !fitsLeft) {
+      const belowTop =
+        diamondRect.bottom - viewportGeometry.top + POPOVER_GAP_PX;
+      const aboveTop =
+        diamondRect.top - viewportGeometry.top - popoverHeight - POPOVER_GAP_PX;
+      if (belowTop + popoverHeight <= viewportGeometry.height - VIEWPORT_EDGE_PX) {
+        top = belowTop;
+      } else if (aboveTop >= VIEWPORT_EDGE_PX) {
+        top = aboveTop;
+      }
+    }
+
+    left = Math.min(Math.max(left, VIEWPORT_EDGE_PX), maximumLeft);
     popover.style.transform = `translate3d(${left}px, ${top}px, 0)`;
   }, []);
 
   useLayoutEffect(() => {
     popoverHeightRef.current = 0;
+    popoverWidthRef.current = 0;
     positionPopover();
   }, [positionPopover, selectedDream, showDetails]);
 
@@ -276,6 +314,7 @@ const DreamExperience = () => {
   useEffect(() => {
     const handleResize = () => {
       popoverHeightRef.current = 0;
+      popoverWidthRef.current = 0;
       viewportGeometryRef.current = null;
       positionPopover();
     };
@@ -284,6 +323,14 @@ const DreamExperience = () => {
   }, [positionPopover]);
 
   const selectDreamAtPoint = (event: ReactMouseEvent<HTMLDivElement>) => {
+    // A background tap dismisses the current story. Do not run hit-testing in
+    // the same gesture, or a frame underneath that point can replace it.
+    if (selectedDream) {
+      event.stopPropagation();
+      closeSelectedDream();
+      return;
+    }
+
     const candidates = Array.from(
       event.currentTarget.querySelectorAll<HTMLButtonElement>(".dream-diamond"),
     )
@@ -448,9 +495,24 @@ const DreamExperience = () => {
           ) : null}
 
           {isActive ? (
-            <div className="dream-experience__guide" aria-live="polite">
-              <span aria-hidden="true" />
-              Turn to look around
+            <div
+              className="dream-experience__guide"
+              role="status"
+              aria-label="Turn with your phone to orbit all 51 dreams"
+            >
+              <svg
+                className="dream-experience__guide-orbit"
+                viewBox="0 0 54 34"
+                aria-hidden="true"
+              >
+                <ellipse cx="27" cy="17" rx="20" ry="8" />
+                <path d="m8 13-4 4 4 4M46 13l4 4-4 4" />
+                <circle cx="27" cy="17" r="3" />
+              </svg>
+              <span>
+                <strong>Turn with your phone</strong>
+                <small>to orbit all 51 dreams</small>
+              </span>
             </div>
           ) : null}
       </section>

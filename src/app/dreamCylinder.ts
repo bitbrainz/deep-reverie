@@ -29,11 +29,11 @@ export type DreamCylinderLayout = {
 };
 
 export const DEFAULT_CYLINDER_LAYOUT: CylinderLayoutConfig = {
-  frameWidth: 0.9,
-  frameHeight: 1.25,
-  horizontalGap: 0.1,
-  // Overlap staggered rows so their diagonal edges form one continuous lattice.
-  rowSpacing: -0.59,
+  frameWidth: 1.06,
+  frameHeight: 1.46,
+  horizontalGap: 0.18,
+  // Keep the staggered lattice while leaving more breathing room between rows.
+  rowSpacing: -0.68,
   pixelsPerMeter: 260,
   overviewAngle: 60,
 };

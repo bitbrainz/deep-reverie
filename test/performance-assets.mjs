@@ -12,6 +12,33 @@ const dreamFiles = [
   ...dreamSource.matchAll(/fileName: "([^"]+\.png)"/g),
 ].map((match) => match[1]);
 
+const readWebpDimensions = async (path) => {
+  const source = await readFile(path);
+  const chunk = source.toString("ascii", 12, 16);
+
+  if (chunk === "VP8 ") {
+    return {
+      width: source.readUInt16LE(26) & 0x3fff,
+      height: source.readUInt16LE(28) & 0x3fff,
+    };
+  }
+  if (chunk === "VP8L") {
+    const bits = source.readUInt32LE(21);
+    return {
+      width: (bits & 0x3fff) + 1,
+      height: ((bits >>> 14) & 0x3fff) + 1,
+    };
+  }
+  if (chunk === "VP8X") {
+    return {
+      width: source.readUIntLE(24, 3) + 1,
+      height: source.readUIntLE(27, 3) + 1,
+    };
+  }
+
+  throw new Error(`${path} does not contain a supported WebP chunk`);
+};
+
 test("every artwork has budgeted WebP gallery and detail assets", async () => {
   assert.equal(dreamFiles.length, 54);
 
@@ -21,11 +48,18 @@ test("every artwork has budgeted WebP gallery and detail assets", async () => {
     const highDensityThumbnail = await stat(
       `public/images/thumbnails-2x/${webpName}`,
     );
-    const detail = await stat(`public/images/saturated/${webpName}`);
+    const detailPath = `public/images/details/${webpName}`;
+    const detail = await stat(detailPath);
+    const detailDimensions = await readWebpDimensions(detailPath);
 
     assert.ok(thumbnail.size < 25_000, `${webpName} thumbnail exceeds 25 KB`);
     assert.ok(highDensityThumbnail.size < 100_000, `${webpName} 2x thumbnail exceeds 100 KB`);
-    assert.ok(detail.size < 1_000_000, `${webpName} detail exceeds 1 MB`);
+    assert.ok(detail.size < 350_000, `${webpName} detail exceeds 350 KB`);
+    assert.deepEqual(
+      detailDimensions,
+      { width: 1024, height: 1024 },
+      `${webpName} detail must retain a 1024px mobile-quality source`,
+    );
   }
 });
 
