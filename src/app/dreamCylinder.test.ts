@@ -29,8 +29,14 @@ describe("dream cylinder layout", () => {
     const bottom = layout.placements.filter(({ row }) => row === "bottom");
 
     expect(top.map(({ angle }) => angle)).toEqual(bottom.map(({ angle }) => angle));
-    expect(middle[0].angle).toBeCloseTo((360 / 16) * 0.5);
-    expect(angleForSlot("middle", 4, 16)).toBeCloseTo((4.5 * 360) / 16);
+    expect(middle[0].angle).toBeCloseTo((360 / 17) * 0.5);
+    expect(angleForSlot("middle", 4, 17)).toBeCloseTo((4.5 * 360) / 17);
+
+    middle.forEach((placement, index) => {
+      expect(placement.angle).toBeCloseTo(
+        (top[index].angle + top[index + 1].angle) / 2,
+      );
+    });
   });
 
   it("recalculates balanced rows and radius when the collection changes", () => {

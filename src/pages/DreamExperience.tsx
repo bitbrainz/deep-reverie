@@ -7,20 +7,21 @@ import {
   type CSSProperties,
   type MouseEvent as ReactMouseEvent,
 } from "react";
-import { DetailsDrawer } from "../components/DetailsDrawer";
+import { ARDreamPopover } from "../components/ARDreamPopover";
 import { useDreamSelection } from "../dreams/useDreamSelection";
 import {
   calculateOverviewWidth,
   createDreamCylinderLayout,
   DEFAULT_CYLINDER_LAYOUT,
   isPlacementFrontFacing,
+  placementAngleFromViewer,
 } from "../app/dreamCylinder";
 import { CYLINDER_DREAMS } from "../app/dreamCylinderCollection";
 import {
-  clampPitch,
   headingFromEvent,
   pitchFromEvent,
   signedAngularDifference,
+  stabilizePitch,
   type OrientationEventWithCompass,
   type OrientationPermissionConstructor,
 } from "../app/deviceOrientation";
@@ -53,7 +54,7 @@ const DreamExperience = () => {
   const [heading, setHeading] = useState(0);
   const [pitch, setPitch] = useState(0);
   const [showOverview, setShowOverview] = useState(true);
-  const { selectedDream, selectDream, selectAdjacentDream, closeDetails } =
+  const { selectedDream, selectDream, closeDetails } =
     useDreamSelection(CYLINDER_DREAMS);
   const layout = useMemo(
     () => createDreamCylinderLayout(CYLINDER_DREAMS, DEFAULT_CYLINDER_LAYOUT),
@@ -167,7 +168,8 @@ const DreamExperience = () => {
       }
 
       setHeading(signedAngularDifference(currentHeading, originRef.current.heading));
-      setPitch(clampPitch(currentPitch - originRef.current.pitch));
+      const rawPitchDelta = currentPitch - originRef.current.pitch;
+      setPitch((previousPitch) => stabilizePitch(previousPitch, rawPitchDelta));
     };
 
     window.addEventListener("deviceorientation", onOrientation, true);
@@ -193,6 +195,14 @@ const DreamExperience = () => {
     originRef.current = latestSampleRef.current;
     setHeading(0);
     setPitch(0);
+  };
+
+  const openDream = (
+    dream: (typeof CYLINDER_DREAMS)[number],
+    opener?: HTMLButtonElement | null,
+  ) => {
+    setShowOverview(false);
+    selectDream(dream, opener);
   };
 
   const selectDreamAtPoint = (event: ReactMouseEvent<HTMLDivElement>) => {
@@ -248,7 +258,7 @@ const DreamExperience = () => {
     if (!selectedFrame) return;
     const dreamId = Number(selectedFrame.dataset.dreamId);
     const dream = CYLINDER_DREAMS.find(({ id }) => id === dreamId);
-    if (dream) selectDream(dream, selectedFrame);
+    if (dream) openDream(dream, selectedFrame);
   };
 
   const isActive = status.kind === "active";
@@ -258,15 +268,7 @@ const DreamExperience = () => {
 
   return (
     <main className="dream-experience">
-      <DetailsDrawer
-        dream={selectedDream}
-        open={selectedDream !== null}
-        onClose={closeDetails}
-        onPrevious={() => selectAdjacentDream(-1)}
-        onNext={() => selectAdjacentDream(1)}
-        backgroundInteractive
-      >
-        <section className="dream-experience__viewport" aria-label="Deep Reverie dream cylinder">
+      <section className="dream-experience__viewport" aria-label="Deep Reverie dream cylinder">
           <video
             ref={videoRef}
             className="dream-experience__camera"
@@ -310,42 +312,57 @@ const DreamExperience = () => {
                     placement.angle,
                     heading,
                   );
+                  const viewerAngle = placementAngleFromViewer(
+                    placement.angle,
+                    heading,
+                  );
                   return (
-                    <button
+                    <div
                       key={placement.dream.id}
-                      type="button"
-                      className="dream-diamond"
-                      data-angle={placement.angle}
-                      data-dream-id={placement.dream.id}
+                      className="dream-placement"
                       style={
                         {
                           width: `${frameWidthPixels}px`,
                           height: `${frameHeightPixels}px`,
                           transform: `translate(-50%, -50%) rotateY(${placement.angle}deg) translateZ(${-radiusPixels}px) translateY(${yPixels}px)`,
                           visibility: isFrontFacing ? "visible" : "hidden",
-                          "--dream-index": index,
                         } as CSSProperties
                       }
-                      aria-hidden={isFrontFacing ? undefined : true}
-                      tabIndex={isFrontFacing ? 0 : -1}
-                      aria-label={`Open dream ${String(placement.dream.id).padStart(2, "0")}: ${placement.dream.title}`}
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        selectDream(placement.dream, event.currentTarget);
-                      }}
                     >
-                      <span className="dream-diamond__image">
-                        <img
-                          src={`/images/thumbnails-2x/${placement.dream.fileName.replace(".png", ".webp")}`}
-                          alt=""
-                          draggable={false}
-                          loading={index < 8 ? "eager" : "lazy"}
+                      <button
+                        type="button"
+                        className="dream-diamond"
+                        data-angle={placement.angle}
+                        data-dream-id={placement.dream.id}
+                        style={{ "--dream-index": index } as CSSProperties}
+                        aria-hidden={isFrontFacing ? undefined : true}
+                        tabIndex={isFrontFacing ? 0 : -1}
+                        aria-label={`Open dream ${String(placement.dream.id).padStart(2, "0")}: ${placement.dream.title}`}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          openDream(placement.dream, event.currentTarget);
+                        }}
+                      >
+                        <span className="dream-diamond__image">
+                          <img
+                            src={`/images/thumbnails-2x/${placement.dream.fileName.replace(".png", ".webp")}`}
+                            alt=""
+                            draggable={false}
+                            loading={index < 8 ? "eager" : "lazy"}
+                          />
+                        </span>
+                        <span className="dream-diamond__number" aria-hidden="true">
+                          {String(placement.dream.id).padStart(2, "0")}
+                        </span>
+                      </button>
+                      {selectedDream?.id === placement.dream.id ? (
+                        <ARDreamPopover
+                          dream={placement.dream}
+                          side={viewerAngle >= 0 ? "right" : "left"}
+                          onClose={closeDetails}
                         />
-                      </span>
-                      <span className="dream-diamond__number" aria-hidden="true">
-                        {String(placement.dream.id).padStart(2, "0")}
-                      </span>
-                    </button>
+                      ) : null}
+                    </div>
                   );
                 })}
 
@@ -390,8 +407,7 @@ const DreamExperience = () => {
               Turn to look around · tilt to move between rows
             </div>
           ) : null}
-        </section>
-      </DetailsDrawer>
+      </section>
     </main>
   );
 };

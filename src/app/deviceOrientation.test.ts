@@ -4,6 +4,7 @@ import {
   headingFromEvent,
   normalizeDegrees,
   signedAngularDifference,
+  stabilizePitch,
 } from "./deviceOrientation";
 
 describe("device orientation helpers", () => {
@@ -23,5 +24,12 @@ describe("device orientation helpers", () => {
   it("limits extreme tilt without changing heading", () => {
     expect(clampPitch(80)).toBe(55);
     expect(clampPitch(-80)).toBe(-55);
+  });
+
+  it("dampens vertical motion, ignores noise, and limits sudden jumps", () => {
+    expect(stabilizePitch(0, 10)).toBe(1.32);
+    expect(stabilizePitch(5, 9.3)).toBe(5);
+    expect(stabilizePitch(10, -100)).toBe(7);
+    expect(stabilizePitch(-10, 100)).toBe(-7);
   });
 });
