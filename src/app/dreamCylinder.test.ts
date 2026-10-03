@@ -13,11 +13,11 @@ import {
 import { CYLINDER_DREAMS, DREAM_CYLINDER_IDS } from "./dreamCylinderCollection";
 
 describe("dream cylinder layout", () => {
-  it("configures the 50-dream installation as aligned 17/16/17 rows", () => {
+  it("configures the 51-dream installation as three complete 17-dream rows", () => {
     expect(CYLINDER_DREAMS.map(({ id }) => id)).toEqual(DREAM_CYLINDER_IDS);
     expect(createDreamCylinderLayout(CYLINDER_DREAMS).rowCounts).toEqual({
       top: 17,
-      middle: 16,
+      middle: 17,
       bottom: 17,
     });
   });
@@ -33,9 +33,7 @@ describe("dream cylinder layout", () => {
     expect(angleForSlot("middle", 4, 17)).toBeCloseTo((4.5 * 360) / 17);
 
     middle.forEach((placement, index) => {
-      expect(placement.angle).toBeCloseTo(
-        (top[index].angle + top[index + 1].angle) / 2,
-      );
+      expect(placement.angle).toBeCloseTo(((index + 0.5) * 360) / 17);
     });
   });
 
@@ -74,14 +72,15 @@ describe("dream cylinder layout", () => {
     ).toBeGreaterThanOrEqual(1.35);
   });
 
-  it("uses larger frames with tighter spacing between rows", () => {
+  it("overlaps the staggered rows into a continuous diamond grid", () => {
     expect(DEFAULT_CYLINDER_LAYOUT.frameWidth).toBe(0.9);
     expect(DEFAULT_CYLINDER_LAYOUT.frameHeight).toBe(1.25);
     expect(DEFAULT_CYLINDER_LAYOUT.horizontalGap).toBe(0.1);
-    expect(DEFAULT_CYLINDER_LAYOUT.rowSpacing).toBe(0.04);
-    expect(DEFAULT_CYLINDER_LAYOUT.rowSpacing).toBeLessThan(
-      DEFAULT_CYLINDER_LAYOUT.horizontalGap,
-    );
+    expect(DEFAULT_CYLINDER_LAYOUT.rowSpacing).toBe(-0.59);
+    expect(
+      DEFAULT_CYLINDER_LAYOUT.frameHeight +
+        DEFAULT_CYLINDER_LAYOUT.rowSpacing,
+    ).toBeCloseTo(0.66);
   });
 
   it("maps every placement to its matching dream exactly once", () => {
@@ -90,7 +89,7 @@ describe("dream cylinder layout", () => {
     expect(layout.placements.map(({ dream }) => dream.id)).toEqual(
       DREAM_CYLINDER_IDS,
     );
-    expect(new Set(layout.placements.map(({ dream }) => dream.id))).toHaveLength(50);
+    expect(new Set(layout.placements.map(({ dream }) => dream.id))).toHaveLength(51);
   });
 
   it("only exposes placements on the viewer-facing half of the cylinder", () => {

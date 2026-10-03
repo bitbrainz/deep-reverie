@@ -18,7 +18,7 @@ starts it to grant rear-camera and device-orientation access; the first sensor h
 becomes forward, and **Recenter** makes the current direction forward again. No GPS,
 marker tracking, or physical ground detection is used.
 
-An explicit 50-dream installation forms a configurable, continuous 17/16/17 cylinder.
+An explicit 51-dream installation forms a configurable, continuous 17/17/17 cylinder.
 The layout engine remains count-generic, so its radius and row distribution respond
 when an intentionally supplied collection changes. All artwork details use the same
 `DetailsDrawer` and dream data as `/gallery`.

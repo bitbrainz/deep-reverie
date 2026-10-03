@@ -1,5 +1,6 @@
 import {
   forwardRef,
+  memo,
   useCallback,
   useId,
   useLayoutEffect,
@@ -16,8 +17,11 @@ type ARDreamPopoverProps = {
 
 type PlaybackStatus = "starting" | "playing" | "idle" | "error" | "unavailable";
 
-export const ARDreamPopover = forwardRef<HTMLElement, ARDreamPopoverProps>(
-  function ARDreamPopover({ dream, onDetails }, ref) {
+export const ARDreamPopover = memo(
+  forwardRef<HTMLElement, ARDreamPopoverProps>(function ARDreamPopover(
+    { dream, onDetails },
+    ref,
+  ) {
     const titleId = useId();
     const activeAudioRef = useRef<HTMLAudioElement | null>(null);
     const [playbackStatus, setPlaybackStatus] =
@@ -129,5 +133,5 @@ export const ARDreamPopover = forwardRef<HTMLElement, ARDreamPopoverProps>(
         ) : null}
       </aside>
     );
-  },
+  }),
 );
