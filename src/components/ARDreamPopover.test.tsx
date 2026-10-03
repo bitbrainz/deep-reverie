@@ -35,7 +35,11 @@ describe("ARDreamPopover", () => {
 
   it("renders a dedicated AR card and starts narration automatically", () => {
     render(
-      <ARDreamPopover dream={DREAMS[0]} side="right" onClose={vi.fn()} />,
+      <ARDreamPopover
+        dream={DREAMS[0]}
+        onClose={vi.fn()}
+        onDetails={vi.fn()}
+      />,
     );
 
     expect(screen.getByRole("dialog", { name: "Virtual Reality" })).toBeVisible();
@@ -45,18 +49,17 @@ describe("ARDreamPopover", () => {
       "/audio/narrations/01-virtual-reality.mp3",
     );
     expect(AudioMock.instances[0].play).toHaveBeenCalledOnce();
-    expect(
-      screen.getByRole("button", { name: "Stop narration for Virtual Reality" }),
-    ).toBeVisible();
+    expect(screen.getByRole("button", { name: "View details" })).toBeVisible();
+    expect(screen.queryByRole("button", { name: /Stop narration/ })).not.toBeInTheDocument();
   });
 
   it("stops the old narration when the selected dream changes", async () => {
     const { rerender } = render(
-      <ARDreamPopover dream={DREAMS[0]} side="right" onClose={vi.fn()} />,
+      <ARDreamPopover dream={DREAMS[0]} onClose={vi.fn()} onDetails={vi.fn()} />,
     );
 
     rerender(
-      <ARDreamPopover dream={DREAMS[1]} side="left" onClose={vi.fn()} />,
+      <ARDreamPopover dream={DREAMS[1]} onClose={vi.fn()} onDetails={vi.fn()} />,
     );
 
     await waitFor(() => expect(AudioMock.instances[0].pause).toHaveBeenCalledOnce());
@@ -67,24 +70,32 @@ describe("ARDreamPopover", () => {
     expect(AudioMock.instances[1].play).toHaveBeenCalledOnce();
   });
 
-  it("offers retry when automatic playback is interrupted", async () => {
+  it("reports when automatic playback is interrupted without adding playback controls", async () => {
     AudioMock.rejectPlayback = true;
     render(
-      <ARDreamPopover dream={DREAMS[0]} side="right" onClose={vi.fn()} />,
+      <ARDreamPopover dream={DREAMS[0]} onClose={vi.fn()} onDetails={vi.fn()} />,
     );
 
     expect(
-      await screen.findByText("Narration could not start. Tap Retry to try again."),
+      await screen.findByText("Narration could not start on this device."),
     ).toBeVisible();
-    expect(
-      screen.getByRole("button", { name: "Play narration for Virtual Reality" }),
-    ).toHaveTextContent("Retry");
+    expect(screen.queryByRole("button", { name: /narration/i })).not.toBeInTheDocument();
+  });
+
+  it("opens the full details view through its dedicated action", () => {
+    const onDetails = vi.fn();
+    render(
+      <ARDreamPopover dream={DREAMS[0]} onClose={vi.fn()} onDetails={onDetails} />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "View details" }));
+    expect(onDetails).toHaveBeenCalledOnce();
   });
 
   it("closes through its own control", () => {
     const onClose = vi.fn();
     render(
-      <ARDreamPopover dream={DREAMS[0]} side="right" onClose={onClose} />,
+      <ARDreamPopover dream={DREAMS[0]} onClose={onClose} onDetails={vi.fn()} />,
     );
 
     fireEvent.click(

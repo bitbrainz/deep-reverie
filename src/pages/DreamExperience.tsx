@@ -8,13 +8,13 @@ import {
   type MouseEvent as ReactMouseEvent,
 } from "react";
 import { ARDreamPopover } from "../components/ARDreamPopover";
+import { DetailsDrawer } from "../components/DetailsDrawer";
 import { useDreamSelection } from "../dreams/useDreamSelection";
 import {
   calculateOverviewWidth,
   createDreamCylinderLayout,
   DEFAULT_CYLINDER_LAYOUT,
   isPlacementFrontFacing,
-  placementAngleFromViewer,
 } from "../app/dreamCylinder";
 import { CYLINDER_DREAMS } from "../app/dreamCylinderCollection";
 import {
@@ -54,6 +54,7 @@ const DreamExperience = () => {
   const [heading, setHeading] = useState(0);
   const [pitch, setPitch] = useState(0);
   const [showOverview, setShowOverview] = useState(true);
+  const [showDetails, setShowDetails] = useState(false);
   const { selectedDream, selectDream, closeDetails } =
     useDreamSelection(CYLINDER_DREAMS);
   const layout = useMemo(
@@ -202,7 +203,13 @@ const DreamExperience = () => {
     opener?: HTMLButtonElement | null,
   ) => {
     setShowOverview(false);
+    setShowDetails(false);
     selectDream(dream, opener);
+  };
+
+  const closeSelectedDream = () => {
+    setShowDetails(false);
+    closeDetails();
   };
 
   const selectDreamAtPoint = (event: ReactMouseEvent<HTMLDivElement>) => {
@@ -312,10 +319,7 @@ const DreamExperience = () => {
                     placement.angle,
                     heading,
                   );
-                  const viewerAngle = placementAngleFromViewer(
-                    placement.angle,
-                    heading,
-                  );
+                  const isSelected = selectedDream?.id === placement.dream.id;
                   return (
                     <div
                       key={placement.dream.id}
@@ -331,12 +335,13 @@ const DreamExperience = () => {
                     >
                       <button
                         type="button"
-                        className="dream-diamond"
+                        className={`dream-diamond ${isSelected ? "dream-diamond--selected" : ""}`}
                         data-angle={placement.angle}
                         data-dream-id={placement.dream.id}
                         style={{ "--dream-index": index } as CSSProperties}
                         aria-hidden={isFrontFacing ? undefined : true}
                         tabIndex={isFrontFacing ? 0 : -1}
+                        aria-pressed={isSelected}
                         aria-label={`Open dream ${String(placement.dream.id).padStart(2, "0")}: ${placement.dream.title}`}
                         onClick={(event) => {
                           event.stopPropagation();
@@ -351,17 +356,7 @@ const DreamExperience = () => {
                             loading={index < 8 ? "eager" : "lazy"}
                           />
                         </span>
-                        <span className="dream-diamond__number" aria-hidden="true">
-                          {String(placement.dream.id).padStart(2, "0")}
-                        </span>
                       </button>
-                      {selectedDream?.id === placement.dream.id ? (
-                        <ARDreamPopover
-                          dream={placement.dream}
-                          side={viewerAngle >= 0 ? "right" : "left"}
-                          onClose={closeDetails}
-                        />
-                      ) : null}
                     </div>
                   );
                 })}
@@ -401,6 +396,14 @@ const DreamExperience = () => {
             <ExperienceGate status={status} onStart={startExperience} />
           )}
 
+          {selectedDream && !showDetails ? (
+            <ARDreamPopover
+              dream={selectedDream}
+              onClose={closeSelectedDream}
+              onDetails={() => setShowDetails(true)}
+            />
+          ) : null}
+
           {isActive ? (
             <div className="dream-experience__guide" aria-live="polite">
               <span aria-hidden="true" />
@@ -408,6 +411,11 @@ const DreamExperience = () => {
             </div>
           ) : null}
       </section>
+      <DetailsDrawer
+        dream={selectedDream}
+        open={showDetails && selectedDream !== null}
+        onClose={closeSelectedDream}
+      />
     </main>
   );
 };

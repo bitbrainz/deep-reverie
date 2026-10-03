@@ -73,6 +73,15 @@ describe("dream cylinder layout", () => {
     ).toBeGreaterThanOrEqual(1.35);
   });
 
+  it("uses larger frames with one consistent margin in both directions", () => {
+    expect(DEFAULT_CYLINDER_LAYOUT.frameWidth).toBe(0.9);
+    expect(DEFAULT_CYLINDER_LAYOUT.frameHeight).toBe(1.25);
+    expect(DEFAULT_CYLINDER_LAYOUT.horizontalGap).toBe(0.1);
+    expect(DEFAULT_CYLINDER_LAYOUT.rowSpacing).toBe(
+      DEFAULT_CYLINDER_LAYOUT.horizontalGap,
+    );
+  });
+
   it("maps every placement to its matching dream exactly once", () => {
     const layout = createDreamCylinderLayout(CYLINDER_DREAMS);
 

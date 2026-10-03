@@ -4,16 +4,16 @@ import { getNarrationUrl } from "../dreams/data/narrations";
 
 type ARDreamPopoverProps = {
   dream: Dream;
-  side: "left" | "right";
   onClose: () => void;
+  onDetails: () => void;
 };
 
 type PlaybackStatus = "starting" | "playing" | "idle" | "error" | "unavailable";
 
 export const ARDreamPopover = ({
   dream,
-  side,
   onClose,
+  onDetails,
 }: ARDreamPopoverProps) => {
   const titleId = useId();
   const activeAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -83,32 +83,15 @@ export const ARDreamPopover = ({
     return stopNarration;
   }, [startNarration, stopNarration]);
 
-  const toggleNarration = () => {
-    if (playbackStatus === "playing" || playbackStatus === "starting") {
-      stopNarration();
-      setPlaybackStatus("idle");
-      return;
-    }
-    startNarration();
-  };
-
-  const narrationLabel =
-    playbackStatus === "playing" || playbackStatus === "starting"
-      ? `Stop narration for ${dream.title}`
-      : playbackStatus === "unavailable"
-        ? `Narration unavailable for ${dream.title}`
-        : `Play narration for ${dream.title}`;
-
   return (
     <aside
-      className={`ar-dream-popover ar-dream-popover--${side}`}
+      className="ar-dream-popover"
       role="dialog"
       aria-modal="false"
       aria-labelledby={titleId}
       data-testid="ar-dream-popover"
       onClick={(event) => event.stopPropagation()}
     >
-      <span className="ar-dream-popover__tether" aria-hidden="true" />
       <header className="ar-dream-popover__header">
         <span className="ar-dream-popover__eyebrow">
           AR · Dream {String(dream.id).padStart(2, "0")}
@@ -145,21 +128,15 @@ export const ARDreamPopover = ({
         </span>
         <button
           type="button"
-          className="ar-dream-popover__audio"
-          onClick={toggleNarration}
-          disabled={playbackStatus === "unavailable"}
-          aria-label={narrationLabel}
+          className="ar-dream-popover__details"
+          onClick={onDetails}
         >
-          {playbackStatus === "playing" || playbackStatus === "starting"
-            ? "Stop"
-            : playbackStatus === "error"
-              ? "Retry"
-              : "Play"}
+          View details
         </button>
       </footer>
       {playbackStatus === "error" ? (
         <p className="ar-dream-popover__error" role="status">
-          Narration could not start. Tap Retry to try again.
+          Narration could not start on this device.
         </p>
       ) : null}
     </aside>
