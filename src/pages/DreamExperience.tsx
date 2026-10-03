@@ -10,7 +10,6 @@ import {
 import { ARDreamPopover } from "../components/ARDreamPopover";
 import { useDreamSelection } from "../dreams/useDreamSelection";
 import {
-  calculateOverviewWidth,
   createDreamCylinderLayout,
   DEFAULT_CYLINDER_LAYOUT,
   isPlacementFrontFacing,
@@ -48,12 +47,9 @@ const DreamExperience = () => {
   const streamRef = useRef<MediaStream | null>(null);
   const originRef = useRef<OrientationSample | null>(null);
   const latestSampleRef = useRef<OrientationSample | null>(null);
-  const overviewRef = useRef<HTMLElement>(null);
-  const overviewButtonRef = useRef<HTMLButtonElement>(null);
   const [status, setStatus] = useState<ExperienceStatus>({ kind: "idle" });
   const [heading, setHeading] = useState(0);
   const [pitch, setPitch] = useState(0);
-  const [showOverview, setShowOverview] = useState(true);
   const { selectedDream, selectDream, closeDetails } =
     useDreamSelection(CYLINDER_DREAMS);
   const layout = useMemo(
@@ -65,9 +61,6 @@ const DreamExperience = () => {
     DEFAULT_CYLINDER_LAYOUT.frameWidth * DEFAULT_CYLINDER_LAYOUT.pixelsPerMeter;
   const frameHeightPixels =
     DEFAULT_CYLINDER_LAYOUT.frameHeight * DEFAULT_CYLINDER_LAYOUT.pixelsPerMeter;
-  const overviewWidthPixels =
-    calculateOverviewWidth(layout.radius, DEFAULT_CYLINDER_LAYOUT.overviewAngle) *
-    DEFAULT_CYLINDER_LAYOUT.pixelsPerMeter;
 
   const releaseCamera = useCallback(() => {
     stopStream(streamRef.current);
@@ -81,7 +74,6 @@ const DreamExperience = () => {
     latestSampleRef.current = null;
     setHeading(0);
     setPitch(0);
-    setShowOverview(true);
 
     if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
       setStatus({
@@ -201,34 +193,10 @@ const DreamExperience = () => {
     dream: (typeof CYLINDER_DREAMS)[number],
     opener?: HTMLButtonElement | null,
   ) => {
-    setShowOverview(false);
     selectDream(dream, opener);
   };
 
   const selectDreamAtPoint = (event: ReactMouseEvent<HTMLDivElement>) => {
-    if (showOverview && overviewRef.current) {
-      const overviewRect = overviewRef.current.getBoundingClientRect();
-      const isInsideOverview =
-        event.clientX >= overviewRect.left &&
-        event.clientX <= overviewRect.right &&
-        event.clientY >= overviewRect.top &&
-        event.clientY <= overviewRect.bottom;
-
-      if (isInsideOverview) {
-        const buttonRect = overviewButtonRef.current?.getBoundingClientRect();
-        if (
-          buttonRect &&
-          event.clientX >= buttonRect.left &&
-          event.clientX <= buttonRect.right &&
-          event.clientY >= buttonRect.top &&
-          event.clientY <= buttonRect.bottom
-        ) {
-          setShowOverview(false);
-        }
-        return;
-      }
-    }
-
     const candidates = Array.from(
       event.currentTarget.querySelectorAll<HTMLButtonElement>(".dream-diamond"),
     )
@@ -283,7 +251,9 @@ const DreamExperience = () => {
             <div>
               <span>Deep Reverie</span>
               <small>
-                {isActive ? `${CYLINDER_DREAMS.length} dreams · 360°` : "Rotation gallery"}
+                {isActive
+                  ? `${CYLINDER_DREAMS.length} dreams · 360°`
+                  : "Augmented Reality Gallery"}
               </small>
             </div>
             {isActive ? (
@@ -295,7 +265,7 @@ const DreamExperience = () => {
 
           {isActive ? (
             <div
-              className={`dream-cylinder ${showOverview ? "dream-cylinder--overview" : ""}`}
+              className="dream-cylinder"
               aria-label="Dream artworks"
               role="group"
             >
@@ -366,35 +336,6 @@ const DreamExperience = () => {
                   );
                 })}
 
-                {showOverview ? (
-                  <aside
-                    ref={overviewRef}
-                    className="dream-cylinder__overview"
-                    style={{
-                      width: `${overviewWidthPixels}px`,
-                      transform: `translate(-50%, -50%) translateZ(${-radiusPixels + 120}px)`,
-                      visibility: isPlacementFrontFacing(0, heading)
-                        ? "visible"
-                        : "hidden",
-                    }}
-                    aria-label="About the dream cylinder"
-                  >
-                    <p>Machine-imagined futures</p>
-                    <h1>What does AI dream of?</h1>
-                    <span>
-                      Turn with your phone to travel through every vision. Tilt to reach
-                      the upper and lower horizons, then touch a diamond to enter its story.
-                    </span>
-                    <button
-                      ref={overviewButtonRef}
-                      type="button"
-                      onClick={() => setShowOverview(false)}
-                    >
-                      Explore the circle
-                    </button>
-                  </aside>
-                ) : null}
-
               </div>
             </div>
           ) : (
@@ -431,13 +372,9 @@ const ExperienceGate = ({
       <div className="dream-experience__gate-diamond" aria-hidden="true">
         <img src="/images/thumbnails-2x/54_Title.webp" alt="" />
       </div>
-      <p className="dream-experience__eyebrow">A gallery you enter by turning</p>
-      <h1>{isFailure ? "The dream field could not open" : "Face the first horizon"}</h1>
-      <p className="dream-experience__gate-copy">
-        {isFailure
-          ? status.detail
-          : "Your current direction becomes forward. The camera stays on your device and movement only rotates the gallery around you."}
-      </p>
+      <p className="dream-experience__eyebrow">Augmented Reality Gallery</p>
+      <h1>{isFailure ? "The gallery could not open" : "Face forward"}</h1>
+      {isFailure ? <p className="dream-experience__gate-copy">{status.detail}</p> : null}
       <button
         type="button"
         onClick={onStart}
@@ -450,9 +387,9 @@ const ExperienceGate = ({
             ? "Finding your direction…"
             : isFailure
               ? "Try again"
-              : "Start the experience"}
+              : "Enter the gallery"}
       </button>
-      <small>Requires rear camera and device motion · no location or mapping</small>
+      <small>Camera and volume required</small>
     </div>
   );
 };

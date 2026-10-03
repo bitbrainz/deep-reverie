@@ -25,14 +25,25 @@ describe("About the Art", () => {
     expect(screen.getByRole("heading", { name: "Bitbrainz" })).toBeVisible();
   });
 
-  it("links to the page from the home screen", () => {
+  it("brings the gallery choices, installation film, and artist onto the home screen", () => {
     render(
       <MemoryRouter>
         <Home />
       </MemoryRouter>,
     );
 
-    expect(screen.getByRole("link", { name: "About the Art" })).toHaveAttribute("href", "/about");
+    expect(screen.getByRole("link", { name: /Explore in AR/ })).toHaveAttribute("href", "/app");
+    expect(screen.getByRole("link", { name: /Browse the Artwork/ })).toHaveAttribute(
+      "href",
+      "/gallery",
+    );
+    expect(screen.getByTitle("Deep Reverie installation film")).toHaveAttribute(
+      "src",
+      "https://www.youtube-nocookie.com/embed/597IAhuQfZ4",
+    );
+    expect(screen.getByRole("heading", { name: "Bitbrainz" })).toBeVisible();
+    expect(screen.queryByText("Choose how to explore")).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /About the Art & Artists/ })).not.toBeInTheDocument();
   });
 
   it("keeps useful next steps available if the installation image fails", () => {

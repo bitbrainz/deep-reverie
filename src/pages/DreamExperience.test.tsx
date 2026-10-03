@@ -64,7 +64,7 @@ describe("DreamExperience", () => {
   });
 
   const startWithHeading = async (alpha = 270) => {
-    fireEvent.click(screen.getByRole("button", { name: "Start the experience" }));
+    fireEvent.click(screen.getByRole("button", { name: "Enter the gallery" }));
     await screen.findByRole("button", { name: "Finding your direction…" });
     fireEvent(
       window,
@@ -94,14 +94,13 @@ describe("DreamExperience", () => {
         name: `Open dream 51: ${DREAMS.find(({ id }) => id === 51)?.title}`,
       }),
     ).not.toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "What does AI dream of?" })).toBeVisible();
+    expect(screen.queryByLabelText("About the dream cylinder")).not.toBeInTheDocument();
   });
 
   it("uses the first heading as forward and recenters without reloading", async () => {
     render(<DreamExperience />);
     await startWithHeading(270);
     const world = screen.getByTestId("dream-cylinder-world");
-    expect(world).toContainElement(screen.getByLabelText("About the dream cylinder"));
     expect(world).toHaveStyle({ transform: "rotateX(0deg) rotateY(0deg)" });
 
     fireEvent(
@@ -162,16 +161,26 @@ describe("DreamExperience", () => {
   it("shows clear denied and unsupported states", async () => {
     DeviceOrientationEventMock.requestPermission.mockResolvedValueOnce("denied");
     const { unmount } = render(<DreamExperience />);
-    fireEvent.click(screen.getByRole("button", { name: "Start the experience" }));
+    fireEvent.click(screen.getByRole("button", { name: "Enter the gallery" }));
     expect(await screen.findByText(/Allow motion access/)).toBeVisible();
     expect(stopTrack).toHaveBeenCalled();
     unmount();
 
     vi.unstubAllGlobals();
     render(<DreamExperience />);
-    fireEvent.click(screen.getByRole("button", { name: "Start the experience" }));
+    fireEvent.click(screen.getByRole("button", { name: "Enter the gallery" }));
     expect(
       screen.getByText(/does not provide the motion sensor needed/),
     ).toBeVisible();
+  });
+
+  it("uses the concise approved entry copy", () => {
+    render(<DreamExperience />);
+
+    expect(screen.getAllByText("Augmented Reality Gallery")).toHaveLength(2);
+    expect(screen.getByRole("heading", { name: "Face forward" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Enter the gallery" })).toBeVisible();
+    expect(screen.getByText("Camera and volume required")).toBeVisible();
+    expect(screen.queryByText(/location or mapping/i)).not.toBeInTheDocument();
   });
 });
