@@ -171,7 +171,7 @@ export const Home = () => {
       </section>
 
       <footer className="flex flex-col gap-2 bg-[#080612] px-5 py-8 text-sm text-[#9f96b0] sm:flex-row sm:items-center sm:justify-between sm:px-8">
-        <p>Deep Reverie · Bitbrainz · 2025</p>
+        <p>Deep Reverie · Bitbrainz · 2024</p>
         <a href="#home-title" className="font-semibold text-[#d8d1e7] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c8b9ff]">
           Back to top ↑
         </a>

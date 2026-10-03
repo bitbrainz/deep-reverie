@@ -96,6 +96,8 @@ describe("About the Art", () => {
       "https://www.youtube-nocookie.com/embed/597IAhuQfZ4",
     );
     expect(screen.getByRole("heading", { name: "Bitbrainz" })).toBeVisible();
+    expect(screen.getByText("Deep Reverie at Lumière · Toronto, 2025")).toBeVisible();
+    expect(screen.getByText("Deep Reverie · Bitbrainz · 2024")).toBeVisible();
     const projectHeading = screen.getByRole("heading", {
       name: /A future, dreamed by a machine/i,
     });
