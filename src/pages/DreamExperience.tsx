@@ -36,7 +36,7 @@ const SENSOR_TIMEOUT_MS = 4_000;
 const POPOVER_GAP_PX = 12;
 const POPOVER_MAX_WIDTH_PX = 238;
 const TETHER_ANCHOR_FROM_TOP = 0.14;
-const TETHER_RISE_PX = 36;
+const TETHER_MIN_RISE_PX = 36;
 
 type ExperienceStatus =
   | { kind: "idle" }
@@ -259,23 +259,25 @@ const DreamExperience = () => {
       popoverSize = { width: popoverRect.width, height: popoverRect.height };
       popoverSizeRef.current = popoverSize;
     }
-    const centeredTop =
-      diamondRect.top - viewportGeometry.top +
-      (diamondRect.height - popoverSize.height) / 2;
-    popover.style.transform = `translate3d(${left}px, ${centeredTop}px, 0)`;
-
     const anchorLeft =
       diamondRect.left - viewportGeometry.left + diamondRect.width / 2;
     const anchorTop =
       diamondRect.top - viewportGeometry.top +
       diamondRect.height * TETHER_ANCHOR_FROM_TOP;
-    const horizontalRun = left - anchorLeft;
-    const tetherLength = Math.hypot(horizontalRun, TETHER_RISE_PX);
-    const tetherAngle = Math.atan2(-TETHER_RISE_PX, horizontalRun);
+    const centeredTop =
+      diamondRect.top - viewportGeometry.top +
+      (diamondRect.height - popoverSize.height) / 2;
+    const popoverTop = Math.min(
+      centeredTop,
+      anchorTop - TETHER_MIN_RISE_PX,
+    );
+    popover.style.transform = `translate3d(${left}px, ${popoverTop}px, 0)`;
+
     tether.style.left = `${anchorLeft}px`;
-    tether.style.top = `${anchorTop}px`;
-    tether.style.width = `${tetherLength}px`;
-    tether.style.transform = `rotate(${tetherAngle}rad)`;
+    tether.style.top = `${popoverTop}px`;
+    tether.style.width = `${Math.max(left - anchorLeft, 0)}px`;
+    tether.style.height = `${anchorTop - popoverTop}px`;
+    tether.style.transform = "none";
   }, []);
 
   useLayoutEffect(() => {

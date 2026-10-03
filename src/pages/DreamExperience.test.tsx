@@ -314,20 +314,18 @@ describe("DreamExperience", () => {
     const popover = await screen.findByTestId("ar-dream-popover");
     const tether = screen.getByTestId("ar-dream-tether");
     expect(popover).toHaveStyle({
-      transform: "translate3d(212px, 340px, 0)",
+      transform: "translate3d(212px, 246.39999999999998px, 0)",
       visibility: "visible",
       width: "238px",
     });
     expect(tether).toHaveStyle({
       left: "140px",
-      top: "282.4px",
+      top: "246.39999999999998px",
+      width: "72px",
+      height: "36px",
+      transform: "none",
       visibility: "visible",
     });
-    expect(Number.parseFloat(tether.style.width)).toBeCloseTo(80.5, 1);
-    expect(Number.parseFloat(tether.style.transform.slice(7))).toBeCloseTo(
-      -0.464,
-      2,
-    );
 
     const measurePopover = vi
       .spyOn(popover, "getBoundingClientRect")
@@ -350,7 +348,9 @@ describe("DreamExperience", () => {
     );
     expect(tether).toHaveStyle({
       left: "150px",
-      top: "282.4px",
+      top: "190px",
+      width: "72px",
+      height: "92.39999999999998px",
       visibility: "visible",
     });
     expect(measurePopover).not.toHaveBeenCalled();
@@ -370,7 +370,9 @@ describe("DreamExperience", () => {
     );
     expect(tether).toHaveStyle({
       left: "-120px",
-      top: "-217.6px",
+      top: "-310px",
+      width: "72px",
+      height: "92.4px",
       visibility: "visible",
     });
 

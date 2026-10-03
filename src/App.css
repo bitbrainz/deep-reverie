@@ -380,18 +380,18 @@ body.dream-experience-active {
 .ar-dream-tether {
   position: absolute;
   z-index: 34;
-  height: 1px;
-  background: linear-gradient(90deg, #f2d795, rgba(242, 215, 149, 0.72));
-  box-shadow: 0 0 0.7rem rgba(242, 215, 149, 0.55);
+  box-sizing: border-box;
+  border-top: 2px solid rgba(242, 215, 149, 0.78);
+  border-left: 2px solid #f2d795;
+  filter: drop-shadow(0 0 0.35rem rgba(242, 215, 149, 0.65));
   pointer-events: none;
-  transform-origin: left center;
   visibility: hidden;
 }
 
 .ar-dream-tether::before {
   position: absolute;
-  top: 50%;
-  left: -0.2rem;
+  top: 100%;
+  left: -1px;
   width: 0.42rem;
   height: 0.42rem;
   border: 1px solid rgba(255, 240, 199, 0.95);
@@ -401,7 +401,7 @@ body.dream-experience-active {
     0 0 0 3px rgba(242, 215, 149, 0.2),
     0 0 0.9rem rgba(242, 215, 149, 0.8);
   content: "";
-  transform: translateY(-50%);
+  transform: translate(-50%, -50%);
 }
 
 .ar-dream-popover {
@@ -413,7 +413,7 @@ body.dream-experience-active {
   max-height: min(520px, calc(100dvh - 7rem));
   overflow: hidden;
   border: 1px solid rgba(242, 215, 149, 0.58);
-  border-radius: 1.2rem 0.35rem 1.2rem 1.2rem;
+  border-radius: 0 1.2rem 1.2rem 1.2rem;
   padding: 1.25rem;
   background:
     radial-gradient(circle at 16% 0%, rgba(190, 146, 255, 0.28), transparent 42%),
