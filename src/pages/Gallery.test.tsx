@@ -58,13 +58,19 @@ describe("Gallery", () => {
     vi.stubGlobal("Image", ImageMock);
   });
 
-  it("keeps mobile card overlays to title-only content", () => {
+  it("shows compact artwork captions below the images without the app header bar", () => {
     render(<Gallery />);
 
-    expect(screen.getByText("Immersive digital worlds for all")).toHaveClass(
-      "hidden",
-      "lg:block",
-    );
+    expect(screen.getAllByText("Deep Reverie")).toHaveLength(1);
+    expect(screen.queryByText("Immersive digital worlds for all")).not.toBeInTheDocument();
+
+    const artworkButton = screen.getByRole("button", { name: "View Virtual Reality" });
+    const caption = screen.getByText("Virtual Reality");
+    const image = artworkButton.querySelector("img");
+
+    expect(caption).toHaveClass("text-xs");
+    expect(artworkButton).toContainElement(caption);
+    expect(image?.compareDocumentPosition(caption)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
   });
 
   it("waits for the selected detail image before opening the drawer", async () => {
