@@ -22,10 +22,6 @@ describe("About the Art", () => {
       "src",
       "https://www.youtube-nocookie.com/embed/597IAhuQfZ4",
     );
-    expect(screen.getByRole("img", { name: /vivid neon artwork/i })).toHaveAttribute(
-      "src",
-      "/images/deep-reverie-at-lumiere.webp",
-    );
     expect(screen.getByRole("heading", { name: "Bitbrainz" })).toBeVisible();
   });
 
@@ -41,6 +37,10 @@ describe("About the Art", () => {
       "href",
       "/gallery",
     );
+    expect(screen.getByRole("img", { name: /vivid neon artwork/i })).toHaveAttribute(
+      "src",
+      "/images/deep-reverie-at-lumiere.webp",
+    );
     expect(screen.getByTitle("Deep Reverie installation film")).toHaveAttribute(
       "src",
       "https://www.youtube-nocookie.com/embed/597IAhuQfZ4",
@@ -50,7 +50,7 @@ describe("About the Art", () => {
     expect(screen.queryByRole("link", { name: /About the Art & Artists/ })).not.toBeInTheDocument();
   });
 
-  it("keeps the homepage film available if the installation photograph fails", () => {
+  it("keeps the home film and gallery available if its installation image fails", () => {
     render(
       <MemoryRouter>
         <Home />
@@ -60,8 +60,11 @@ describe("About the Art", () => {
     fireEvent.error(screen.getByRole("img", { name: /vivid neon artwork/i }));
 
     expect(screen.getByRole("status")).toHaveTextContent("Installation photograph unavailable");
-    expect(screen.getByTitle("Deep Reverie installation film")).toBeVisible();
-    expect(screen.getByRole("link", { name: "Watch on YouTube ↗" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: /Browse the Artwork/ })).toHaveAttribute(
+      "href",
+      "/gallery",
+    );
+    expect(screen.getByRole("link", { name: /Watch on YouTube/i })).toHaveAttribute(
       "href",
       INSTALLATION_FILM_URL,
     );
