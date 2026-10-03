@@ -1,6 +1,7 @@
 import {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -26,6 +27,8 @@ import {
 } from "../app/deviceOrientation";
 
 const SENSOR_TIMEOUT_MS = 4_000;
+const POPOVER_GAP_PX = 12;
+const VIEWPORT_EDGE_PX = 16;
 
 type ExperienceStatus =
   | { kind: "idle" }
@@ -44,6 +47,9 @@ const stopStream = (stream: MediaStream | null) => {
 
 const DreamExperience = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const viewportRef = useRef<HTMLElement>(null);
+  const selectedDiamondRef = useRef<HTMLButtonElement>(null);
+  const popoverRef = useRef<HTMLElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const originRef = useRef<OrientationSample | null>(null);
   const latestSampleRef = useRef<OrientationSample | null>(null);
@@ -203,6 +209,41 @@ const DreamExperience = () => {
     closeDetails();
   };
 
+  const positionPopover = useCallback(() => {
+    const viewport = viewportRef.current;
+    const diamond = selectedDiamondRef.current;
+    const popover = popoverRef.current;
+    if (!viewport || !diamond || !popover) return;
+
+    const placement = diamond.closest<HTMLElement>(".dream-placement");
+    const isVisible = placement?.style.visibility !== "hidden";
+    popover.style.visibility = isVisible ? "visible" : "hidden";
+    if (!isVisible) return;
+
+    const viewportRect = viewport.getBoundingClientRect();
+    const diamondRect = diamond.getBoundingClientRect();
+    const popoverRect = popover.getBoundingClientRect();
+    const centeredTop =
+      diamondRect.top - viewportRect.top +
+      (diamondRect.height - popoverRect.height) / 2;
+    const maximumTop = Math.max(
+      VIEWPORT_EDGE_PX,
+      viewportRect.height - popoverRect.height - VIEWPORT_EDGE_PX,
+    );
+
+    popover.style.left = `${diamondRect.right - viewportRect.left + POPOVER_GAP_PX}px`;
+    popover.style.top = `${Math.min(Math.max(centeredTop, VIEWPORT_EDGE_PX), maximumTop)}px`;
+  }, []);
+
+  useLayoutEffect(() => {
+    positionPopover();
+  }, [heading, pitch, positionPopover, selectedDream, showDetails]);
+
+  useEffect(() => {
+    window.addEventListener("resize", positionPopover);
+    return () => window.removeEventListener("resize", positionPopover);
+  }, [positionPopover]);
+
   const selectDreamAtPoint = (event: ReactMouseEvent<HTMLDivElement>) => {
     const candidates = Array.from(
       event.currentTarget.querySelectorAll<HTMLButtonElement>(".dream-diamond"),
@@ -233,7 +274,10 @@ const DreamExperience = () => {
     if (!selectedFrame) return;
     const dreamId = Number(selectedFrame.dataset.dreamId);
     const dream = CYLINDER_DREAMS.find(({ id }) => id === dreamId);
-    if (dream) openDream(dream, selectedFrame);
+    if (dream) {
+      event.stopPropagation();
+      openDream(dream, selectedFrame);
+    }
   };
 
   const isActive = status.kind === "active";
@@ -243,7 +287,22 @@ const DreamExperience = () => {
 
   return (
     <main className="dream-experience">
-      <section className="dream-experience__viewport" aria-label="Deep Reverie dream cylinder">
+      <section
+        ref={viewportRef}
+        className="dream-experience__viewport"
+        aria-label="Deep Reverie dream cylinder"
+        onClick={(event) => {
+          if (!selectedDream || showDetails) return;
+          const target = event.target;
+          if (
+            target instanceof Element &&
+            target.closest(".dream-diamond, .ar-dream-popover")
+          ) {
+            return;
+          }
+          closeSelectedDream();
+        }}
+      >
           <video
             ref={videoRef}
             className="dream-experience__camera"
@@ -304,6 +363,7 @@ const DreamExperience = () => {
                       }
                     >
                       <button
+                        ref={isSelected ? selectedDiamondRef : null}
                         type="button"
                         className={`dream-diamond ${isSelected ? "dream-diamond--selected" : ""}`}
                         data-angle={placement.angle}
@@ -320,7 +380,7 @@ const DreamExperience = () => {
                       >
                         <span className="dream-diamond__image">
                           <img
-                            src={`/images/thumbnails-2x/${placement.dream.fileName.replace(".png", ".webp")}`}
+                            src={`/images/thumbnails/${placement.dream.fileName.replace(".png", ".webp")}`}
                             alt=""
                             draggable={false}
                             loading={index < 8 ? "eager" : "lazy"}
@@ -339,6 +399,7 @@ const DreamExperience = () => {
 
           {selectedDream && !showDetails ? (
             <ARDreamPopover
+              ref={popoverRef}
               dream={selectedDream}
               onClose={closeSelectedDream}
               onDetails={() => setShowDetails(true)}
@@ -378,7 +439,7 @@ const ExperienceGate = ({
   return (
     <div className="dream-experience__gate">
       <div className="dream-experience__gate-diamond" aria-hidden="true">
-        <img src="/images/thumbnails-2x/54_Title.webp" alt="" />
+        <img src="/images/thumbnails/54_Title.webp" alt="" />
       </div>
       <p className="dream-experience__eyebrow">Augmented Reality Gallery</p>
       <h1>{isFailure ? "The gallery could not open" : "Face forward"}</h1>
