@@ -79,13 +79,13 @@ export const Home = () => {
 
             <Link
               to="/gallery"
-              className="group flex min-h-24 items-center gap-4 rounded-[14px] border border-[#ffe16a] bg-[#c58d14]/95 px-5 text-[#1f1500] shadow-[0_18px_55px_rgba(255,196,45,0.2)] backdrop-blur-md transition hover:bg-[#e0ad2c] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#ffe99a] motion-reduce:transition-none"
+              className="group flex min-h-24 items-center gap-4 rounded-[14px] border border-[#ffe16a] bg-[#fff0b3]/95 px-5 text-[#211600] shadow-[0_18px_55px_rgba(255,218,83,0.2)] backdrop-blur-md transition hover:bg-[#fff7d6] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#fff6ca] motion-reduce:transition-none"
               aria-label="Browse the Artwork — view the complete gallery"
             >
               <GalleryIcon />
               <span className="min-w-0 flex-1">
                 <span className="block text-xl font-extrabold tracking-[-0.025em]">Browse the Artwork</span>
-                <span className="mt-0.5 block text-sm font-semibold text-[#493200]">View the complete gallery</span>
+                <span className="mt-0.5 block text-sm font-medium text-[#5a4300]">View the complete gallery</span>
               </span>
               <span className="transition-transform group-hover:translate-x-1 motion-reduce:transition-none">
                 <ArrowIcon />
@@ -106,19 +106,8 @@ export const Home = () => {
       </section>
 
       <section id="about-the-art" className="scroll-mt-0 bg-[#080612] px-5 py-20 sm:px-8 sm:py-28">
-        <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-center lg:gap-16">
-          <div>
-            <p className="text-xs font-extrabold uppercase tracking-[0.28em] text-[#ffe16a]">Deep Reverie</p>
-            <h2 className="mt-5 max-w-xl text-5xl font-bold leading-[0.94] tracking-[-0.055em] sm:text-7xl">
-              The <span className="font-serif font-normal italic text-[#ffe16a]">Project</span>
-            </h2>
-            <p className="mt-7 max-w-2xl text-lg leading-8 text-[#d8d1e7]">
-              “Deep Reverie” immerses audiences in a glowing dreamscape of UV-reactive tapestries and augmented reality. From a distance, the installation appears as a luminous geometric mural. Up close, each diamond-shaped image reveals a different AI-generated dream of the future. Audiences can scan a QR code to open an AR experience and access more information about each dream. These interactions invite visitors to move through the work, explore at their own pace and consider how artificial intelligence might imagine humanity’s hopes, fears and possible futures. What stories, values and choices from the present may become memories of the future? Blending digital art, light and emerging technologies, “Deep Reverie” turns public space into a luminous daydream about what our world might become.
-            </p>
-          </div>
-
-          <div>
-            <InstallationImage crop="tight" className="mb-6 rounded-[14px]" />
+        <div className="mx-auto max-w-6xl">
+          <div className="mb-16 sm:mb-24">
             <div className="aspect-video overflow-hidden rounded-[14px] border border-white/10 bg-black shadow-[0_30px_90px_rgba(94,48,164,0.2)]">
               <iframe
                 className="h-full w-full"
@@ -133,11 +122,25 @@ export const Home = () => {
               <p>Deep Reverie at Lumière · Toronto, 2025</p>
               <a
                 href={INSTALLATION_FILM_URL}
-                className="font-semibold text-[#c8b9ff] underline decoration-[#7c5bb6] underline-offset-4 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c8b9ff]"
+                className="font-semibold text-[#ffe16a] underline decoration-[#8e7624] underline-offset-4 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ffe16a]"
               >
                 Watch on YouTube ↗
               </a>
             </div>
+          </div>
+
+          <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-center lg:gap-16">
+            <div>
+              <p className="text-xs font-extrabold uppercase tracking-[0.28em] text-[#ffe16a]">Deep Reverie</p>
+              <h2 className="mt-5 max-w-xl text-5xl font-bold leading-[0.94] tracking-[-0.055em] sm:text-7xl">
+                A future, <span className="font-serif font-normal italic text-[#ffe16a]">dreamed</span> by a machine.
+              </h2>
+              <p className="mt-7 max-w-2xl text-lg leading-8 text-[#d8d1e7]">
+                “Deep Reverie” immerses audiences in a glowing dreamscape of UV-reactive tapestries and augmented reality. From a distance, the installation appears as a luminous geometric mural. Up close, each diamond-shaped image reveals a different AI-generated dream of the future. Audiences can scan a QR code to open an AR experience and access more information about each dream. These interactions invite visitors to move through the work, explore at their own pace and consider how artificial intelligence might imagine humanity’s hopes, fears and possible futures. What stories, values and choices from the present may become memories of the future? Blending digital art, light and emerging technologies, “Deep Reverie” turns public space into a luminous daydream about what our world might become.
+              </p>
+            </div>
+
+            <InstallationImage crop="tight" className="rounded-[14px]" />
           </div>
         </div>
       </section>

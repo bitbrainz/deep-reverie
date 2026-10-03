@@ -37,6 +37,9 @@ describe("About the Art", () => {
       "href",
       "/gallery",
     );
+    expect(screen.getByRole("link", { name: /Browse the Artwork/ })).toHaveClass(
+      "bg-[#fff0b3]/95",
+    );
     expect(screen.getByRole("link", { name: /By Bitbrainz/ })).toHaveAttribute(
       "href",
       "#the-artist",
@@ -45,13 +48,21 @@ describe("About the Art", () => {
       "src",
       "/images/deep-reverie-at-lumiere.webp",
     );
-    expect(screen.getByRole("img", { name: /vivid neon artwork/i })).toHaveClass("scale-[1.5]");
+    expect(screen.getByRole("img", { name: /vivid neon artwork/i })).toHaveClass("scale-[1.85]");
     expect(screen.getByTitle("Deep Reverie installation film")).toHaveAttribute(
       "src",
       "https://www.youtube-nocookie.com/embed/597IAhuQfZ4",
     );
     expect(screen.getByRole("heading", { name: "Bitbrainz" })).toBeVisible();
-    expect(screen.getByRole("heading", { name: /The Project/i })).toBeVisible();
+    const projectHeading = screen.getByRole("heading", {
+      name: /A future, dreamed by a machine/i,
+    });
+    expect(projectHeading).toBeVisible();
+    expect(
+      screen
+        .getByTitle("Deep Reverie installation film")
+        .compareDocumentPosition(projectHeading),
+    ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
     expect(screen.getByText(/turns public space into a luminous daydream/i)).toBeVisible();
     expect(screen.getByText(/Bolton Fire Bell/i)).toBeVisible();
     expect(document.body).not.toHaveTextContent(/\b54\b/);

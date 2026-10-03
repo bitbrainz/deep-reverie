@@ -30,7 +30,7 @@ export const InstallationImage = ({
           alt="Deep Reverie's vivid neon artwork glowing in a geometric outdoor frame at night"
           className={`h-full w-full object-cover transition-transform duration-700 motion-reduce:transition-none ${
             crop === "tight"
-              ? "aspect-[4/3] origin-[72%_52%] scale-[1.5] object-[70%_48%] sm:aspect-[16/10] sm:scale-[1.36]"
+              ? "aspect-[4/3] origin-[74%_52%] scale-[1.85] object-[76%_48%] sm:aspect-[16/10] sm:scale-[1.7]"
               : "aspect-[4/3] object-[68%_center] sm:aspect-[3/2]"
           }`}
           loading={priority ? "eager" : "lazy"}
