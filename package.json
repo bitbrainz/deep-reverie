@@ -6,12 +6,12 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "postbuild": "node scripts/create-pages-fallback.mjs",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "npm run test:unit && npm run test:assets",
+    "test": "npm run test:unit && npm run test:assets && npm run test:deployment",
     "test:unit": "vitest run",
-    "test:assets": "node --test test/performance-assets.mjs test/narration-assets.mjs"
+    "test:assets": "node --test test/performance-assets.mjs test/narration-assets.mjs",
+    "test:deployment": "node --test test/deployment-config.mjs"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.6",
@@ -39,6 +39,5 @@
     "typescript-eslint": "^8.24.1",
     "vite": "^6.2.0",
     "vitest": "^3.2.4"
-  },
-  "homepage": "https://bitbrainz.github.io/deep-reverie/"
+  }
 }
