@@ -352,9 +352,9 @@
 .ar-dream-popover {
   position: absolute;
   z-index: 35;
-  top: max(5.25rem, env(safe-area-inset-top));
-  right: max(1rem, env(safe-area-inset-right));
-  width: min(280px, calc(100vw - 2rem));
+  top: 0;
+  left: 0;
+  width: min(238px, 56vw);
   max-height: min(430px, calc(100dvh - 10rem));
   overflow: hidden;
   border: 1px solid rgba(242, 215, 149, 0.58);
@@ -371,6 +371,8 @@
   backdrop-filter: blur(18px);
   animation: ar-popover-arrival 220ms ease-out both;
   pointer-events: auto;
+  visibility: hidden;
+  will-change: top, left;
 }
 
 .ar-dream-popover__header,
