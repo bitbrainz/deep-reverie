@@ -80,7 +80,7 @@ describe("About the Art", () => {
       "/gallery",
     );
     expect(screen.getByRole("link", { name: /Browse the Artwork/ })).toHaveClass(
-      "bg-[#fff0b3]/95",
+      "bg-[#fff0b3]/90",
     );
     expect(screen.getByRole("link", { name: /By Bitbrainz/ })).toHaveAttribute(
       "href",
@@ -142,13 +142,54 @@ describe("About the Art", () => {
     const action = screen.getByRole("link", { name: /Browse the Artwork/ });
     const title = screen.getByText("Browse the Artwork");
     const supportingText = screen.getByText("View the complete gallery");
-    const compositedBackground = blendHex("#fff0b3", 0.95, "#080612");
+    const compositedBackground = blendHex("#fff0b3", 0.9, "#080612");
 
-    expect(action).toHaveClass("bg-[#fff0b3]/95", "text-[#211600]");
+    expect(action).toHaveClass("bg-[#fff0b3]/90", "text-[#211600]");
     expect(supportingText).toHaveClass("text-[#5a4300]");
     expect(contrastRatio("#211600", compositedBackground)).toBeGreaterThanOrEqual(4.5);
     expect(contrastRatio("#5a4300", compositedBackground)).toBeGreaterThanOrEqual(4.5);
     expect(title).toBeVisible();
+  });
+
+  it("keeps both exploration actions compact, tappable, and visually distinct", () => {
+    render(
+      <MemoryRouter>
+        <Home />
+      </MemoryRouter>,
+    );
+
+    const primaryAction = screen.getByRole("link", { name: /Explore in AR/ });
+    const secondaryAction = screen.getByRole("link", { name: /Browse the Artwork/ });
+
+    expect(primaryAction.parentElement).toHaveClass("grid", "sm:grid-cols-2");
+    expect(primaryAction).toHaveClass(
+      "min-h-16",
+      "gap-3",
+      "px-4",
+      "py-2.5",
+      "bg-[#ffe16a]",
+      "shadow-[0_10px_30px_rgba(255,211,73,0.22)]",
+      "focus-visible:ring-4",
+      "motion-reduce:transition-none",
+    );
+    expect(secondaryAction).toHaveClass(
+      "min-h-16",
+      "gap-3",
+      "px-4",
+      "py-2.5",
+      "border-[#ffe16a]/80",
+      "bg-[#fff0b3]/90",
+      "shadow-[0_6px_20px_rgba(255,218,83,0.12)]",
+      "focus-visible:ring-4",
+      "motion-reduce:transition-none",
+    );
+
+    expect(primaryAction.querySelector("[aria-hidden='true']")).toHaveClass("h-9", "w-9");
+    expect(secondaryAction.querySelector("svg[aria-hidden='true']")).toHaveClass("h-9", "w-9");
+    expect(primaryAction.lastElementChild).toHaveClass("motion-reduce:transition-none");
+    expect(secondaryAction.lastElementChild).toHaveClass("motion-reduce:transition-none");
+    expect(screen.getByText("Explore in AR")).toHaveClass("text-lg", "leading-tight");
+    expect(screen.getByText("Camera and volume required")).toHaveClass("text-xs", "leading-4");
   });
 
   it("keeps useful next steps available if the installation image fails", () => {
