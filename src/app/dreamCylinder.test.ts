@@ -72,16 +72,16 @@ describe("dream cylinder layout", () => {
     ).toBeGreaterThanOrEqual(1.35);
   });
 
-  it("gives the larger diamonds visible breathing room in both directions", () => {
+  it("keeps the larger diamonds in a compact, breathable lattice", () => {
     expect(DEFAULT_CYLINDER_LAYOUT.frameWidth).toBe(1.12);
     expect(DEFAULT_CYLINDER_LAYOUT.frameHeight).toBe(1.56);
-    expect(DEFAULT_CYLINDER_LAYOUT.horizontalGap).toBe(0.22);
-    expect(DEFAULT_CYLINDER_LAYOUT.rowSpacing).toBe(-0.48);
+    expect(DEFAULT_CYLINDER_LAYOUT.horizontalGap).toBe(0.17);
+    expect(DEFAULT_CYLINDER_LAYOUT.rowSpacing).toBe(-0.55);
     expect(
       DEFAULT_CYLINDER_LAYOUT.frameHeight +
         DEFAULT_CYLINDER_LAYOUT.rowSpacing,
-    ).toBeCloseTo(1.08);
-    expect(DEFAULT_CYLINDER_LAYOUT.horizontalGap).toBeGreaterThan(0.2);
+    ).toBeCloseTo(1.01);
+    expect(DEFAULT_CYLINDER_LAYOUT.horizontalGap).toBeGreaterThan(0.15);
   });
 
   it("maps every placement to its matching dream exactly once", () => {

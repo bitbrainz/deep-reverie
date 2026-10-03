@@ -35,6 +35,8 @@ import { publicAssetPath } from "../app/publicAssetPath";
 const SENSOR_TIMEOUT_MS = 4_000;
 const POPOVER_GAP_PX = 12;
 const VIEWPORT_EDGE_PX = 16;
+const POPOVER_MAX_WIDTH_PX = 238;
+const POPOVER_MIN_WIDTH_PX = 148;
 
 type ExperienceStatus =
   | { kind: "idle" }
@@ -250,8 +252,17 @@ const DreamExperience = () => {
       viewportGeometryRef.current = viewportGeometry;
     }
     const diamondRect = diamond.getBoundingClientRect();
+    const rightSide =
+      diamondRect.right - viewportGeometry.left + POPOVER_GAP_PX;
+    const left = Math.max(rightSide, VIEWPORT_EDGE_PX);
     let popoverSize = popoverSizeRef.current;
     if (!popoverSize.width || !popoverSize.height) {
+      const availableWidth =
+        viewportGeometry.width - left - VIEWPORT_EDGE_PX;
+      popover.style.width = `${Math.min(
+        POPOVER_MAX_WIDTH_PX,
+        Math.max(POPOVER_MIN_WIDTH_PX, availableWidth),
+      )}px`;
       const popoverRect = popover.getBoundingClientRect();
       popoverSize = { width: popoverRect.width, height: popoverRect.height };
       popoverSizeRef.current = popoverSize;
@@ -264,23 +275,6 @@ const DreamExperience = () => {
       viewportGeometry.height - popoverSize.height - VIEWPORT_EDGE_PX,
     );
 
-    const rightSide =
-      diamondRect.right - viewportGeometry.left + POPOVER_GAP_PX;
-    const leftSide =
-      diamondRect.left -
-      viewportGeometry.left -
-      popoverSize.width -
-      POPOVER_GAP_PX;
-    const maximumLeft = Math.max(
-      VIEWPORT_EDGE_PX,
-      viewportGeometry.width - popoverSize.width - VIEWPORT_EDGE_PX,
-    );
-    const left =
-      rightSide <= maximumLeft
-        ? rightSide
-        : leftSide >= VIEWPORT_EDGE_PX
-          ? leftSide
-          : Math.min(Math.max(rightSide, VIEWPORT_EDGE_PX), maximumLeft);
     const top = Math.min(Math.max(centeredTop, VIEWPORT_EDGE_PX), maximumTop);
     popover.style.transform = `translate3d(${left}px, ${top}px, 0)`;
   }, []);
@@ -293,6 +287,19 @@ const DreamExperience = () => {
   useLayoutEffect(() => {
     positionPopover();
   }, [heading, pitch, positionPopover]);
+
+  useEffect(() => {
+    const diamond = selectedDiamondRef.current;
+    if (!diamond || !selectedDream || showDetails) return;
+
+    const handleTransitionEnd = (event: TransitionEvent) => {
+      if (event.propertyName && event.propertyName !== "transform") return;
+      popoverSizeRef.current = { width: 0, height: 0 };
+      positionPopover();
+    };
+    diamond.addEventListener("transitionend", handleTransitionEnd);
+    return () => diamond.removeEventListener("transitionend", handleTransitionEnd);
+  }, [positionPopover, selectedDream, showDetails]);
 
   useEffect(() => {
     const handleResize = () => {

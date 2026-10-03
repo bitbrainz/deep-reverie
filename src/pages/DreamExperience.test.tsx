@@ -288,6 +288,7 @@ describe("DreamExperience", () => {
     expect(popover).toHaveStyle({
       transform: "translate3d(212px, 340px, 0)",
       visibility: "visible",
+      width: "162px",
     });
 
     const measurePopover = vi
@@ -299,13 +300,18 @@ describe("DreamExperience", () => {
     measureViewport.mockClear();
 
     diamondLeft = 110;
+    fireEvent.transitionEnd(dreamOne, { propertyName: "transform" });
+    expect(measurePopover).toHaveBeenCalledOnce();
+    measurePopover.mockClear();
+
+    diamondLeft = 90;
     fireEvent(
       window,
       new DeviceOrientationEventMock("deviceorientation", { alpha: 260, beta: 90 }),
     );
     await waitFor(() =>
       expect(popover).toHaveStyle({
-        transform: "translate3d(136px, 190px, 0)",
+        transform: "translate3d(222px, 190px, 0)",
         visibility: "visible",
       }),
     );
