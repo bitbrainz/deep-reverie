@@ -35,6 +35,8 @@ import { publicAssetPath } from "../app/publicAssetPath";
 const SENSOR_TIMEOUT_MS = 4_000;
 const POPOVER_GAP_PX = 12;
 const POPOVER_MAX_WIDTH_PX = 238;
+const TETHER_ANCHOR_FROM_TOP = 0.14;
+const TETHER_MIN_RISE_PX = 36;
 
 type ExperienceStatus =
   | { kind: "idle" }
@@ -55,6 +57,7 @@ const DreamExperience = () => {
   const viewportRef = useRef<HTMLElement>(null);
   const selectedDiamondRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLElement>(null);
+  const tetherRef = useRef<HTMLSpanElement>(null);
   const popoverSizeRef = useRef({ width: 0, height: 0 });
   const viewportGeometryRef = useRef<{
     left: number;
@@ -228,11 +231,13 @@ const DreamExperience = () => {
     const viewport = viewportRef.current;
     const diamond = selectedDiamondRef.current;
     const popover = popoverRef.current;
-    if (!viewport || !diamond || !popover) return;
+    const tether = tetherRef.current;
+    if (!viewport || !diamond || !popover || !tether) return;
 
     const placement = diamond.closest<HTMLElement>(".dream-placement");
     const isVisible = placement?.style.visibility !== "hidden";
     popover.style.visibility = isVisible ? "visible" : "hidden";
+    tether.style.visibility = isVisible ? "visible" : "hidden";
     if (!isVisible) return;
 
     let viewportGeometry = viewportGeometryRef.current;
@@ -254,10 +259,25 @@ const DreamExperience = () => {
       popoverSize = { width: popoverRect.width, height: popoverRect.height };
       popoverSizeRef.current = popoverSize;
     }
+    const anchorLeft =
+      diamondRect.left - viewportGeometry.left + diamondRect.width / 2;
+    const anchorTop =
+      diamondRect.top - viewportGeometry.top +
+      diamondRect.height * TETHER_ANCHOR_FROM_TOP;
     const centeredTop =
       diamondRect.top - viewportGeometry.top +
       (diamondRect.height - popoverSize.height) / 2;
-    popover.style.transform = `translate3d(${left}px, ${centeredTop}px, 0)`;
+    const popoverTop = Math.min(
+      centeredTop,
+      anchorTop - TETHER_MIN_RISE_PX,
+    );
+    popover.style.transform = `translate3d(${left}px, ${popoverTop}px, 0)`;
+
+    tether.style.left = `${anchorLeft}px`;
+    tether.style.top = `${popoverTop}px`;
+    tether.style.width = `${Math.max(left - anchorLeft, 0)}px`;
+    tether.style.height = `${anchorTop - popoverTop}px`;
+    tether.style.transform = "none";
   }, []);
 
   useLayoutEffect(() => {
@@ -446,11 +466,19 @@ const DreamExperience = () => {
           )}
 
           {selectedDream && !showDetails ? (
-            <ARDreamPopover
-              ref={popoverRef}
-              dream={selectedDream}
-              onDetails={showSelectedDetails}
-            />
+            <>
+              <span
+                ref={tetherRef}
+                className="ar-dream-tether"
+                data-testid="ar-dream-tether"
+                aria-hidden="true"
+              />
+              <ARDreamPopover
+                ref={popoverRef}
+                dream={selectedDream}
+                onDetails={showSelectedDetails}
+              />
+            </>
           ) : null}
 
           {isActive ? (
