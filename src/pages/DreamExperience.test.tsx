@@ -28,17 +28,40 @@ const mediaStream = { getTracks: () => [{ stop: stopTrack }] } as unknown as Med
 
 class AudioMock {
   static instances: AudioMock[] = [];
+  static rejectFirstMusicPlayback = false;
 
   currentTime = 0;
+  loop = false;
+  paused = true;
+  preload = "";
+  volume = 1;
   onended: (() => void) | null = null;
   onerror: (() => void) | null = null;
-  pause = vi.fn();
-  play = vi.fn(() => Promise.resolve());
+  pause = vi.fn(() => {
+    this.paused = true;
+  });
+  play = vi.fn(() => {
+    if (
+      AudioMock.rejectFirstMusicPlayback &&
+      this.src.includes("/audio/music.mp3") &&
+      this.play.mock.calls.length === 1
+    ) {
+      return Promise.reject(new Error("Autoplay blocked"));
+    }
+    this.paused = false;
+    return Promise.resolve();
+  });
 
   constructor(readonly src: string) {
     AudioMock.instances.push(this);
   }
 }
+
+const getAudio = (path: string) => {
+  const audio = AudioMock.instances.find(({ src }) => src.includes(path));
+  if (!audio) throw new Error(`Missing audio instance for ${path}`);
+  return audio;
+};
 
 const rect = (left: number, top: number, width: number, height: number) =>
   ({
@@ -56,6 +79,7 @@ const rect = (left: number, top: number, width: number, height: number) =>
 describe("DreamExperience", () => {
   beforeEach(() => {
     AudioMock.instances = [];
+    AudioMock.rejectFirstMusicPlayback = false;
     DeviceOrientationEventMock.requestPermission.mockResolvedValue("granted");
     getUserMedia.mockResolvedValue(mediaStream);
     Object.defineProperty(window, "isSecureContext", {
@@ -79,8 +103,16 @@ describe("DreamExperience", () => {
   });
 
   const startWithHeading = async (alpha = 270) => {
+    const addEventListener = vi.spyOn(window, "addEventListener");
     fireEvent.click(screen.getByRole("button", { name: "Enter the gallery" }));
     await screen.findByRole("button", { name: "Finding your direction…" });
+    await waitFor(() =>
+      expect(addEventListener).toHaveBeenCalledWith(
+        "deviceorientation",
+        expect.any(Function),
+        true,
+      ),
+    );
     fireEvent(
       window,
       new DeviceOrientationEventMock("deviceorientation", { alpha, beta: 90 }),
@@ -156,12 +188,36 @@ describe("DreamExperience", () => {
 
   it("locks page scrolling for the whole experience and restores it on unmount", () => {
     const { unmount } = render(<DreamExperience />);
+    const music = getAudio("/audio/music.mp3");
 
     expect(document.documentElement).toHaveClass("dream-experience-active");
     expect(document.body).toHaveClass("dream-experience-active");
+    expect(music.loop).toBe(true);
+    expect(music.preload).toBe("auto");
+    expect(music.volume).toBe(0.22);
+    expect(music.play).toHaveBeenCalledOnce();
     unmount();
+    expect(music.pause).toHaveBeenCalledOnce();
+    expect(music.currentTime).toBe(0);
     expect(document.documentElement).not.toHaveClass("dream-experience-active");
     expect(document.body).not.toHaveClass("dream-experience-active");
+  });
+
+  it("retries background music from the entry gesture and ducks it for narration", async () => {
+    AudioMock.rejectFirstMusicPlayback = true;
+    render(<DreamExperience />);
+    const music = getAudio("/audio/music.mp3");
+
+    await startWithHeading();
+    expect(music.play).toHaveBeenCalledTimes(2);
+
+    fireEvent.click(screen.getByRole("button", { name: "Open Virtual Reality" }));
+    await screen.findByRole("dialog", { name: "Virtual Reality" });
+    const narration = getAudio("/audio/narrations/01-virtual-reality.mp3");
+    expect(music.volume).toBe(0.06);
+
+    narration.onended?.();
+    expect(music.volume).toBe(0.22);
   });
 
   it("uses the first heading as forward and recenters without reloading", async () => {
@@ -252,8 +308,10 @@ describe("DreamExperience", () => {
     expect(screen.getByTestId("dream-cylinder-stage")).not.toHaveClass(
       "dream-cylinder__stage--selected",
     );
-    expect(AudioMock.instances).toHaveLength(1);
-    expect(AudioMock.instances[0].play).toHaveBeenCalledOnce();
+    const firstNarration = getAudio(
+      "/audio/narrations/01-virtual-reality.mp3",
+    );
+    expect(firstNarration.play).toHaveBeenCalledOnce();
 
     expect(screen.getByRole("button", { name: "Recenter" })).toBeVisible();
     fireEvent.click(screen.getByRole("button", { name: "Open Animal Protection" }));
@@ -262,8 +320,11 @@ describe("DreamExperience", () => {
         screen.getByRole("dialog", { name: "Animal Protection" }),
       ).toBeVisible(),
     );
-    expect(AudioMock.instances[0].pause).toHaveBeenCalledOnce();
-    expect(AudioMock.instances[1].play).toHaveBeenCalledOnce();
+    const secondNarration = getAudio(
+      "/audio/narrations/18-animal-protection.mp3",
+    );
+    expect(firstNarration.pause).toHaveBeenCalledOnce();
+    expect(secondNarration.play).toHaveBeenCalledOnce();
     expect(
       screen.queryByRole("dialog", { name: "Virtual Reality" }),
     ).not.toBeInTheDocument();
@@ -364,8 +425,9 @@ describe("DreamExperience", () => {
     expect(
       screen.queryByRole("dialog", { name: "Animal Protection" }),
     ).not.toBeInTheDocument();
-    expect(AudioMock.instances).toHaveLength(1);
-    expect(AudioMock.instances[0].pause).toHaveBeenCalledOnce();
+    expect(
+      getAudio("/audio/narrations/01-virtual-reality.mp3").pause,
+    ).toHaveBeenCalledOnce();
   });
 
   it("opens the existing scrollable gallery details modal", async () => {
@@ -383,7 +445,9 @@ describe("DreamExperience", () => {
       overscrollBehavior: "none",
     });
     expect(screen.queryByRole("dialog", { name: "Virtual Reality" })).not.toBeInTheDocument();
-    expect(AudioMock.instances[0].pause).toHaveBeenCalledOnce();
+    expect(
+      getAudio("/audio/narrations/01-virtual-reality.mp3").pause,
+    ).toHaveBeenCalledOnce();
   });
 
   it("opens a static gallery when motion access is denied", async () => {

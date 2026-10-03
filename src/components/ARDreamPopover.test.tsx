@@ -51,6 +51,68 @@ describe("ARDreamPopover", () => {
     expect(AudioMock.instances[0].play).toHaveBeenCalledOnce();
     expect(screen.getByRole("button", { name: "Details" })).toBeVisible();
     expect(screen.queryByRole("button", { name: /Stop narration/ })).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("region", { name: "Virtual Reality narration text" }),
+    ).toHaveTextContent(
+      "I envision virtual reality as a doorway into vivid digital worlds",
+    );
+    expect(screen.queryByText(DREAMS[0].explanation)).not.toBeInTheDocument();
+  });
+
+  it("reports narration playback changes for background-music ducking", () => {
+    const onNarrationPlayingChange = vi.fn();
+    const { unmount } = render(
+      <ARDreamPopover
+        dream={DREAMS[0]}
+        onDetails={vi.fn()}
+        onNarrationPlayingChange={onNarrationPlayingChange}
+      />,
+    );
+
+    expect(onNarrationPlayingChange).toHaveBeenLastCalledWith(true);
+    AudioMock.instances[0].onended?.();
+    expect(onNarrationPlayingChange).toHaveBeenLastCalledWith(false);
+
+    unmount();
+    expect(onNarrationPlayingChange).toHaveBeenLastCalledWith(false);
+  });
+
+  it("lets pointer dragging scroll through the narration text", () => {
+    render(<ARDreamPopover dream={DREAMS[0]} onDetails={vi.fn()} />);
+    const narration = screen.getByRole("region", {
+      name: "Virtual Reality narration text",
+    });
+
+    const pointerEvent = (
+      type: string,
+      values: Record<string, string | number>,
+    ) => {
+      const event = new Event(type, { bubbles: true, cancelable: true });
+      Object.entries(values).forEach(([key, value]) =>
+        Object.defineProperty(event, key, { value }),
+      );
+      return event;
+    };
+
+    fireEvent(
+      narration,
+      pointerEvent("pointerdown", {
+        pointerId: 7,
+        pointerType: "mouse",
+        button: 0,
+        clientY: 160,
+      }),
+    );
+    fireEvent(
+      narration,
+      pointerEvent("pointermove", { pointerId: 7, clientY: 100 }),
+    );
+
+    expect(narration.scrollTop).toBe(60);
+    expect(narration).toHaveAttribute("data-dragging", "true");
+
+    fireEvent(narration, pointerEvent("pointerup", { pointerId: 7 }));
+    expect(narration).not.toHaveAttribute("data-dragging");
   });
 
   it("stops the old narration when the selected dream changes", async () => {

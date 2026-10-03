@@ -35,6 +35,8 @@ import { publicAssetPath } from "../app/publicAssetPath";
 const SENSOR_TIMEOUT_MS = 4_000;
 const POPOVER_GAP_PX = 12;
 const POPOVER_MAX_WIDTH_PX = 238;
+const BACKGROUND_MUSIC_VOLUME = 0.22;
+const DUCKED_BACKGROUND_MUSIC_VOLUME = 0.06;
 
 type ExperienceStatus =
   | { kind: "idle" }
@@ -61,6 +63,7 @@ const DreamExperience = () => {
     top: number;
   } | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const backgroundMusicRef = useRef<HTMLAudioElement | null>(null);
   const orientationFrameRef = useRef<number | null>(null);
   const originRef = useRef<OrientationSample | null>(null);
   const latestSampleRef = useRef<OrientationSample | null>(null);
@@ -102,6 +105,54 @@ const DreamExperience = () => {
     if (videoRef.current) videoRef.current.srcObject = null;
   }, []);
 
+  const startBackgroundMusic = useCallback(() => {
+    if (typeof Audio === "undefined") return;
+
+    let music = backgroundMusicRef.current;
+    if (!music) {
+      try {
+        music = new Audio(publicAssetPath("audio/music.mp3"));
+      } catch {
+        return;
+      }
+      music.loop = true;
+      music.preload = "auto";
+      music.volume = BACKGROUND_MUSIC_VOLUME;
+      backgroundMusicRef.current = music;
+    }
+
+    if (music.paused === false) return;
+
+    try {
+      void music.play().catch(() => undefined);
+    } catch {
+      // Browser autoplay rules may require the existing entry gesture below.
+    }
+  }, []);
+
+  const setNarrationPlaying = useCallback((isPlaying: boolean) => {
+    const music = backgroundMusicRef.current;
+    if (!music) return;
+    music.volume = isPlaying
+      ? DUCKED_BACKGROUND_MUSIC_VOLUME
+      : BACKGROUND_MUSIC_VOLUME;
+  }, []);
+
+  useEffect(() => {
+    startBackgroundMusic();
+    return () => {
+      const music = backgroundMusicRef.current;
+      backgroundMusicRef.current = null;
+      if (!music) return;
+      music.pause();
+      try {
+        music.currentTime = 0;
+      } catch {
+        // A failed media resource may not expose a seekable timeline.
+      }
+    };
+  }, [startBackgroundMusic]);
+
   const applyAccessResult = useCallback((result: ExperienceAccessResult) => {
     if (result.kind !== "granted") {
       setStatus(result);
@@ -121,6 +172,7 @@ const DreamExperience = () => {
   }, []);
 
   const startExperience = useCallback(async () => {
+    startBackgroundMusic();
     releaseCamera();
     originRef.current = null;
     latestSampleRef.current = null;
@@ -129,7 +181,7 @@ const DreamExperience = () => {
 
     setStatus({ kind: "requesting" });
     applyAccessResult(await requestExperienceAccess());
-  }, [applyAccessResult, releaseCamera]);
+  }, [applyAccessResult, releaseCamera, startBackgroundMusic]);
 
   useEffect(() => {
     if (!hasPreparedExperienceAccess()) return;
@@ -321,7 +373,10 @@ const DreamExperience = () => {
   } as CSSProperties;
 
   return (
-    <main className="dream-experience">
+    <main
+      className="dream-experience"
+      onPointerDownCapture={startBackgroundMusic}
+    >
       <section
         ref={viewportRef}
         className="dream-experience__viewport"
@@ -450,6 +505,7 @@ const DreamExperience = () => {
               ref={popoverRef}
               dream={selectedDream}
               onDetails={showSelectedDetails}
+              onNarrationPlayingChange={setNarrationPlaying}
             />
           ) : null}
 
