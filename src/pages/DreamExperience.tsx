@@ -40,10 +40,9 @@ type ExperienceStatus =
   | { kind: "idle" }
   | { kind: "requesting" }
   | { kind: "awaiting-orientation" }
-  | { kind: "active" }
+  | { kind: "active"; motionEnabled: boolean }
   | { kind: "unsupported"; detail: string }
-  | { kind: "denied"; detail: string }
-  | { kind: "sensor-unavailable"; detail: string };
+  | { kind: "denied"; detail: string };
 
 type OrientationSample = { heading: number; pitch: number };
 
@@ -114,7 +113,11 @@ const DreamExperience = () => {
       videoRef.current.srcObject = result.stream;
       void videoRef.current.play().catch(() => undefined);
     }
-    setStatus({ kind: "awaiting-orientation" });
+    setStatus(
+      result.motionAvailable
+        ? { kind: "awaiting-orientation" }
+        : { kind: "active", motionEnabled: false },
+    );
   }, []);
 
   const startExperience = useCallback(async () => {
@@ -162,7 +165,7 @@ const DreamExperience = () => {
         originRef.current = sample;
         setHeading(0);
         setPitch(0);
-        setStatus({ kind: "active" });
+        setStatus({ kind: "active", motionEnabled: true });
         return;
       }
 
@@ -192,14 +195,10 @@ const DreamExperience = () => {
   useEffect(() => {
     if (status.kind !== "awaiting-orientation") return;
     const timeout = window.setTimeout(() => {
-      releaseCamera();
-      setStatus({
-        kind: "sensor-unavailable",
-        detail: "Motion access was allowed, but no orientation data arrived from this device.",
-      });
+      setStatus({ kind: "active", motionEnabled: false });
     }, SENSOR_TIMEOUT_MS);
     return () => window.clearTimeout(timeout);
-  }, [releaseCamera, status.kind]);
+  }, [status.kind]);
 
   useEffect(() => releaseCamera, [releaseCamera]);
 
@@ -358,7 +357,7 @@ const DreamExperience = () => {
                   : "Augmented Reality Gallery"}
               </small>
             </div>
-            {isActive ? (
+            {isActive && status.motionEnabled ? (
               <button type="button" onClick={recenter} className="dream-experience__recenter">
                 <span aria-hidden="true">◎</span> Recenter
               </button>
@@ -458,13 +457,19 @@ const DreamExperience = () => {
             <div
               className="dream-experience__guide"
               role="status"
-              aria-label="Turn around to view the gallery. Tap on a diamond to hear about it."
+              aria-label={
+                status.motionEnabled
+                  ? "Turn around to view the gallery. Tap on a diamond to hear about it."
+                  : "Tap on a diamond to hear about it."
+              }
             >
-              <div className="dream-experience__guide-primary">
-                <span aria-hidden="true">«</span>
-                <strong>Turn around to view the gallery</strong>
-                <span aria-hidden="true">»</span>
-              </div>
+              {status.motionEnabled ? (
+                <div className="dream-experience__guide-primary">
+                  <span aria-hidden="true">«</span>
+                  <strong>Turn around to view the gallery</strong>
+                  <span aria-hidden="true">»</span>
+                </div>
+              ) : null}
               <small>Tap on a diamond to hear about it</small>
             </div>
           ) : null}
@@ -489,8 +494,7 @@ const ExperienceGate = ({
     status.kind === "requesting" || status.kind === "awaiting-orientation";
   const isFailure =
     status.kind === "unsupported" ||
-    status.kind === "denied" ||
-    status.kind === "sensor-unavailable";
+    status.kind === "denied";
 
   return (
     <div className="dream-experience__gate">

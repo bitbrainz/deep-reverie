@@ -1,7 +1,7 @@
 import type { OrientationPermissionConstructor } from "./deviceOrientation";
 
 export type ExperienceAccessResult =
-  | { kind: "granted"; stream: MediaStream }
+  | { kind: "granted"; stream: MediaStream; motionAvailable: boolean }
   | { kind: "unsupported" | "denied"; detail: string };
 
 type ExperienceAccessListener = (result: ExperienceAccessResult) => void;
@@ -30,23 +30,18 @@ export const requestExperienceAccess = async (): Promise<ExperienceAccessResult>
     };
   }
 
-  if (!("DeviceOrientationEvent" in window)) {
-    return {
-      kind: "unsupported",
-      detail: "This device does not provide the motion sensor needed to look around.",
-    };
-  }
-
-  const orientationConstructor =
-    DeviceOrientationEvent as OrientationPermissionConstructor;
-  let motionPermission: Promise<"granted" | "denied">;
+  let motionPermission = Promise.resolve<"granted" | "denied">("denied");
   let cameraPermission: Promise<MediaStream>;
-  try {
-    motionPermission = orientationConstructor.requestPermission
-      ? orientationConstructor.requestPermission()
-      : Promise.resolve<"granted">("granted");
-  } catch (error) {
-    motionPermission = Promise.reject(error);
+  if ("DeviceOrientationEvent" in window) {
+    const orientationConstructor =
+      DeviceOrientationEvent as OrientationPermissionConstructor;
+    try {
+      motionPermission = orientationConstructor.requestPermission
+        ? orientationConstructor.requestPermission()
+        : Promise.resolve<"granted">("granted");
+    } catch (error) {
+      motionPermission = Promise.reject(error);
+    }
   }
   try {
     cameraPermission = navigator.mediaDevices.getUserMedia({
@@ -65,24 +60,17 @@ export const requestExperienceAccess = async (): Promise<ExperienceAccessResult>
     cameraPermission,
   ]);
 
-  const motionGranted =
-    motionResult.status === "fulfilled" && motionResult.value === "granted";
   const cameraGranted = cameraResult.status === "fulfilled";
-  if (!motionGranted || !cameraGranted) {
-    if (cameraResult.status === "fulfilled") {
-      cameraResult.value.getTracks().forEach((track) => track.stop());
-    }
-    const blocked = [
-      !cameraGranted ? "camera" : null,
-      !motionGranted ? "motion" : null,
-    ].filter(Boolean);
+  if (!cameraGranted) {
     return {
       kind: "denied",
-      detail: `Allow ${blocked.join(" and ")} access in your browser settings, then try again.`,
+      detail: "Allow camera access in your browser settings, then try again.",
     };
   }
 
-  return { kind: "granted", stream: cameraResult.value };
+  const motionAvailable =
+    motionResult.status === "fulfilled" && motionResult.value === "granted";
+  return { kind: "granted", stream: cameraResult.value, motionAvailable };
 };
 
 export const prepareExperienceAccess = () => {

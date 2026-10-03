@@ -24,6 +24,7 @@ class DeviceOrientationEventMock extends Event {
 
 const stopTrack = vi.fn();
 const getUserMedia = vi.fn();
+const mediaStream = { getTracks: () => [{ stop: stopTrack }] } as unknown as MediaStream;
 
 class AudioMock {
   static instances: AudioMock[] = [];
@@ -56,7 +57,7 @@ describe("DreamExperience", () => {
   beforeEach(() => {
     AudioMock.instances = [];
     DeviceOrientationEventMock.requestPermission.mockResolvedValue("granted");
-    getUserMedia.mockResolvedValue({ getTracks: () => [{ stop: stopTrack }] });
+    getUserMedia.mockResolvedValue(mediaStream);
     Object.defineProperty(window, "isSecureContext", {
       configurable: true,
       value: true,
@@ -385,20 +386,26 @@ describe("DreamExperience", () => {
     expect(AudioMock.instances[0].pause).toHaveBeenCalledOnce();
   });
 
-  it("shows clear denied and unsupported states", async () => {
+  it("opens a static gallery when motion access is denied", async () => {
     DeviceOrientationEventMock.requestPermission.mockResolvedValueOnce("denied");
-    const { unmount } = render(<DreamExperience />);
-    fireEvent.click(screen.getByRole("button", { name: "Enter the gallery" }));
-    expect(await screen.findByText(/Allow motion access/)).toBeVisible();
-    expect(stopTrack).toHaveBeenCalled();
-    unmount();
-
-    vi.unstubAllGlobals();
     render(<DreamExperience />);
     fireEvent.click(screen.getByRole("button", { name: "Enter the gallery" }));
-    expect(
-      await screen.findByText(/does not provide the motion sensor needed/),
-    ).toBeVisible();
+
+    expect(await screen.findByText("AI Dreams")).toBeVisible();
+    expect(screen.getByRole("status", { name: "Tap on a diamond to hear about it." })).toBeVisible();
+    expect(screen.queryByRole("button", { name: "Recenter" })).not.toBeInTheDocument();
+    expect(screen.queryByText("The gallery could not open")).not.toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: /^Open / })).toHaveLength(26);
+    expect(document.querySelector("video")?.srcObject).toBe(mediaStream);
+  });
+
+  it("shows a clear error only when camera access fails", async () => {
+    getUserMedia.mockRejectedValueOnce(new Error("Camera denied"));
+    render(<DreamExperience />);
+    fireEvent.click(screen.getByRole("button", { name: "Enter the gallery" }));
+
+    expect(await screen.findByText(/Allow camera access/)).toBeVisible();
+    expect(screen.getByText("The gallery could not open")).toBeVisible();
   });
 
   it("uses the concise approved entry copy", () => {
