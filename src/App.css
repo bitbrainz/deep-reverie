@@ -224,7 +224,6 @@
 
 .dream-experience__recenter:focus-visible,
 .dream-experience__start:focus-visible,
-.dream-cylinder__overview button:focus-visible,
 .dream-diamond:focus-visible,
 .ar-dream-popover button:focus-visible {
   outline: 3px solid #f5cf7a;
@@ -484,54 +483,6 @@
   line-height: 1.4;
 }
 
-.dream-cylinder--overview .dream-diamond {
-  pointer-events: none;
-}
-
-.dream-cylinder__overview {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  display: flex;
-  min-height: min(62dvh, 500px);
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid rgba(229, 218, 255, 0.42);
-  border-radius: 50% 8% 50% 8% / 8% 50% 8% 50%;
-  padding: 3.5rem clamp(1.5rem, 7vw, 5rem);
-  background:
-    radial-gradient(circle at 50% 20%, rgba(207, 177, 255, 0.24), transparent 42%),
-    rgba(10, 7, 18, 0.9);
-  color: #faf8ff;
-  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.54), inset 0 0 70px rgba(143, 94, 212, 0.11);
-  text-align: center;
-  backface-visibility: hidden;
-  backdrop-filter: blur(18px);
-  transform: translate(-50%, -50%);
-}
-
-.dream-cylinder__overview::before,
-.dream-cylinder__overview::after {
-  position: absolute;
-  left: 50%;
-  width: 1px;
-  height: 3.5rem;
-  background: linear-gradient(#f2d795, transparent);
-  content: "";
-}
-
-.dream-cylinder__overview::before {
-  top: 1.35rem;
-}
-
-.dream-cylinder__overview::after {
-  right: auto;
-  bottom: 1.35rem;
-  transform: rotate(180deg);
-}
-
-.dream-cylinder__overview p,
 .dream-experience__eyebrow {
   margin: 0 0 0.85rem;
   color: #e5ce9a;
@@ -539,37 +490,6 @@
   font-weight: 800;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-}
-
-.dream-cylinder__overview h1 {
-  max-width: 10ch;
-  margin: 0;
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(4.2rem, 14vw, 6.5rem);
-  font-weight: 400;
-  line-height: 0.94;
-  letter-spacing: -0.045em;
-}
-
-.dream-cylinder__overview > span {
-  max-width: 35rem;
-  margin-top: 1.4rem;
-  color: #ddd7e8;
-  font-size: 1.35rem;
-  line-height: 1.65;
-}
-
-.dream-cylinder__overview button {
-  min-height: 2.8rem;
-  margin-top: 1.6rem;
-  border: 1px solid #f2d795;
-  border-radius: 999px;
-  padding: 0 1.35rem;
-  background: #f2d795;
-  color: #181020;
-  font-size: 1rem;
-  font-weight: 800;
-  letter-spacing: 0.04em;
 }
 
 .dream-experience__gate {

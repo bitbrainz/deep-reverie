@@ -25,17 +25,48 @@ describe("About the Art", () => {
     expect(screen.getByRole("heading", { name: "Bitbrainz" })).toBeVisible();
   });
 
-  it("links to the page from the home screen", () => {
+  it("brings the gallery choices, installation film, and artist onto the home screen", () => {
     render(
       <MemoryRouter>
         <Home />
       </MemoryRouter>,
     );
 
-    expect(screen.getByRole("link", { name: "About the Art" })).toHaveAttribute("href", "/about");
-    expect(screen.getByRole("link", { name: "Start AR Experience" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: /Explore in AR/ })).toHaveAttribute("href", "/app");
+    expect(screen.getByRole("link", { name: /Browse the Artwork/ })).toHaveAttribute(
       "href",
-      "/app",
+      "/gallery",
+    );
+    expect(screen.getByRole("img", { name: /vivid neon artwork/i })).toHaveAttribute(
+      "src",
+      "/images/deep-reverie-at-lumiere.webp",
+    );
+    expect(screen.getByTitle("Deep Reverie installation film")).toHaveAttribute(
+      "src",
+      "https://www.youtube-nocookie.com/embed/597IAhuQfZ4",
+    );
+    expect(screen.getByRole("heading", { name: "Bitbrainz" })).toBeVisible();
+    expect(screen.queryByText("Choose how to explore")).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /About the Art & Artists/ })).not.toBeInTheDocument();
+  });
+
+  it("keeps the home film and gallery available if its installation image fails", () => {
+    render(
+      <MemoryRouter>
+        <Home />
+      </MemoryRouter>,
+    );
+
+    fireEvent.error(screen.getByRole("img", { name: /vivid neon artwork/i }));
+
+    expect(screen.getByRole("status")).toHaveTextContent("Installation photograph unavailable");
+    expect(screen.getByRole("link", { name: /Browse the Artwork/ })).toHaveAttribute(
+      "href",
+      "/gallery",
+    );
+    expect(screen.getByRole("link", { name: /Watch on YouTube/i })).toHaveAttribute(
+      "href",
+      INSTALLATION_FILM_URL,
     );
   });
 
