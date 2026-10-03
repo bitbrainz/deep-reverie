@@ -21,7 +21,7 @@ type ARDreamPopoverProps = {
 type PlaybackStatus = "starting" | "playing" | "idle" | "error" | "unavailable";
 
 export const ARDreamPopover = memo(
-  forwardRef<HTMLElement, ARDreamPopoverProps>(function ARDreamPopover(
+  forwardRef<HTMLDivElement, ARDreamPopoverProps>(function ARDreamPopover(
     { dream, onDetails, onNarrationPlayingChange },
     ref,
   ) {
@@ -131,7 +131,7 @@ export const ARDreamPopover = memo(
     }, [startNarration, stopNarration]);
 
     return (
-      <aside
+      <div
         ref={ref}
         className="ar-dream-popover"
         role="dialog"
@@ -182,7 +182,7 @@ export const ARDreamPopover = memo(
             Narration could not start on this device.
           </p>
         ) : null}
-      </aside>
+      </div>
     );
   }),
 );

@@ -58,7 +58,7 @@ const DreamExperience = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const viewportRef = useRef<HTMLElement>(null);
   const selectedDiamondRef = useRef<HTMLButtonElement>(null);
-  const popoverRef = useRef<HTMLElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
   const tetherRef = useRef<HTMLSpanElement>(null);
   const popoverSizeRef = useRef({ width: 0, height: 0 });
   const viewportGeometryRef = useRef<{
