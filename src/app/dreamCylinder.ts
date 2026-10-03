@@ -31,10 +31,10 @@ export type DreamCylinderLayout = {
 };
 
 export const DEFAULT_CYLINDER_LAYOUT: CylinderLayoutConfig = {
-  frameWidth: 0.78,
-  frameHeight: 1.08,
-  horizontalGap: 0.14,
-  rowSpacing: 0.14,
+  frameWidth: 0.9,
+  frameHeight: 1.25,
+  horizontalGap: 0.1,
+  rowSpacing: 0.1,
   estimatedEyeHeight: 1.6,
   groundClearance: 0.4,
   pixelsPerMeter: 260,

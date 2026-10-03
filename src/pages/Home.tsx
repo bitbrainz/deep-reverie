@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router";
 
 const INSTALLATION_FILM_URL = "https://www.youtube.com/watch?v=597IAhuQfZ4";
@@ -24,6 +25,35 @@ const GalleryIcon = () => (
     <path d="m10 36 10-11 7 7 5-5 7 8" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
+
+const InstallationImage = () => {
+  const [unavailable, setUnavailable] = useState(false);
+
+  return (
+    <figure className="overflow-hidden rounded-[14px] border border-white/10 bg-[#130d22] shadow-[0_30px_90px_rgba(94,48,164,0.2)]">
+      {unavailable ? (
+        <div
+          role="status"
+          className="grid aspect-[4/3] place-items-center px-8 text-center text-sm leading-6 text-[#d8d1e7]"
+        >
+          Installation photograph unavailable. The film remains available below.
+        </div>
+      ) : (
+        <img
+          src="/images/deep-reverie-at-lumiere.webp"
+          alt="Deep Reverie's vivid neon artwork glowing in a geometric outdoor frame at night"
+          className="aspect-[4/3] h-full w-full object-cover object-[68%_center]"
+          loading="lazy"
+          onError={() => setUnavailable(true)}
+        />
+      )}
+      <figcaption className="flex items-center justify-between gap-4 border-t border-white/10 bg-[#0d0918] px-4 py-3 text-[0.65rem] font-bold uppercase tracking-[0.16em] text-[#c8b9ff] sm:px-5">
+        <span>Lumière: The Art of Light</span>
+        <span className="text-[#8f879e]">Toronto · 2025</span>
+      </figcaption>
+    </figure>
+  );
+};
 
 export const Home = () => {
   return (
@@ -111,7 +141,8 @@ export const Home = () => {
           </div>
 
           <div>
-            <div className="aspect-video overflow-hidden rounded-[14px] border border-white/10 bg-black shadow-[0_30px_90px_rgba(94,48,164,0.2)]">
+            <InstallationImage />
+            <div className="mt-6 aspect-video overflow-hidden rounded-[14px] border border-white/10 bg-black shadow-[0_30px_90px_rgba(94,48,164,0.2)]">
               <iframe
                 className="h-full w-full"
                 src="https://www.youtube-nocookie.com/embed/597IAhuQfZ4"
