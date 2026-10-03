@@ -13,6 +13,7 @@ describe("DetailsDrawer narration", () => {
     );
 
     expect(screen.getByRole("heading", { name: "Virtual Reality" })).toBeVisible();
+    expect(screen.queryByText(/^Dream \d+$/)).not.toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Narration unavailable for Virtual Reality" }),
     ).toBeDisabled();

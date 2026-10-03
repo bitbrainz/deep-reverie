@@ -21,11 +21,64 @@ class AudioMock {
   }
 }
 
+class ImageMock {
+  static instances: ImageMock[] = [];
+  static autoLoad = true;
+
+  onload: (() => void) | null = null;
+  onerror: (() => void) | null = null;
+  decode = vi.fn(() => Promise.resolve());
+  private source = "";
+
+  constructor() {
+    ImageMock.instances.push(this);
+  }
+
+  set src(value: string) {
+    this.source = value;
+    if (ImageMock.autoLoad) queueMicrotask(() => this.onload?.());
+  }
+
+  get src() {
+    return this.source;
+  }
+
+  finishLoading() {
+    this.onload?.();
+  }
+}
+
 describe("Gallery", () => {
   beforeEach(() => {
     AudioMock.instances = [];
     AudioMock.rejectPlayback = false;
+    ImageMock.instances = [];
+    ImageMock.autoLoad = true;
     vi.stubGlobal("Audio", AudioMock);
+    vi.stubGlobal("Image", ImageMock);
+  });
+
+  it("keeps mobile card overlays to title-only content", () => {
+    render(<Gallery />);
+
+    expect(screen.getByText("Immersive digital worlds for all")).toHaveClass(
+      "hidden",
+      "lg:block",
+    );
+  });
+
+  it("waits for the selected detail image before opening the drawer", async () => {
+    ImageMock.autoLoad = false;
+    render(<Gallery />);
+
+    fireEvent.click(screen.getByRole("button", { name: "View Deep Reverie" }));
+    expect(screen.queryByTestId("content")).not.toBeInTheDocument();
+    expect(ImageMock.instances.at(-1)?.src).toContain(
+      "/images/saturated/54_Title.webp",
+    );
+
+    ImageMock.instances.at(-1)?.finishLoading();
+    expect(await screen.findByTestId("content")).toBeVisible();
   });
 
   afterEach(() => {
@@ -43,13 +96,17 @@ describe("Gallery", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Next →" }));
 
-    expect(screen.getByRole("heading", { name: "Work-Life Balance" })).toBeVisible();
+    await waitFor(() =>
+      expect(screen.getByRole("heading", { name: "Work-Life Balance" })).toBeVisible(),
+    );
     expect(detailsPane.scrollTop).toBe(0);
 
     detailsPane.scrollTop = 400;
     fireEvent.click(screen.getByRole("button", { name: "← Previous" }));
 
-    expect(screen.getByRole("heading", { name: "Virtual Reality" })).toBeVisible();
+    await waitFor(() =>
+      expect(screen.getByRole("heading", { name: "Virtual Reality" })).toBeVisible(),
+    );
     expect(detailsPane.scrollTop).toBe(0);
   });
 
@@ -63,7 +120,9 @@ describe("Gallery", () => {
     await waitFor(() => expect(closeButton).toHaveFocus());
 
     fireEvent.click(screen.getByRole("button", { name: "Next →" }));
-    expect(screen.getByRole("heading", { name: "Work-Life Balance" })).toBeVisible();
+    await waitFor(() =>
+      expect(screen.getByRole("heading", { name: "Work-Life Balance" })).toBeVisible(),
+    );
 
     fireEvent.keyDown(document, { key: "Escape" });
 

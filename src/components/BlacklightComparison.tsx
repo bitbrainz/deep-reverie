@@ -1,9 +1,10 @@
-import { useId, useRef, useState } from "react";
+import { useId, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { emulateBlacklight } from "./blacklightTransform";
 
 export const BlacklightComparison = ({ src, alt }: { src: string; alt: string }) => {
   const [position, setPosition] = useState(50);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const activePointerRef = useRef<number | null>(null);
   const instructionsId = useId();
 
   const renderBlacklight = (image: HTMLImageElement) => {
@@ -20,9 +21,41 @@ export const BlacklightComparison = ({ src, alt }: { src: string; alt: string })
     context.putImageData(emulateBlacklight(imageData), 0, 0);
   };
 
+  const updateFromPointer = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const bounds = event.currentTarget.getBoundingClientRect();
+    if (bounds.width === 0) return;
+    const nextPosition = ((event.clientX - bounds.left) / bounds.width) * 100;
+    setPosition(Math.min(100, Math.max(0, nextPosition)));
+  };
+
+  const startPointerComparison = (event: ReactPointerEvent<HTMLDivElement>) => {
+    activePointerRef.current = event.pointerId;
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+    updateFromPointer(event);
+  };
+
+  const movePointerComparison = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (activePointerRef.current !== event.pointerId) return;
+    updateFromPointer(event);
+  };
+
+  const stopPointerComparison = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (activePointerRef.current !== event.pointerId) return;
+    activePointerRef.current = null;
+    if (event.currentTarget.hasPointerCapture?.(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+  };
+
   return (
     <figure className="blacklight-comparison">
-      <div className="blacklight-comparison__stage">
+      <div
+        className="blacklight-comparison__stage"
+        onPointerDown={startPointerComparison}
+        onPointerMove={movePointerComparison}
+        onPointerUp={stopPointerComparison}
+        onPointerCancel={stopPointerComparison}
+      >
         <img src={src} alt={alt} onLoad={(event) => renderBlacklight(event.currentTarget)} />
         <canvas
           ref={canvasRef}
@@ -55,7 +88,7 @@ export const BlacklightComparison = ({ src, alt }: { src: string; alt: string })
         </span>
       </div>
       <figcaption id={instructionsId}>
-        Drag the divider or use the arrow keys to compare blacklight and normal views.
+        Tap or drag anywhere on the image, or use the arrow keys, to compare views.
       </figcaption>
     </figure>
   );

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { DREAMS } from "../dreams/data/dreams";
 import DreamExperience from "./DreamExperience";
@@ -100,7 +100,7 @@ describe("DreamExperience", () => {
     expect(document.querySelectorAll('.dream-diamond img[loading="eager"]')).toHaveLength(50);
     expect(
       screen
-        .getByRole("button", { name: /Open dream 18:/ })
+        .getByRole("button", { name: "Open Animal Protection" })
         .closest(".dream-placement")
         ?.getAttribute("style"),
     ).toContain("translateY(0px)");
@@ -111,12 +111,12 @@ describe("DreamExperience", () => {
     );
     expect(
       screen.getByRole("button", {
-        name: `Open dream 50: ${DREAMS.find(({ id }) => id === 50)?.title}`,
+        name: `Open ${DREAMS.find(({ id }) => id === 50)?.title}`,
       }),
     ).toBeVisible();
     expect(
       screen.queryByRole("button", {
-        name: `Open dream 51: ${DREAMS.find(({ id }) => id === 51)?.title}`,
+        name: `Open ${DREAMS.find(({ id }) => id === 51)?.title}`,
       }),
     ).not.toBeInTheDocument();
     expect(screen.queryByLabelText("About the dream cylinder")).not.toBeInTheDocument();
@@ -142,7 +142,9 @@ describe("DreamExperience", () => {
       window,
       new DeviceOrientationEventMock("deviceorientation", { alpha: 250, beta: 80 }),
     );
-    expect(world).toHaveStyle({ transform: "rotateX(-1.32deg) rotateY(20deg)" });
+    await waitFor(() =>
+      expect(world).toHaveStyle({ transform: "rotateX(-1.32deg) rotateY(20deg)" }),
+    );
 
     fireEvent.click(screen.getByRole("button", { name: "Recenter" }));
     expect(world).toHaveStyle({ transform: "rotateX(0deg) rotateY(0deg)" });
@@ -152,7 +154,7 @@ describe("DreamExperience", () => {
     render(<DreamExperience />);
     await startWithHeading(270);
 
-    const dreamOne = screen.getByRole("button", { name: /Open dream 01:/ });
+    const dreamOne = screen.getByRole("button", { name: "Open Virtual Reality" });
     const dreamTen = document.querySelector<HTMLButtonElement>(
       '[data-dream-id="10"]',
     );
@@ -165,30 +167,62 @@ describe("DreamExperience", () => {
       new DeviceOrientationEventMock("deviceorientation", { alpha: 100, beta: 90 }),
     );
 
-    expect(dreamOne).not.toBeVisible();
-    expect(dreamTen).toBeVisible();
+    await waitFor(() => {
+      expect(dreamOne).not.toBeVisible();
+      expect(dreamTen).toBeVisible();
+    });
+  });
+
+  it("coalesces high-frequency heading samples to the newest animation frame", async () => {
+    const frames: FrameRequestCallback[] = [];
+    vi.spyOn(window, "requestAnimationFrame").mockImplementation((callback) => {
+      frames.push(callback);
+      return frames.length;
+    });
+    render(<DreamExperience />);
+    await startWithHeading(270);
+    const baselineFrameCount = frames.length;
+
+    fireEvent(
+      window,
+      new DeviceOrientationEventMock("deviceorientation", { alpha: 260, beta: 90 }),
+    );
+    fireEvent(
+      window,
+      new DeviceOrientationEventMock("deviceorientation", { alpha: 250, beta: 90 }),
+    );
+    fireEvent(
+      window,
+      new DeviceOrientationEventMock("deviceorientation", { alpha: 240, beta: 90 }),
+    );
+
+    expect(frames).toHaveLength(baselineFrameCount + 1);
+    act(() => frames.at(-1)?.(16));
+    expect(screen.getByTestId("dream-cylinder-world")).toHaveStyle({
+      transform: "rotateX(0deg) rotateY(30deg)",
+    });
   });
 
   it("shows a replaceable AR popover and automatically changes narration", async () => {
     render(<DreamExperience />);
     await startWithHeading();
-    fireEvent.click(screen.getByRole("button", { name: /Open dream 01:/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Open Virtual Reality" }));
     expect(
       await screen.findByRole("dialog", { name: "Virtual Reality" }),
     ).toBeVisible();
     expect(document.querySelector(".dream-placement .ar-dream-popover")).toBeNull();
-    expect(screen.getByRole("button", { name: /Open dream 01:/ })).toHaveAttribute(
+    expect(screen.getByRole("button", { name: "Open Virtual Reality" })).toHaveAttribute(
       "aria-pressed",
       "true",
     );
-    expect(screen.getByRole("button", { name: /Open dream 01:/ })).toHaveClass(
+    expect(screen.getByRole("button", { name: "Open Virtual Reality" })).toHaveClass(
       "dream-diamond--selected",
     );
     expect(AudioMock.instances).toHaveLength(1);
     expect(AudioMock.instances[0].play).toHaveBeenCalledOnce();
 
     expect(screen.getByRole("button", { name: "Recenter" })).toBeVisible();
-    fireEvent.click(screen.getByRole("button", { name: /Open dream 18:/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Open Animal Protection" }));
     await waitFor(() =>
       expect(
         screen.getByRole("dialog", { name: "Animal Protection" }),
@@ -199,7 +233,7 @@ describe("DreamExperience", () => {
     expect(
       screen.queryByRole("dialog", { name: "Virtual Reality" }),
     ).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Open dream 18:/ })).toHaveAttribute(
+    expect(screen.getByRole("button", { name: "Open Animal Protection" })).toHaveAttribute(
       "aria-pressed",
       "true",
     );
@@ -212,7 +246,7 @@ describe("DreamExperience", () => {
     const viewport = document.querySelector<HTMLElement>(
       ".dream-experience__viewport",
     );
-    const dreamOne = screen.getByRole("button", { name: /Open dream 01:/ });
+    const dreamOne = screen.getByRole("button", { name: "Open Virtual Reality" });
     expect(viewport).not.toBeNull();
 
     let diamondLeft = 80;
@@ -232,7 +266,9 @@ describe("DreamExperience", () => {
       window,
       new DeviceOrientationEventMock("deviceorientation", { alpha: 260, beta: 90 }),
     );
-    expect(popover).toHaveStyle({ left: "242px", visibility: "visible" });
+    await waitFor(() =>
+      expect(popover).toHaveStyle({ left: "242px", visibility: "visible" }),
+    );
 
     fireEvent.click(viewport!);
     expect(screen.queryByTestId("ar-dream-popover")).not.toBeInTheDocument();
@@ -242,7 +278,7 @@ describe("DreamExperience", () => {
   it("opens the existing scrollable gallery details modal", async () => {
     render(<DreamExperience />);
     await startWithHeading();
-    fireEvent.click(screen.getByRole("button", { name: /Open dream 01:/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Open Virtual Reality" }));
     fireEvent.click(await screen.findByRole("button", { name: "View details" }));
 
     const details = await screen.findByTestId("content");

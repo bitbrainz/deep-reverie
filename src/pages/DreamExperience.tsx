@@ -51,6 +51,7 @@ const DreamExperience = () => {
   const selectedDiamondRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const orientationFrameRef = useRef<number | null>(null);
   const originRef = useRef<OrientationSample | null>(null);
   const latestSampleRef = useRef<OrientationSample | null>(null);
   const [status, setStatus] = useState<ExperienceStatus>({ kind: "idle" });
@@ -178,13 +179,27 @@ const DreamExperience = () => {
         return;
       }
 
-      setHeading(signedAngularDifference(currentHeading, originRef.current.heading));
-      const rawPitchDelta = currentPitch - originRef.current.pitch;
-      setPitch((previousPitch) => stabilizePitch(previousPitch, rawPitchDelta));
+      if (orientationFrameRef.current !== null) return;
+      orientationFrameRef.current = window.requestAnimationFrame(() => {
+        orientationFrameRef.current = null;
+        const latestSample = latestSampleRef.current;
+        const origin = originRef.current;
+        if (!latestSample || !origin) return;
+
+        setHeading(signedAngularDifference(latestSample.heading, origin.heading));
+        const rawPitchDelta = latestSample.pitch - origin.pitch;
+        setPitch((previousPitch) => stabilizePitch(previousPitch, rawPitchDelta));
+      });
     };
 
     window.addEventListener("deviceorientation", onOrientation, true);
-    return () => window.removeEventListener("deviceorientation", onOrientation, true);
+    return () => {
+      window.removeEventListener("deviceorientation", onOrientation, true);
+      if (orientationFrameRef.current !== null) {
+        window.cancelAnimationFrame(orientationFrameRef.current);
+        orientationFrameRef.current = null;
+      }
+    };
   }, [status.kind]);
 
   useEffect(() => {
@@ -384,7 +399,7 @@ const DreamExperience = () => {
                         aria-hidden={isFrontFacing ? undefined : true}
                         tabIndex={isFrontFacing ? 0 : -1}
                         aria-pressed={isSelected}
-                        aria-label={`Open dream ${String(placement.dream.id).padStart(2, "0")}: ${placement.dream.title}`}
+                        aria-label={`Open ${placement.dream.title}`}
                         onClick={(event) => {
                           event.stopPropagation();
                           openDream(placement.dream, event.currentTarget);
@@ -421,7 +436,7 @@ const DreamExperience = () => {
           {isActive ? (
             <div className="dream-experience__guide" aria-live="polite">
               <span aria-hidden="true" />
-              Turn to look around · tilt to move between rows
+              Turn to look around
             </div>
           ) : null}
       </section>
