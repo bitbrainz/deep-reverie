@@ -107,6 +107,7 @@ describe("About the Art", () => {
     ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
     expect(screen.getByText(/turns public space into a luminous daydream/i)).toBeVisible();
     expect(screen.getByText(/Bolton Fire Bell/i)).toBeVisible();
+    expect(screen.queryByRole("link", { name: /Visit Bitbrainz/i })).not.toBeInTheDocument();
     expect(document.body).not.toHaveTextContent(/\b54\b/);
     expect(screen.queryByText("Choose how to explore")).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /About the Art & Artists/ })).not.toBeInTheDocument();
