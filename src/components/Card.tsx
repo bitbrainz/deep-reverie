@@ -6,14 +6,25 @@ interface CardProps {
   tagline: string;
   eager?: boolean;
   onClick: MouseEventHandler<HTMLButtonElement>;
+  onPreload?: () => void;
 }
 
-const Card = ({ imageUrl, title, tagline, eager = false, onClick }: CardProps) => {
+const Card = ({
+  imageUrl,
+  title,
+  tagline,
+  eager = false,
+  onClick,
+  onPreload,
+}: CardProps) => {
   return (
     <button
       type="button"
       className="group relative aspect-square w-full overflow-hidden rounded-2xl bg-slate-800 text-left shadow-lg shadow-black/20 outline-none transition duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-violet-950/40 focus-visible:ring-2 focus-visible:ring-violet-300 focus-visible:ring-offset-4 focus-visible:ring-offset-slate-950 motion-reduce:transform-none motion-reduce:transition-none"
       onClick={onClick}
+      onFocus={onPreload}
+      onPointerDown={onPreload}
+      onPointerEnter={onPreload}
       aria-label={`View ${title}`}
     >
       <img
@@ -27,9 +38,9 @@ const Card = ({ imageUrl, title, tagline, eager = false, onClick }: CardProps) =
         fetchPriority={eager ? "high" : "auto"}
         decoding="async"
       />
-      <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950 via-slate-950/75 to-transparent px-4 pb-4 pt-12 text-white">
-        <span className="block text-base font-semibold leading-tight">{title}</span>
-        <span className="mt-1 block text-xs leading-snug text-slate-300">{tagline}</span>
+      <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950 via-slate-950/75 to-transparent px-3 pb-3 pt-9 text-white sm:px-4 sm:pb-4 sm:pt-12">
+        <span className="block text-sm font-semibold leading-tight sm:text-base">{title}</span>
+        <span className="mt-1 hidden text-xs leading-snug text-slate-300 lg:block">{tagline}</span>
       </span>
     </button>
   );

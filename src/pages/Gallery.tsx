@@ -3,10 +3,27 @@ import Card from "../components/Card";
 import { DetailsDrawer } from "../components/DetailsDrawer";
 import { AppBar } from "../components/AppBar";
 import { useDreamSelection } from "../dreams/useDreamSelection";
+import { preloadDreamArtwork } from "../dreams/dreamArtwork";
 
 const Gallery = () => {
   const { selectedDream, selectDream, selectAdjacentDream, closeDetails } =
     useDreamSelection(DREAMS);
+
+  const openDream = async (
+    dream: (typeof DREAMS)[number],
+    opener: HTMLButtonElement,
+  ) => {
+    await preloadDreamArtwork(dream);
+    selectDream(dream, opener);
+  };
+
+  const openAdjacentDream = async (offset: number) => {
+    if (!selectedDream) return;
+    const selectedIndex = DREAMS.findIndex(({ id }) => id === selectedDream.id);
+    const nextIndex = (selectedIndex + offset + DREAMS.length) % DREAMS.length;
+    await preloadDreamArtwork(DREAMS[nextIndex]);
+    selectAdjacentDream(offset);
+  };
 
   return (
     <div className="min-h-screen bg-slate-950 text-white">
@@ -31,8 +48,9 @@ const Gallery = () => {
               title={dream.title}
               tagline={dream.tagline}
               eager={index < 6}
+              onPreload={() => void preloadDreamArtwork(dream)}
               onClick={(event) => {
-                selectDream(dream, event.currentTarget);
+                void openDream(dream, event.currentTarget);
               }}
             />
           ))}
@@ -43,8 +61,8 @@ const Gallery = () => {
         dream={selectedDream}
         open={selectedDream !== null}
         onClose={closeDetails}
-        onPrevious={() => selectAdjacentDream(-1)}
-        onNext={() => selectAdjacentDream(1)}
+        onPrevious={() => void openAdjacentDream(-1)}
+        onNext={() => void openAdjacentDream(1)}
       />
     </div>
   );

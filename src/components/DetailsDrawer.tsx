@@ -11,6 +11,7 @@ import { Drawer } from "vaul";
 import { Dream } from "../dreams/data/dreams";
 import { getNarrationUrl } from "../dreams/data/narrations";
 import { BlacklightComparison } from "./BlacklightComparison";
+import { getDreamDetailUrl } from "../dreams/dreamArtwork";
 
 type DetailsDrawerProps = PropsWithChildren<{
   dream: Dream | null | undefined;
@@ -197,12 +198,11 @@ export const DetailsDrawer = ({
             <article>
               <div className="relative overflow-hidden bg-slate-900">
                 <BlacklightComparison
-                  src={`/images/saturated/${dream.fileName.replace(".png", ".webp")}`}
+                  src={getDreamDetailUrl(dream)}
                   alt={dream.title}
                 />
                 <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-slate-950 via-slate-950/65 to-transparent px-5 pb-10 pt-20 text-white sm:px-8 sm:pb-10">
-                  <p className="text-sm text-violet-200">Dream {String(dream.id).padStart(2, "0")}</p>
-                  <h1 className="mt-1 text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">
+                  <h1 className="text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">
                     {dream.title}
                   </h1>
                   <p className="mt-2 text-sm text-slate-200 sm:text-base">{dream.tagline}</p>
