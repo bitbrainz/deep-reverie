@@ -37,15 +37,24 @@ describe("About the Art", () => {
       "href",
       "/gallery",
     );
+    expect(screen.getByRole("link", { name: /By Bitbrainz/ })).toHaveAttribute(
+      "href",
+      "#the-artist",
+    );
     expect(screen.getByRole("img", { name: /vivid neon artwork/i })).toHaveAttribute(
       "src",
       "/images/deep-reverie-at-lumiere.webp",
     );
+    expect(screen.getByRole("img", { name: /vivid neon artwork/i })).toHaveClass("scale-[1.5]");
     expect(screen.getByTitle("Deep Reverie installation film")).toHaveAttribute(
       "src",
       "https://www.youtube-nocookie.com/embed/597IAhuQfZ4",
     );
     expect(screen.getByRole("heading", { name: "Bitbrainz" })).toBeVisible();
+    expect(screen.getByRole("heading", { name: /The Project/i })).toBeVisible();
+    expect(screen.getByText(/turns public space into a luminous daydream/i)).toBeVisible();
+    expect(screen.getByText(/Bolton Fire Bell/i)).toBeVisible();
+    expect(document.body).not.toHaveTextContent(/\b54\b/);
     expect(screen.queryByText("Choose how to explore")).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /About the Art & Artists/ })).not.toBeInTheDocument();
   });
@@ -80,7 +89,8 @@ describe("About the Art", () => {
     fireEvent.error(screen.getByRole("img", { name: /vivid neon artwork/i }));
 
     expect(screen.getByRole("status")).toHaveTextContent("Installation photograph unavailable");
-    expect(screen.getByRole("link", { name: "Explore all 54 visions" })).toHaveAttribute("href", "/gallery");
+    expect(screen.getByRole("link", { name: "Explore the dream archive" })).toHaveAttribute("href", "/gallery");
+    expect(document.body).not.toHaveTextContent(/\b54\b/);
     expect(screen.getByRole("link", { name: /watch it on YouTube/i })).toHaveAttribute("href", INSTALLATION_FILM_URL);
   });
 });

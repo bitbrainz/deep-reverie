@@ -53,7 +53,7 @@ const About = () => {
                 to="/gallery"
                 className="inline-flex min-h-12 items-center bg-violet-400 px-6 text-sm font-bold text-violet-950 transition hover:bg-violet-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#060611]"
               >
-                Explore all 54 visions
+                Explore the dream archive
               </Link>
               <a
                 href="#installation-film"
@@ -70,8 +70,8 @@ const About = () => {
         <section className="border-y border-white/10 bg-[#0b0a1b]">
           <div className="mx-auto grid max-w-[1280px] gap-12 px-5 py-20 sm:px-8 sm:py-28 lg:grid-cols-[0.6fr_1.4fr] lg:gap-24">
             <div>
-              <p className="text-[clamp(6rem,16vw,12rem)] font-semibold leading-none tracking-[-0.09em] text-violet-300">54</p>
-              <p className="mt-2 max-w-xs text-xs font-bold uppercase tracking-[0.24em] text-fuchsia-400">visions of tomorrow</p>
+              <p className="max-w-md text-5xl font-semibold leading-[0.94] tracking-[-0.06em] text-violet-300 sm:text-7xl">Possible futures</p>
+              <p className="mt-4 max-w-xs text-xs font-bold uppercase tracking-[0.24em] text-fuchsia-400">dreams rendered in ultraviolet</p>
             </div>
             <div className="max-w-3xl">
               <h2 className="text-3xl font-semibold tracking-tight sm:text-5xl">Hope rendered in ultraviolet.</h2>

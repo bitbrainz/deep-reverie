@@ -2,11 +2,13 @@ import { useState } from "react";
 
 type InstallationImageProps = {
   className?: string;
+  crop?: "standard" | "tight";
   priority?: boolean;
 };
 
 export const InstallationImage = ({
   className = "",
+  crop = "standard",
   priority = false,
 }: InstallationImageProps) => {
   const [unavailable, setUnavailable] = useState(false);
@@ -26,7 +28,11 @@ export const InstallationImage = ({
         <img
           src="/images/deep-reverie-at-lumiere.webp"
           alt="Deep Reverie's vivid neon artwork glowing in a geometric outdoor frame at night"
-          className="aspect-[4/3] h-full w-full object-cover object-[68%_center] sm:aspect-[3/2]"
+          className={`h-full w-full object-cover transition-transform duration-700 motion-reduce:transition-none ${
+            crop === "tight"
+              ? "aspect-[4/3] origin-[72%_52%] scale-[1.5] object-[70%_48%] sm:aspect-[16/10] sm:scale-[1.36]"
+              : "aspect-[4/3] object-[68%_center] sm:aspect-[3/2]"
+          }`}
           loading={priority ? "eager" : "lazy"}
           fetchPriority={priority ? "high" : "auto"}
           onError={() => setUnavailable(true)}
