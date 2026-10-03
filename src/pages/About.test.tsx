@@ -101,6 +101,19 @@ describe("About the Art", () => {
     expect(screen.queryByRole("link", { name: /About the Art & Artists/ })).not.toBeInTheDocument();
   });
 
+  it("shows the artwork's original 2024 year throughout the home screen", () => {
+    render(
+      <MemoryRouter>
+        <Home />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByText("Deep Reverie at Lumière · Toronto, 2024")).toBeVisible();
+    expect(screen.getByText("Toronto · 2024")).toBeVisible();
+    expect(screen.getByText("Deep Reverie · Bitbrainz · 2024")).toBeVisible();
+    expect(document.body).not.toHaveTextContent(/\b2025\b/);
+  });
+
   it("keeps the home film and gallery available if its installation image fails", () => {
     render(
       <MemoryRouter>

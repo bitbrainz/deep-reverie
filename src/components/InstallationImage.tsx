@@ -40,7 +40,7 @@ export const InstallationImage = ({
       )}
       <figcaption className="flex items-center justify-between gap-6 border-t border-violet-200/15 bg-slate-950/95 px-4 py-3 text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-violet-200 sm:px-6">
         <span>Lumière: The Art of Light</span>
-        <span className="text-slate-400">Toronto · 2025</span>
+        <span className="text-slate-400">Toronto · 2024</span>
       </figcaption>
     </figure>
   );
