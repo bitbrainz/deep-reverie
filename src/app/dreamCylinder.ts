@@ -31,9 +31,9 @@ export type DreamCylinderLayout = {
 export const DEFAULT_CYLINDER_LAYOUT: CylinderLayoutConfig = {
   frameWidth: 1.12,
   frameHeight: 1.56,
-  horizontalGap: 0.22,
-  // Retain the staggered lattice while leaving breathing room between rows.
-  rowSpacing: -0.48,
+  horizontalGap: 0.17,
+  // Keep the enlarged diamonds airy without letting the lattice feel sparse.
+  rowSpacing: -0.55,
   pixelsPerMeter: 260,
   overviewAngle: 60,
 };

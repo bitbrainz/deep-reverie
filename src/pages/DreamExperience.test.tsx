@@ -24,6 +24,7 @@ class DeviceOrientationEventMock extends Event {
 
 const stopTrack = vi.fn();
 const getUserMedia = vi.fn();
+const mediaStream = { getTracks: () => [{ stop: stopTrack }] } as unknown as MediaStream;
 
 class AudioMock {
   static instances: AudioMock[] = [];
@@ -56,7 +57,7 @@ describe("DreamExperience", () => {
   beforeEach(() => {
     AudioMock.instances = [];
     DeviceOrientationEventMock.requestPermission.mockResolvedValue("granted");
-    getUserMedia.mockResolvedValue({ getTracks: () => [{ stop: stopTrack }] });
+    getUserMedia.mockResolvedValue(mediaStream);
     Object.defineProperty(window, "isSecureContext", {
       configurable: true,
       value: true,
@@ -141,10 +142,15 @@ describe("DreamExperience", () => {
         name: `Open ${DREAMS.find(({ id }) => id === 52)?.title}`,
       }),
     ).not.toBeInTheDocument();
-    expect(screen.getByText("The gallery surrounds you")).toBeVisible();
     expect(
-      screen.getByText("Turn slowly with your phone to discover every artwork"),
+      screen.getByRole("status", {
+        name: "Turn around to view the gallery. Tap on a diamond to hear about it.",
+      }),
     ).toBeVisible();
+    expect(screen.getByText("Turn around to view the gallery")).toBeVisible();
+    expect(screen.getByText("Tap on a diamond to hear about it")).toBeVisible();
+    expect(screen.queryByTestId("ambient-particles")).not.toBeInTheDocument();
+    expect(document.querySelector(".dream-experience__particle")).toBeNull();
     expect(screen.queryByLabelText("About the dream cylinder")).not.toBeInTheDocument();
   });
 
@@ -171,7 +177,6 @@ describe("DreamExperience", () => {
     await waitFor(() =>
       expect(world).toHaveStyle({ transform: "rotateX(-1.32deg) rotateY(20deg)" }),
     );
-
     fireEvent.click(screen.getByRole("button", { name: "Recenter" }));
     expect(world).toHaveStyle({ transform: "rotateX(0deg) rotateY(0deg)" });
   });
@@ -244,6 +249,9 @@ describe("DreamExperience", () => {
     expect(screen.getByRole("button", { name: "Open Virtual Reality" })).toHaveClass(
       "dream-diamond--selected",
     );
+    expect(screen.getByTestId("dream-cylinder-stage")).not.toHaveClass(
+      "dream-cylinder__stage--selected",
+    );
     expect(AudioMock.instances).toHaveLength(1);
     expect(AudioMock.instances[0].play).toHaveBeenCalledOnce();
 
@@ -265,6 +273,24 @@ describe("DreamExperience", () => {
     );
   });
 
+  it("selects a visible diamond when perspective hit testing resolves to the stage", async () => {
+    render(<DreamExperience />);
+    await startWithHeading();
+
+    const stage = screen.getByTestId("dream-cylinder-stage");
+    const dream = screen.getByRole("button", { name: "Open Virtual Reality" });
+    vi.spyOn(dream, "getBoundingClientRect").mockReturnValue(
+      rect(100, 200, 120, 160),
+    );
+
+    fireEvent.click(stage, { clientX: 160, clientY: 280 });
+
+    expect(
+      await screen.findByRole("dialog", { name: "Virtual Reality" }),
+    ).toBeVisible();
+    expect(dream).toHaveAttribute("aria-pressed", "true");
+  });
+
   it("keeps the flat popover beside the moving diamond and dismisses without selecting through the background", async () => {
     render(<DreamExperience />);
     await startWithHeading();
@@ -276,11 +302,12 @@ describe("DreamExperience", () => {
     expect(viewport).not.toBeNull();
 
     let diamondLeft = 80;
+    let diamondTop = 260;
     const measureViewport = vi
       .spyOn(viewport!, "getBoundingClientRect")
       .mockReturnValue(rect(0, 0, 390, 844));
     vi.spyOn(dreamOne, "getBoundingClientRect").mockImplementation(() =>
-      rect(diamondLeft, 260, 120, 160),
+      rect(diamondLeft, diamondTop, 120, 160),
     );
 
     fireEvent.click(dreamOne);
@@ -288,6 +315,7 @@ describe("DreamExperience", () => {
     expect(popover).toHaveStyle({
       transform: "translate3d(212px, 340px, 0)",
       visibility: "visible",
+      width: "238px",
     });
 
     const measurePopover = vi
@@ -298,19 +326,32 @@ describe("DreamExperience", () => {
     measurePopover.mockClear();
     measureViewport.mockClear();
 
-    diamondLeft = 110;
+    diamondLeft = 90;
     fireEvent(
       window,
       new DeviceOrientationEventMock("deviceorientation", { alpha: 260, beta: 90 }),
     );
     await waitFor(() =>
       expect(popover).toHaveStyle({
-        transform: "translate3d(136px, 190px, 0)",
+        transform: "translate3d(222px, 190px, 0)",
         visibility: "visible",
       }),
     );
     expect(measurePopover).not.toHaveBeenCalled();
     expect(measureViewport).not.toHaveBeenCalled();
+
+    diamondLeft = -180;
+    diamondTop = -240;
+    fireEvent(
+      window,
+      new DeviceOrientationEventMock("deviceorientation", { alpha: 250, beta: 90 }),
+    );
+    await waitFor(() =>
+      expect(popover).toHaveStyle({
+        transform: "translate3d(-48px, -310px, 0)",
+        visibility: "visible",
+      }),
+    );
 
     const world = screen.getByTestId("dream-cylinder-world");
     const otherDream = screen.getByRole("button", { name: "Open Animal Protection" });
@@ -331,7 +372,7 @@ describe("DreamExperience", () => {
     render(<DreamExperience />);
     await startWithHeading();
     fireEvent.click(screen.getByRole("button", { name: "Open Virtual Reality" }));
-    fireEvent.click(await screen.findByRole("button", { name: "View details" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Details" }));
 
     const details = await screen.findByTestId("content");
     expect(details).toBeVisible();
@@ -345,20 +386,26 @@ describe("DreamExperience", () => {
     expect(AudioMock.instances[0].pause).toHaveBeenCalledOnce();
   });
 
-  it("shows clear denied and unsupported states", async () => {
+  it("opens a static gallery when motion access is denied", async () => {
     DeviceOrientationEventMock.requestPermission.mockResolvedValueOnce("denied");
-    const { unmount } = render(<DreamExperience />);
-    fireEvent.click(screen.getByRole("button", { name: "Enter the gallery" }));
-    expect(await screen.findByText(/Allow motion access/)).toBeVisible();
-    expect(stopTrack).toHaveBeenCalled();
-    unmount();
-
-    vi.unstubAllGlobals();
     render(<DreamExperience />);
     fireEvent.click(screen.getByRole("button", { name: "Enter the gallery" }));
-    expect(
-      await screen.findByText(/does not provide the motion sensor needed/),
-    ).toBeVisible();
+
+    expect(await screen.findByText("AI Dreams")).toBeVisible();
+    expect(screen.getByRole("status", { name: "Tap on a diamond to hear about it." })).toBeVisible();
+    expect(screen.queryByRole("button", { name: "Recenter" })).not.toBeInTheDocument();
+    expect(screen.queryByText("The gallery could not open")).not.toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: /^Open / })).toHaveLength(26);
+    expect(document.querySelector("video")?.srcObject).toBe(mediaStream);
+  });
+
+  it("shows a clear error only when camera access fails", async () => {
+    getUserMedia.mockRejectedValueOnce(new Error("Camera denied"));
+    render(<DreamExperience />);
+    fireEvent.click(screen.getByRole("button", { name: "Enter the gallery" }));
+
+    expect(await screen.findByText(/Allow camera access/)).toBeVisible();
+    expect(screen.getByText("The gallery could not open")).toBeVisible();
   });
 
   it("uses the concise approved entry copy", () => {

@@ -49,7 +49,7 @@ describe("ARDreamPopover", () => {
       "/audio/narrations/01-virtual-reality.mp3",
     );
     expect(AudioMock.instances[0].play).toHaveBeenCalledOnce();
-    expect(screen.getByRole("button", { name: "View details" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Details" })).toBeVisible();
     expect(screen.queryByRole("button", { name: /Stop narration/ })).not.toBeInTheDocument();
   });
 
@@ -88,7 +88,7 @@ describe("ARDreamPopover", () => {
       <ARDreamPopover dream={DREAMS[0]} onDetails={onDetails} />,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "View details" }));
+    fireEvent.click(screen.getByRole("button", { name: "Details" }));
     expect(onDetails).toHaveBeenCalledOnce();
   });
 

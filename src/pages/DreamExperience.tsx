@@ -34,16 +34,15 @@ import { publicAssetPath } from "../app/publicAssetPath";
 
 const SENSOR_TIMEOUT_MS = 4_000;
 const POPOVER_GAP_PX = 12;
-const VIEWPORT_EDGE_PX = 16;
+const POPOVER_MAX_WIDTH_PX = 238;
 
 type ExperienceStatus =
   | { kind: "idle" }
   | { kind: "requesting" }
   | { kind: "awaiting-orientation" }
-  | { kind: "active" }
+  | { kind: "active"; motionEnabled: boolean }
   | { kind: "unsupported"; detail: string }
-  | { kind: "denied"; detail: string }
-  | { kind: "sensor-unavailable"; detail: string };
+  | { kind: "denied"; detail: string };
 
 type OrientationSample = { heading: number; pitch: number };
 
@@ -60,8 +59,6 @@ const DreamExperience = () => {
   const viewportGeometryRef = useRef<{
     left: number;
     top: number;
-    width: number;
-    height: number;
   } | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const orientationFrameRef = useRef<number | null>(null);
@@ -116,7 +113,11 @@ const DreamExperience = () => {
       videoRef.current.srcObject = result.stream;
       void videoRef.current.play().catch(() => undefined);
     }
-    setStatus({ kind: "awaiting-orientation" });
+    setStatus(
+      result.motionAvailable
+        ? { kind: "awaiting-orientation" }
+        : { kind: "active", motionEnabled: false },
+    );
   }, []);
 
   const startExperience = useCallback(async () => {
@@ -164,7 +165,7 @@ const DreamExperience = () => {
         originRef.current = sample;
         setHeading(0);
         setPitch(0);
-        setStatus({ kind: "active" });
+        setStatus({ kind: "active", motionEnabled: true });
         return;
       }
 
@@ -194,14 +195,10 @@ const DreamExperience = () => {
   useEffect(() => {
     if (status.kind !== "awaiting-orientation") return;
     const timeout = window.setTimeout(() => {
-      releaseCamera();
-      setStatus({
-        kind: "sensor-unavailable",
-        detail: "Motion access was allowed, but no orientation data arrived from this device.",
-      });
+      setStatus({ kind: "active", motionEnabled: false });
     }, SENSOR_TIMEOUT_MS);
     return () => window.clearTimeout(timeout);
-  }, [releaseCamera, status.kind]);
+  }, [status.kind]);
 
   useEffect(() => releaseCamera, [releaseCamera]);
 
@@ -244,14 +241,15 @@ const DreamExperience = () => {
       viewportGeometry = {
         left: viewportRect.left,
         top: viewportRect.top,
-        width: viewportRect.width,
-        height: viewportRect.height,
       };
       viewportGeometryRef.current = viewportGeometry;
     }
     const diamondRect = diamond.getBoundingClientRect();
+    const left =
+      diamondRect.right - viewportGeometry.left + POPOVER_GAP_PX;
     let popoverSize = popoverSizeRef.current;
     if (!popoverSize.width || !popoverSize.height) {
+      popover.style.width = `${POPOVER_MAX_WIDTH_PX}px`;
       const popoverRect = popover.getBoundingClientRect();
       popoverSize = { width: popoverRect.width, height: popoverRect.height };
       popoverSizeRef.current = popoverSize;
@@ -259,30 +257,7 @@ const DreamExperience = () => {
     const centeredTop =
       diamondRect.top - viewportGeometry.top +
       (diamondRect.height - popoverSize.height) / 2;
-    const maximumTop = Math.max(
-      VIEWPORT_EDGE_PX,
-      viewportGeometry.height - popoverSize.height - VIEWPORT_EDGE_PX,
-    );
-
-    const rightSide =
-      diamondRect.right - viewportGeometry.left + POPOVER_GAP_PX;
-    const leftSide =
-      diamondRect.left -
-      viewportGeometry.left -
-      popoverSize.width -
-      POPOVER_GAP_PX;
-    const maximumLeft = Math.max(
-      VIEWPORT_EDGE_PX,
-      viewportGeometry.width - popoverSize.width - VIEWPORT_EDGE_PX,
-    );
-    const left =
-      rightSide <= maximumLeft
-        ? rightSide
-        : leftSide >= VIEWPORT_EDGE_PX
-          ? leftSide
-          : Math.min(Math.max(rightSide, VIEWPORT_EDGE_PX), maximumLeft);
-    const top = Math.min(Math.max(centeredTop, VIEWPORT_EDGE_PX), maximumTop);
-    popover.style.transform = `translate3d(${left}px, ${top}px, 0)`;
+    popover.style.transform = `translate3d(${left}px, ${centeredTop}px, 0)`;
   }, []);
 
   useLayoutEffect(() => {
@@ -382,7 +357,7 @@ const DreamExperience = () => {
                   : "Augmented Reality Gallery"}
               </small>
             </div>
-            {isActive ? (
+            {isActive && status.motionEnabled ? (
               <button type="button" onClick={recenter} className="dream-experience__recenter">
                 <span aria-hidden="true">◎</span> Recenter
               </button>
@@ -396,70 +371,74 @@ const DreamExperience = () => {
               role="group"
             >
               <div
-                className="dream-cylinder__world"
-                style={worldStyle}
-                data-testid="dream-cylinder-world"
+                className="dream-cylinder__stage"
+                data-testid="dream-cylinder-stage"
                 onClick={(event) => {
-                  // When a card is open, the next background tap is always a
-                  // dismissal. Do not let the manual diamond hit-test replace
-                  // the selection before the outer click-away handler runs.
+                  // Perspective transforms can cause a visible diamond tap to
+                  // resolve to either the rotating world or its containing
+                  // stage. Handle both paths from this shared ancestor.
                   if (selectedDream) return;
                   selectDreamAtPoint(event);
                 }}
               >
-                {layout.placements.map((placement, index) => {
-                  const yPixels =
-                    -placement.verticalOffset * DEFAULT_CYLINDER_LAYOUT.pixelsPerMeter;
-                  const isFrontFacing = isPlacementFrontFacing(
-                    placement.angle,
-                    heading,
-                  );
-                  const isSelected = selectedDream?.id === placement.dream.id;
-                  return (
-                    <div
-                      key={placement.dream.id}
-                      className="dream-placement"
-                      style={
-                        {
-                          width: `${frameWidthPixels}px`,
-                          height: `${frameHeightPixels}px`,
-                          transform: `translate(-50%, -50%) rotateY(${placement.angle}deg) translateZ(${-radiusPixels}px) translateY(${yPixels}px)`,
-                          visibility: isFrontFacing ? "visible" : "hidden",
-                        } as CSSProperties
-                      }
-                    >
-                      <button
-                        ref={isSelected ? selectedDiamondRef : null}
-                        type="button"
-                        className={`dream-diamond ${isSelected ? "dream-diamond--selected" : ""}`}
-                        data-angle={placement.angle}
-                        data-dream-id={placement.dream.id}
-                        style={{ "--dream-index": index } as CSSProperties}
-                        aria-hidden={isFrontFacing ? undefined : true}
-                        tabIndex={isFrontFacing ? 0 : -1}
-                        aria-pressed={isSelected}
-                        aria-label={`Open ${placement.dream.title}`}
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          openDream(placement.dream, event.currentTarget);
-                        }}
+                <div
+                  className="dream-cylinder__world"
+                  style={worldStyle}
+                  data-testid="dream-cylinder-world"
+                >
+                  {layout.placements.map((placement, index) => {
+                    const yPixels =
+                      -placement.verticalOffset * DEFAULT_CYLINDER_LAYOUT.pixelsPerMeter;
+                    const isFrontFacing = isPlacementFrontFacing(
+                      placement.angle,
+                      heading,
+                    );
+                    const isSelected = selectedDream?.id === placement.dream.id;
+                    return (
+                      <div
+                        key={placement.dream.id}
+                        className="dream-placement"
+                        style={
+                          {
+                            width: `${frameWidthPixels}px`,
+                            height: `${frameHeightPixels}px`,
+                            transform: `translate(-50%, -50%) rotateY(${placement.angle}deg) translateZ(${-radiusPixels}px) translateY(${yPixels}px)`,
+                            visibility: isFrontFacing ? "visible" : "hidden",
+                          } as CSSProperties
+                        }
                       >
-                        <span className="dream-diamond__image">
-                          <img
-                            src={publicAssetPath(
-                              `images/thumbnails/${placement.dream.fileName.replace(".png", ".webp")}`,
-                            )}
-                            alt=""
-                            draggable={false}
-                            loading="eager"
-                            decoding="async"
-                          />
-                        </span>
-                      </button>
-                    </div>
-                  );
-                })}
-
+                        <button
+                          ref={isSelected ? selectedDiamondRef : null}
+                          type="button"
+                          className={`dream-diamond ${isSelected ? "dream-diamond--selected" : ""}`}
+                          data-angle={placement.angle}
+                          data-dream-id={placement.dream.id}
+                          style={{ "--dream-index": index } as CSSProperties}
+                          aria-hidden={isFrontFacing ? undefined : true}
+                          tabIndex={isFrontFacing ? 0 : -1}
+                          aria-pressed={isSelected}
+                          aria-label={`Open ${placement.dream.title}`}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            openDream(placement.dream, event.currentTarget);
+                          }}
+                        >
+                          <span className="dream-diamond__image">
+                            <img
+                              src={publicAssetPath(
+                                `images/thumbnails/${placement.dream.fileName.replace(".png", ".webp")}`,
+                              )}
+                              alt=""
+                              draggable={false}
+                              loading="eager"
+                              decoding="async"
+                            />
+                          </span>
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           ) : (
@@ -475,21 +454,23 @@ const DreamExperience = () => {
           ) : null}
 
           {isActive ? (
-            <div className="dream-experience__guide">
-              <svg
-                aria-hidden="true"
-                className="dream-experience__guide-orbit"
-                viewBox="0 0 48 48"
-              >
-                <path d="M8 24c0-7 7-12 16-12 6.8 0 12.6 2.9 15 7" />
-                <path d="m35 14 4 5-6 2" />
-                <path d="M40 24c0 7-7 12-16 12-6.8 0-12.6-2.9-15-7" />
-                <path d="m13 34-4-5 6-2" />
-              </svg>
-              <span>
-                <strong>The gallery surrounds you</strong>
-                <small>Turn slowly with your phone to discover every artwork</small>
-              </span>
+            <div
+              className="dream-experience__guide"
+              role="status"
+              aria-label={
+                status.motionEnabled
+                  ? "Turn around to view the gallery. Tap on a diamond to hear about it."
+                  : "Tap on a diamond to hear about it."
+              }
+            >
+              {status.motionEnabled ? (
+                <div className="dream-experience__guide-primary">
+                  <span aria-hidden="true">«</span>
+                  <strong>Turn around to view the gallery</strong>
+                  <span aria-hidden="true">»</span>
+                </div>
+              ) : null}
+              <small>Tap on a diamond to hear about it</small>
             </div>
           ) : null}
       </section>
@@ -513,8 +494,7 @@ const ExperienceGate = ({
     status.kind === "requesting" || status.kind === "awaiting-orientation";
   const isFailure =
     status.kind === "unsupported" ||
-    status.kind === "denied" ||
-    status.kind === "sensor-unavailable";
+    status.kind === "denied";
 
   return (
     <div className="dream-experience__gate">

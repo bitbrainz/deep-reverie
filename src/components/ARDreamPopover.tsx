@@ -123,7 +123,7 @@ export const ARDreamPopover = memo(
             className="ar-dream-popover__details"
             onClick={onDetails}
           >
-            View details
+            Details
           </button>
         </footer>
         {playbackStatus === "error" ? (
