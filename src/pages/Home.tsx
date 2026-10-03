@@ -1,5 +1,7 @@
 import { Link } from "react-router";
 import { InstallationImage } from "../components/InstallationImage";
+import { prepareExperienceAccess } from "../app/experienceAccess";
+import { publicAssetPath } from "../app/publicAssetPath";
 
 const INSTALLATION_FILM_URL = "https://www.youtube.com/watch?v=597IAhuQfZ4";
 
@@ -38,7 +40,7 @@ export const Home = () => {
 
       <section className="relative isolate min-h-[100svh] overflow-hidden" aria-labelledby="home-title">
         <img
-          src="/images/hero.webp"
+          src={publicAssetPath("images/hero.webp")}
           alt="A neon dreamscape surrounding a reclining robot beneath the words Deep Reverie"
           className="absolute inset-0 h-full w-full object-cover object-center"
           fetchPriority="high"
@@ -64,6 +66,17 @@ export const Home = () => {
           <div className="grid gap-3 sm:grid-cols-2">
             <Link
               to="/app"
+              onClick={(event) => {
+                if (
+                  event.button === 0 &&
+                  !event.metaKey &&
+                  !event.ctrlKey &&
+                  !event.shiftKey &&
+                  !event.altKey
+                ) {
+                  void prepareExperienceAccess();
+                }
+              }}
               className="group flex min-h-24 items-center gap-4 rounded-[14px] bg-[#ffe16a] px-5 text-[#211600] shadow-[0_18px_55px_rgba(255,211,73,0.24)] transition hover:bg-[#fff0a3] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#fff6ca] motion-reduce:transition-none"
               aria-label="Explore in AR — camera and volume required"
             >

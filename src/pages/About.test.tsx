@@ -1,7 +1,8 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { App } from "../App";
+import * as experienceAccess from "../app/experienceAccess";
 import About from "./About";
 import { Home } from "./Home";
 
@@ -34,6 +35,8 @@ const blendHex = (foreground: string, opacity: number, background: string) => {
 };
 
 describe("About the Art", () => {
+  afterEach(() => vi.restoreAllMocks());
+
   it("is reachable through the app route and presents the approved media", async () => {
     render(
       <MemoryRouter initialEntries={["/about"]}>
@@ -57,6 +60,12 @@ describe("About the Art", () => {
   });
 
   it("brings the gallery choices, installation film, and artist onto the home screen", () => {
+    const prepareAccess = vi
+      .spyOn(experienceAccess, "prepareExperienceAccess")
+      .mockResolvedValue({
+        kind: "unsupported",
+        detail: "Test environment",
+      });
     render(
       <MemoryRouter>
         <Home />
@@ -64,6 +73,8 @@ describe("About the Art", () => {
     );
 
     expect(screen.getByRole("link", { name: /Explore in AR/ })).toHaveAttribute("href", "/app");
+    fireEvent.click(screen.getByRole("link", { name: /Explore in AR/ }));
+    expect(prepareAccess).toHaveBeenCalledOnce();
     expect(screen.getByRole("link", { name: /Browse the Artwork/ })).toHaveAttribute(
       "href",
       "/gallery",
