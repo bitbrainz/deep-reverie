@@ -367,14 +367,6 @@ body.dream-experience-active {
   filter:
     drop-shadow(0 18px 24px rgba(0, 0, 0, 0.48))
     drop-shadow(0 0 14px rgba(246, 216, 135, 0.72));
-  transform: translateZ(2px);
-}
-
-@media (max-width: 640px) {
-  .dream-cylinder__stage--selected {
-    /* Shift the intact lattice to reserve a right-hand popover lane. */
-    transform: translateX(clamp(-90px, -23vw, -72px));
-  }
 }
 
 .dream-diamond--selected::after {

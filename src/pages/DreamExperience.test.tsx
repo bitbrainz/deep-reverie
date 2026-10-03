@@ -249,7 +249,7 @@ describe("DreamExperience", () => {
     expect(screen.getByRole("button", { name: "Open Virtual Reality" })).toHaveClass(
       "dream-diamond--selected",
     );
-    expect(screen.getByTestId("dream-cylinder-stage")).toHaveClass(
+    expect(screen.getByTestId("dream-cylinder-stage")).not.toHaveClass(
       "dream-cylinder__stage--selected",
     );
     expect(AudioMock.instances).toHaveLength(1);
@@ -296,7 +296,7 @@ describe("DreamExperience", () => {
     expect(popover).toHaveStyle({
       transform: "translate3d(212px, 340px, 0)",
       visibility: "visible",
-      width: "162px",
+      width: "238px",
     });
 
     const measurePopover = vi
@@ -306,11 +306,6 @@ describe("DreamExperience", () => {
     expect(measurePopover).toHaveBeenCalledOnce();
     measurePopover.mockClear();
     measureViewport.mockClear();
-
-    diamondLeft = 110;
-    fireEvent.transitionEnd(dreamOne, { propertyName: "transform" });
-    expect(measurePopover).toHaveBeenCalledOnce();
-    measurePopover.mockClear();
 
     diamondLeft = 90;
     fireEvent(
@@ -334,9 +329,6 @@ describe("DreamExperience", () => {
 
     fireEvent.click(world, { clientX: 100, clientY: 100 });
     expect(screen.queryByTestId("ar-dream-popover")).not.toBeInTheDocument();
-    expect(screen.getByTestId("dream-cylinder-stage")).not.toHaveClass(
-      "dream-cylinder__stage--selected",
-    );
     expect(
       screen.queryByRole("dialog", { name: "Animal Protection" }),
     ).not.toBeInTheDocument();

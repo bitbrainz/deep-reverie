@@ -36,7 +36,6 @@ const SENSOR_TIMEOUT_MS = 4_000;
 const POPOVER_GAP_PX = 12;
 const VIEWPORT_EDGE_PX = 16;
 const POPOVER_MAX_WIDTH_PX = 238;
-const POPOVER_MIN_WIDTH_PX = 104;
 
 type ExperienceStatus =
   | { kind: "idle" }
@@ -257,12 +256,7 @@ const DreamExperience = () => {
     const left = Math.max(rightSide, VIEWPORT_EDGE_PX);
     let popoverSize = popoverSizeRef.current;
     if (!popoverSize.width || !popoverSize.height) {
-      const availableWidth =
-        viewportGeometry.width - left - VIEWPORT_EDGE_PX;
-      popover.style.width = `${Math.min(
-        POPOVER_MAX_WIDTH_PX,
-        Math.max(POPOVER_MIN_WIDTH_PX, availableWidth),
-      )}px`;
+      popover.style.width = `${POPOVER_MAX_WIDTH_PX}px`;
       const popoverRect = popover.getBoundingClientRect();
       popoverSize = { width: popoverRect.width, height: popoverRect.height };
       popoverSizeRef.current = popoverSize;
@@ -287,19 +281,6 @@ const DreamExperience = () => {
   useLayoutEffect(() => {
     positionPopover();
   }, [heading, pitch, positionPopover]);
-
-  useEffect(() => {
-    const diamond = selectedDiamondRef.current;
-    if (!diamond || !selectedDream || showDetails) return;
-
-    const handleTransitionEnd = (event: TransitionEvent) => {
-      if (event.propertyName && event.propertyName !== "transform") return;
-      popoverSizeRef.current = { width: 0, height: 0 };
-      positionPopover();
-    };
-    diamond.addEventListener("transitionend", handleTransitionEnd);
-    return () => diamond.removeEventListener("transitionend", handleTransitionEnd);
-  }, [positionPopover, selectedDream, showDetails]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -403,7 +384,7 @@ const DreamExperience = () => {
               role="group"
             >
               <div
-                className={`dream-cylinder__stage ${selectedDream ? "dream-cylinder__stage--selected" : ""}`}
+                className="dream-cylinder__stage"
                 data-testid="dream-cylinder-stage"
               >
                 <div
