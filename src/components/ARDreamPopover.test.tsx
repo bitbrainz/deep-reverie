@@ -37,13 +37,13 @@ describe("ARDreamPopover", () => {
     render(
       <ARDreamPopover
         dream={DREAMS[0]}
-        onClose={vi.fn()}
         onDetails={vi.fn()}
       />,
     );
 
     expect(screen.getByRole("dialog", { name: "Virtual Reality" })).toBeVisible();
-    expect(screen.getByText("AR · Dream 01")).toBeVisible();
+    expect(screen.queryByText("AR · Dream 01")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Close .* AR dream/ })).not.toBeInTheDocument();
     expect(AudioMock.instances).toHaveLength(1);
     expect(AudioMock.instances[0].src).toContain(
       "/audio/narrations/01-virtual-reality.mp3",
@@ -55,11 +55,11 @@ describe("ARDreamPopover", () => {
 
   it("stops the old narration when the selected dream changes", async () => {
     const { rerender } = render(
-      <ARDreamPopover dream={DREAMS[0]} onClose={vi.fn()} onDetails={vi.fn()} />,
+      <ARDreamPopover dream={DREAMS[0]} onDetails={vi.fn()} />,
     );
 
     rerender(
-      <ARDreamPopover dream={DREAMS[1]} onClose={vi.fn()} onDetails={vi.fn()} />,
+      <ARDreamPopover dream={DREAMS[1]} onDetails={vi.fn()} />,
     );
 
     await waitFor(() => expect(AudioMock.instances[0].pause).toHaveBeenCalledOnce());
@@ -73,7 +73,7 @@ describe("ARDreamPopover", () => {
   it("reports when automatic playback is interrupted without adding playback controls", async () => {
     AudioMock.rejectPlayback = true;
     render(
-      <ARDreamPopover dream={DREAMS[0]} onClose={vi.fn()} onDetails={vi.fn()} />,
+      <ARDreamPopover dream={DREAMS[0]} onDetails={vi.fn()} />,
     );
 
     expect(
@@ -85,23 +85,11 @@ describe("ARDreamPopover", () => {
   it("opens the full details view through its dedicated action", () => {
     const onDetails = vi.fn();
     render(
-      <ARDreamPopover dream={DREAMS[0]} onClose={vi.fn()} onDetails={onDetails} />,
+      <ARDreamPopover dream={DREAMS[0]} onDetails={onDetails} />,
     );
 
     fireEvent.click(screen.getByRole("button", { name: "View details" }));
     expect(onDetails).toHaveBeenCalledOnce();
   });
 
-  it("closes through its own control", () => {
-    const onClose = vi.fn();
-    render(
-      <ARDreamPopover dream={DREAMS[0]} onClose={onClose} onDetails={vi.fn()} />,
-    );
-
-    fireEvent.click(
-      screen.getByRole("button", { name: "Close Virtual Reality AR dream" }),
-    );
-    expect(onClose).toHaveBeenCalledOnce();
-    expect(AudioMock.instances[0].pause).toHaveBeenCalledOnce();
-  });
 });

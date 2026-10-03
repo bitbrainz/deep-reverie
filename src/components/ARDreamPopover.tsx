@@ -11,14 +11,13 @@ import { getNarrationUrl } from "../dreams/data/narrations";
 
 type ARDreamPopoverProps = {
   dream: Dream;
-  onClose: () => void;
   onDetails: () => void;
 };
 
 type PlaybackStatus = "starting" | "playing" | "idle" | "error" | "unavailable";
 
 export const ARDreamPopover = forwardRef<HTMLElement, ARDreamPopoverProps>(
-  function ARDreamPopover({ dream, onClose, onDetails }, ref) {
+  function ARDreamPopover({ dream, onDetails }, ref) {
     const titleId = useId();
     const activeAudioRef = useRef<HTMLAudioElement | null>(null);
     const [playbackStatus, setPlaybackStatus] =
@@ -97,22 +96,6 @@ export const ARDreamPopover = forwardRef<HTMLElement, ARDreamPopoverProps>(
         data-testid="ar-dream-popover"
         onClick={(event) => event.stopPropagation()}
       >
-        <header className="ar-dream-popover__header">
-          <span className="ar-dream-popover__eyebrow">
-            AR · Dream {String(dream.id).padStart(2, "0")}
-          </span>
-          <button
-            type="button"
-            className="ar-dream-popover__close"
-            onClick={() => {
-              stopNarration();
-              onClose();
-            }}
-            aria-label={`Close ${dream.title} AR dream`}
-          >
-            ×
-          </button>
-        </header>
         <h2 id={titleId}>{dream.title}</h2>
         <p className="ar-dream-popover__tagline">{dream.tagline}</p>
         <p className="ar-dream-popover__copy">{dream.explanation}</p>
