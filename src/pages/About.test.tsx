@@ -5,6 +5,34 @@ import { App } from "../App";
 import About from "./About";
 import { Home } from "./Home";
 
+const relativeLuminance = (hex: string) => {
+  const channels = hex.match(/[a-f\d]{2}/gi)?.map((channel) => parseInt(channel, 16) / 255) ?? [];
+  const [red, green, blue] = channels.map((channel) =>
+    channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4,
+  );
+
+  return 0.2126 * red + 0.7152 * green + 0.0722 * blue;
+};
+
+const contrastRatio = (foreground: string, background: string) => {
+  const foregroundLuminance = relativeLuminance(foreground);
+  const backgroundLuminance = relativeLuminance(background);
+
+  return (Math.max(foregroundLuminance, backgroundLuminance) + 0.05)
+    / (Math.min(foregroundLuminance, backgroundLuminance) + 0.05);
+};
+
+const blendHex = (foreground: string, opacity: number, background: string) => {
+  const parse = (hex: string) => hex.match(/[a-f\d]{2}/gi)?.map((channel) => parseInt(channel, 16)) ?? [];
+  const foregroundChannels = parse(foreground);
+  const backgroundChannels = parse(background);
+
+  return `#${foregroundChannels
+    .map((channel, index) => Math.round(channel * opacity + backgroundChannels[index] * (1 - opacity)))
+    .map((channel) => channel.toString(16).padStart(2, "0"))
+    .join("")}`;
+};
+
 describe("About the Art", () => {
   it("is reachable through the app route and presents the approved media", async () => {
     render(
@@ -14,10 +42,13 @@ describe("About the Art", () => {
     );
 
     expect(await screen.findByRole("heading", { name: /A future, dreamed by a machine/i })).toBeVisible();
-    expect(screen.getByRole("img", { name: /vivid neon artwork/i })).toHaveAttribute(
+    const installationImage = screen.getByRole("img", { name: /vivid neon artwork/i });
+    expect(installationImage).toHaveAttribute(
       "src",
       "/images/deep-reverie-at-lumiere.webp",
     );
+    expect(installationImage).toHaveClass("aspect-[4/3]", "object-[68%_center]");
+    expect(installationImage).not.toHaveClass("scale-[1.85]");
     expect(screen.getByTitle("Deep Reverie installation film")).toHaveAttribute(
       "src",
       "https://www.youtube-nocookie.com/embed/597IAhuQfZ4",
@@ -88,6 +119,25 @@ describe("About the Art", () => {
       "href",
       INSTALLATION_FILM_URL,
     );
+  });
+
+  it("keeps both gallery-action text treatments above WCAG AA contrast", () => {
+    render(
+      <MemoryRouter>
+        <Home />
+      </MemoryRouter>,
+    );
+
+    const action = screen.getByRole("link", { name: /Browse the Artwork/ });
+    const title = screen.getByText("Browse the Artwork");
+    const supportingText = screen.getByText("View the complete gallery");
+    const compositedBackground = blendHex("#fff0b3", 0.95, "#080612");
+
+    expect(action).toHaveClass("bg-[#fff0b3]/95", "text-[#211600]");
+    expect(supportingText).toHaveClass("text-[#5a4300]");
+    expect(contrastRatio("#211600", compositedBackground)).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio("#5a4300", compositedBackground)).toBeGreaterThanOrEqual(4.5);
+    expect(title).toBeVisible();
   });
 
   it("keeps useful next steps available if the installation image fails", () => {
